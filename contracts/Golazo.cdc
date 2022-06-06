@@ -1,7 +1,6 @@
 /*
-    Adapted from: Genies.cdc
-    Author: Rhea Myers rhea.myers@dapperlabs.com
-    Author: Sadie Freeman sadie.freeman@dapperlabs.com
+    Adapted from: AllDay.cdc
+    Author: Innocent Abdullahi innocent.abdullahi@dapperlabs.com
 */
 
 
