@@ -1,11 +1,22 @@
 package test
 
 import (
+	"fmt"
 	"testing"
 
 	emulator "github.com/onflow/flow-emulator"
 	"github.com/onflow/flow-go-sdk"
 	"github.com/stretchr/testify/assert"
+)
+
+const (
+	playerJerseyName = "Deewai"
+	playType = "Goal"
+)
+
+var (
+	editions = make(map[uint64]EditionData)
+	sets = make(map[uint64]SetData)
 )
 
 //------------------------------------------------------------
@@ -179,6 +190,7 @@ func testCreateSet(
 		set := getSetData(t, b, contracts, shouldBeID)
 		assert.Equal(t, shouldBeID, set.ID)
 		assert.Equal(t, setName, set.Name)
+		sets[set.ID] = set
 	}
 }
 
@@ -198,7 +210,8 @@ func createTestPlays(t *testing.T, b *emulator.Blockchain, contracts Contracts) 
 			b,
 			contracts,
 			"TEST_CLASSIFICATION",
-			map[string]string{"test play metadata a": "TEST PLAY METADATA A"},
+			map[string]string{"test play metadata a": "TEST PLAY METADATA A",
+			 "PlayerJerseyName":playerJerseyName, "PlayType":playType},
 			1,
 			false,
 		)
@@ -210,7 +223,8 @@ func createTestPlays(t *testing.T, b *emulator.Blockchain, contracts Contracts) 
 			b,
 			contracts,
 			"TEST_CLASSIFICATION",
-			map[string]string{"test play metadata b": "TEST PLAY METADATA B"},
+			map[string]string{"test play metadata b": "TEST PLAY METADATA B",
+			"PlayerJerseyName":playerJerseyName, "PlayType":playType},
 			2,
 			false,
 		)
@@ -286,6 +300,7 @@ func testCreateEdition(
 		if maxMintSize != nil {
 			assert.Equal(t, &maxMintSize, &edition.MaxMintSize)
 		}
+		editions[edition.ID] = edition
 	}
 }
 
@@ -541,7 +556,10 @@ func testMintMomentNFT(
 			userAddress,
 			shouldBeID,
 		)
-		t.Logf("%+v", displayView)
+		assert.Equal(t, playerJerseyName + " " + playType, displayView.Name)
+		assert.Equal(t, fmt.Sprintf("A series %d %s moment with serial number %d", editions[editionID].SeriesID, sets[editions[editionID].SetID].Name, nftProperties.SerialNumber), displayView.Description)
+		//TODO: check the image reurned based on tier
+		assert.Equal(t, "https://ipfs.dapperlabs.com/ipfs/Qmbdj1agtbzpPWZ81wCGaDiMKRFaRN3TU6cfztVCu6nh4o", displayView.ImageURL)
 	} else {
 		assert.Equal(t, previousSupply, newSupply)
 	}
