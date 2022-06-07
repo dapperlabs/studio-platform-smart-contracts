@@ -534,6 +534,14 @@ func testMintMomentNFT(
 		//FIXME: query the block time and check equality.
 		//       Here we just make sure it's nonzero.
 		assert.Less(t, uint64(0), nftProperties.MintingDate)
+		displayView := getMomentNFTDisplayMetadataView(
+			t,
+			b,
+			contracts,
+			userAddress,
+			shouldBeID,
+		)
+		t.Logf("%+v", displayView)
 	} else {
 		assert.Equal(t, previousSupply, newSupply)
 	}

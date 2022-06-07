@@ -30,6 +30,7 @@ var (
 
 type Contracts struct {
 	NFTAddress    flow.Address
+	MetadataViewAddress flow.Address
 	GolazoAddress flow.Address
 	GolazoSigner  crypto.Signer
 }
@@ -107,6 +108,7 @@ func GolazoDeployContracts(t *testing.T, b *emulator.Blockchain) Contracts {
 
 	return Contracts{
 		nftAddress,
+		metadataViewsAddr,
 		GolazoAddress,
 		GolazoSigner,
 	}
@@ -258,7 +260,9 @@ func metadataDict(dict map[string]string) cadence.Dictionary {
 	pairs := []cadence.KeyValuePair{}
 
 	for key, value := range dict {
-		pairs = append(pairs, cadence.KeyValuePair{Key: cadence.NewString(key), Value: cadence.NewString(value)})
+		cadenceKey, _ := cadence.NewString(key)
+		cadenceValue, _ := cadence.NewString(value)
+		pairs = append(pairs, cadence.KeyValuePair{Key: cadenceKey, Value: cadenceValue})
 	}
 
 	return cadence.NewDictionary(pairs)

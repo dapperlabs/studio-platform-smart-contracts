@@ -53,13 +53,14 @@ func createSeries(
 	name string,
 	shouldRevert bool,
 ) {
+	cadenceString, _ := cadence.NewString(name)
 	tx := flow.NewTransaction().
 		SetScript(loadGolazoCreateSeriesTransaction(contracts)).
 		SetGasLimit(100).
 		SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
 		SetPayer(b.ServiceKey().Address).
 		AddAuthorizer(contracts.GolazoAddress)
-	tx.AddArgument(cadence.NewString(name))
+	tx.AddArgument(cadenceString)
 
 	signAndSubmit(
 		t, b, tx,
@@ -102,13 +103,14 @@ func createSet(
 	name string,
 	shouldRevert bool,
 ) {
+	cadenceString, _ := cadence.NewString(name)
 	tx := flow.NewTransaction().
 		SetScript(loadGolazoCreateSetTransaction(contracts)).
 		SetGasLimit(100).
 		SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
 		SetPayer(b.ServiceKey().Address).
 		AddAuthorizer(contracts.GolazoAddress)
-	tx.AddArgument(cadence.NewString(name))
+	tx.AddArgument(cadenceString)
 
 	signAndSubmit(
 		t, b, tx,
@@ -129,13 +131,14 @@ func createPlay(
 	metadata map[string]string,
 	shouldRevert bool,
 ) {
+	cadenceString, _ := cadence.NewString(classification)
 	tx := flow.NewTransaction().
 		SetScript(loadGolazoCreatePlayTransaction(contracts)).
 		SetGasLimit(100).
 		SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
 		SetPayer(b.ServiceKey().Address).
 		AddAuthorizer(contracts.GolazoAddress)
-	tx.AddArgument(cadence.NewString(classification))
+	tx.AddArgument(cadenceString)
 	tx.AddArgument(metadataDict(metadata))
 
 	signAndSubmit(
@@ -160,6 +163,7 @@ func createEdition(
 	tier string,
 	shouldRevert bool,
 ) {
+	cadenceString, _ := cadence.NewString(tier)
 	tx := flow.NewTransaction().
 		SetScript(loadGolazoCreateEditionTransaction(contracts)).
 		SetGasLimit(100).
@@ -169,7 +173,7 @@ func createEdition(
 	tx.AddArgument(cadence.NewUInt64(seriesID))
 	tx.AddArgument(cadence.NewUInt64(setID))
 	tx.AddArgument(cadence.NewUInt64(playID))
-	tx.AddArgument(cadence.NewString(tier))
+	tx.AddArgument(cadenceString)
 	if maxMintSize != nil {
 		tx.AddArgument(cadence.NewUInt64(*maxMintSize))
 	} else {

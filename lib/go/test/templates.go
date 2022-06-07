@@ -15,7 +15,7 @@ import (
 const (
 	nftAddressPlaceholder    = "\"[^\"]*NonFungibleToken.cdc\""
 	GolazoAddressPlaceholder = "\"[^\"]*Golazo.cdc\""
-	metadataViewsAddressPlaceholder = "METADATAVIEWSADDRESS"
+	metadataViewsAddressPlaceholder = "0xMETADATAVIEWSADDRESS"
 
 	GolazoPath                 = "../../../contracts/Golazo.cdc"
 	GolazoTransactionsRootPath = "../../../transactions"
@@ -59,6 +59,7 @@ const (
 	GolazoReadMomentNFTPropertiesPath = GolazoScriptsRootPath + "/nfts/read_moment_nft_properties.cdc"
 	GolazoReadCollectionNFTLengthPath = GolazoScriptsRootPath + "/nfts/read_collection_nft_length.cdc"
 	GolazoReadCollectionNFTIDsPath    = GolazoScriptsRootPath + "/nfts/read_collection_nft_ids.cdc"
+	GolazoDisplayMetadataViewPath    = GolazoScriptsRootPath + "/nfts/metadata_display_view.cdc"
 
 	// MetadataViews
 	MetadataViewsContractsBaseURL = "https://raw.githubusercontent.com/onflow/flow-nft/master/contracts/"
@@ -76,6 +77,8 @@ func replaceAddresses(code []byte, contracts Contracts) []byte {
 
 	GolazoRe := regexp.MustCompile(GolazoAddressPlaceholder)
 	code = GolazoRe.ReplaceAll(code, []byte("0x"+contracts.GolazoAddress.String()))
+
+	code = []byte(strings.ReplaceAll(string(code), metadataViewsAddressPlaceholder, "0x"+contracts.MetadataViewAddress.String()))
 
 	return code
 }
@@ -103,7 +106,7 @@ func LoadGolazo(nftAddress flow.Address, metadataViewsAddr flow.Address) []byte 
 
 	nftRe := regexp.MustCompile(nftAddressPlaceholder)
 	code = nftRe.ReplaceAll(code, []byte("0x"+nftAddress.String()))
-	code = []byte(strings.ReplaceAll(string(code), metadataViewsAddressPlaceholder, metadataViewsAddr.String()))
+	code = []byte(strings.ReplaceAll(string(code), metadataViewsAddressPlaceholder, "0x"+metadataViewsAddr.String()))
 
 	return code
 }
@@ -311,3 +314,11 @@ func loadGolazoTransferNFTTransaction(contracts Contracts) []byte {
 		contracts,
 	)
 }
+
+func loadGolazoDisplayMetadataViewScript(contracts Contracts) []byte {
+	return replaceAddresses(
+		readFile(GolazoDisplayMetadataViewPath),
+		contracts,
+	)
+}
+

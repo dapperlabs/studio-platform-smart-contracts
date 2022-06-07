@@ -131,7 +131,7 @@ pub contract Golazo: NonFungibleToken {
         // initializer
         //
         init (id: UInt64) {
-            let series = &Golazo.seriesByID[id] as! &Golazo.Series
+            let series = (&Golazo.seriesByID[id] as! &Golazo.Series?)!
             self.id = series.id
             self.name = series.name
             self.active = series.active
@@ -229,7 +229,7 @@ pub contract Golazo: NonFungibleToken {
         // initializer
         //
         init (id: UInt64) {
-            let set = &Golazo.setByID[id] as! &Golazo.Set
+            let set = (&Golazo.setByID[id] as! &Golazo.Set?)!
             self.id = id
             self.name = set.name
             self.setPlaysInEditions = set.setPlaysInEditions
@@ -312,7 +312,7 @@ pub contract Golazo: NonFungibleToken {
         // initializer
         //
         init (id: UInt64) {
-            let play = &Golazo.playByID[id] as! &Golazo.Play
+            let play = (&Golazo.playByID[id] as! &Golazo.Play?)!
             self.id = id
             self.classification = play.classification
             self.metadata = play.metadata
@@ -374,7 +374,7 @@ pub contract Golazo: NonFungibleToken {
         // initializer
         //
         init (id: UInt64) {
-            let edition = &Golazo.editionByID[id] as! &Golazo.Edition
+            let edition = (&Golazo.editionByID[id] as! &Golazo.Edition?)!
             self.id = id
             self.seriesID = edition.seriesID
             self.playID = edition.playID
@@ -558,11 +558,12 @@ pub contract Golazo: NonFungibleToken {
                 return MetadataViews.HTTPFile(url:"https://ipfs.dapperlabs.com/ipfs/Qmbdj1agtbzpPWZ81wCGaDiMKRFaRN3TU6cfztVCu6nh4o")
             default:
                 return MetadataViews.HTTPFile(url:"https://ipfs.dapperlabs.com/ipfs/Qmbdj1agtbzpPWZ81wCGaDiMKRFaRN3TU6cfztVCu6nh4o")
+            }
         }
 
         pub fun getViews(): [Type] {
             return [
-                Type<MetadataViews.Display>(),
+                Type<MetadataViews.Display>()
             ]
         }
 
@@ -664,14 +665,14 @@ pub contract Golazo: NonFungibleToken {
         // borrowNFT gets a reference to an NFT in the collection
         //
         pub fun borrowNFT(id: UInt64): &NonFungibleToken.NFT {
-            return &self.ownedNFTs[id] as &NonFungibleToken.NFT
+            return (&self.ownedNFTs[id] as &NonFungibleToken.NFT?)!
         }
 
         // borrowMomentNFT gets a reference to an NFT in the collection
         //
         pub fun borrowMomentNFT(id: UInt64): &Golazo.NFT? {
             if self.ownedNFTs[id] != nil {
-                let ref = &self.ownedNFTs[id] as auth &NonFungibleToken.NFT
+                let ref = (&self.ownedNFTs[id] as auth &NonFungibleToken.NFT?)!
                 return ref as! &Golazo.NFT
             } else {
                 return nil
@@ -720,7 +721,7 @@ pub contract Golazo: NonFungibleToken {
                 Golazo.seriesByID[id] != nil: "Cannot borrow series, no such id"
             }
 
-            return &Golazo.seriesByID[id] as &Golazo.Series
+            return (&Golazo.seriesByID[id] as &Golazo.Series?)!
         }
 
         // Borrow a Set
@@ -730,7 +731,7 @@ pub contract Golazo: NonFungibleToken {
                 Golazo.setByID[id] != nil: "Cannot borrow Set, no such id"
             }
 
-            return &Golazo.setByID[id] as &Golazo.Set
+            return (&Golazo.setByID[id] as &Golazo.Set?)!
         }
 
         // Borrow a Play
@@ -740,7 +741,7 @@ pub contract Golazo: NonFungibleToken {
                 Golazo.playByID[id] != nil: "Cannot borrow Play, no such id"
             }
 
-            return &Golazo.playByID[id] as &Golazo.Play
+            return (&Golazo.playByID[id] as &Golazo.Play?)!
         }
 
         // Borrow an Edition
@@ -750,7 +751,7 @@ pub contract Golazo: NonFungibleToken {
                 Golazo.editionByID[id] != nil: "Cannot borrow edition, no such id"
             }
 
-            return &Golazo.editionByID[id] as &Golazo.Edition
+            return (&Golazo.editionByID[id] as &Golazo.Edition?)!
         }
 
         // Create a Series
@@ -770,7 +771,7 @@ pub contract Golazo: NonFungibleToken {
         // Close a Series
         //
         pub fun closeSeries(id: UInt64): UInt64 {
-            let series = &Golazo.seriesByID[id] as &Golazo.Series
+            let series = (&Golazo.seriesByID[id] as &Golazo.Series?)!
             series.close()
             return series.id
         }
@@ -828,7 +829,7 @@ pub contract Golazo: NonFungibleToken {
         // Close an Edition
         //
         pub fun closeEdition(id: UInt64): UInt64 {
-            let edition = &Golazo.editionByID[id] as &Golazo.Edition
+            let edition = (&Golazo.editionByID[id] as &Golazo.Edition?)!
             edition.close()
             return edition.id
         }
