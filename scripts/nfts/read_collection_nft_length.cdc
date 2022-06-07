@@ -1,12 +1,12 @@
 import NonFungibleToken from "../../contracts/NonFungibleToken.cdc"
-import Golazo from "../../contracts/Golazo.cdc"
+import Sport from "../../contracts/Sport.cdc"
 
-// This script returns the size of an account's Golazo collection.
+// This script returns the size of an account's Sport collection.
 
 pub fun main(address: Address): Int {
     let account = getAccount(address)
 
-    let collectionRef = account.getCapability(Golazo.CollectionPublicPath)
+    let collectionRef = account.getCapability(Sport.CollectionPublicPath)
         .borrow<&{NonFungibleToken.CollectionPublic}>()
         ?? panic("Could not borrow capability from public collection")
     

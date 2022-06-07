@@ -1,13 +1,13 @@
 import NonFungibleToken from "../../contracts/NonFungibleToken.cdc"
-import Golazo from "../../contracts/Golazo.cdc"
+import Sport from "../../contracts/Sport.cdc"
 
-// This script returns the size of an account's Golazo collection.
+// This script returns the size of an account's Sport collection.
 
 pub fun main(address: Address, id: UInt64): [AnyStruct] {
     let account = getAccount(address)
 
-    let collectionRef = account.getCapability(Golazo.CollectionPublicPath)
-        .borrow<&{Golazo.MomentNFTCollectionPublic}>()
+    let collectionRef = account.getCapability(Sport.CollectionPublicPath)
+        .borrow<&{Sport.MomentNFTCollectionPublic}>()
         ?? panic("Could not borrow capability from public collection")
     
     let nft = collectionRef.borrowMomentNFT(id: id)

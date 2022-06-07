@@ -29,10 +29,10 @@ var (
 )
 
 type Contracts struct {
-	NFTAddress    flow.Address
+	NFTAddress          flow.Address
 	MetadataViewAddress flow.Address
-	GolazoAddress flow.Address
-	GolazoSigner  crypto.Signer
+	SportAddress        flow.Address
+	SportSigner         crypto.Signer
 }
 
 func deployNFTContract(t *testing.T, b *emulator.Blockchain) flow.Address {
@@ -53,7 +53,7 @@ func deployNFTContract(t *testing.T, b *emulator.Blockchain) flow.Address {
 	return nftAddress
 }
 
-func GolazoDeployContracts(t *testing.T, b *emulator.Blockchain) Contracts {
+func SportDeployContracts(t *testing.T, b *emulator.Blockchain) Contracts {
 	accountKeys := test.AccountKeyGenerator()
 
 	nftAddress := deployNFTContract(t, b)
@@ -70,24 +70,22 @@ func GolazoDeployContracts(t *testing.T, b *emulator.Blockchain) Contracts {
 	_, err = b.CommitBlock()
 	assert.NoError(t, err)
 
-	GolazoAccountKey, GolazoSigner := accountKeys.NewWithSigner()
-	GolazoCode := LoadGolazo(nftAddress, metadataViewsAddr)
+	SportAccountKey, SportSigner := accountKeys.NewWithSigner()
+	SportCode := LoadSport(nftAddress, metadataViewsAddr)
 
-	
-
-	GolazoAddress, err := b.CreateAccount(
-		[]*flow.AccountKey{GolazoAccountKey},
+	SportAddress, err := b.CreateAccount(
+		[]*flow.AccountKey{SportAccountKey},
 		nil,
 	)
 	require.NoError(t, err)
 
-	fundAccount(t, b, GolazoAddress, defaultAccountFunding)
+	fundAccount(t, b, SportAddress, defaultAccountFunding)
 
 	tx1 := sdktemplates.AddAccountContract(
-		GolazoAddress,
+		SportAddress,
 		sdktemplates.Contract{
-			Name:   "Golazo",
-			Source: string(GolazoCode),
+			Name:   "Sport",
+			Source: string(SportCode),
 		},
 	)
 
@@ -98,8 +96,8 @@ func GolazoDeployContracts(t *testing.T, b *emulator.Blockchain) Contracts {
 
 	signAndSubmit(
 		t, b, tx1,
-		[]flow.Address{b.ServiceKey().Address, GolazoAddress},
-		[]crypto.Signer{b.ServiceKey().Signer(), GolazoSigner},
+		[]flow.Address{b.ServiceKey().Address, SportAddress},
+		[]crypto.Signer{b.ServiceKey().Signer(), SportSigner},
 		false,
 	)
 
@@ -109,8 +107,8 @@ func GolazoDeployContracts(t *testing.T, b *emulator.Blockchain) Contracts {
 	return Contracts{
 		nftAddress,
 		metadataViewsAddr,
-		GolazoAddress,
-		GolazoSigner,
+		SportAddress,
+		SportSigner,
 	}
 }
 
@@ -221,7 +219,7 @@ func createAccount(t *testing.T, b *emulator.Blockchain) (sdk.Address, crypto.Si
 	return address, signer
 }
 
-func setupGolazo(
+func setupSport(
 	t *testing.T,
 	b *emulator.Blockchain,
 	userAddress sdk.Address,
@@ -229,7 +227,7 @@ func setupGolazo(
 	contracts Contracts,
 ) {
 	tx := flow.NewTransaction().
-		SetScript(loadGolazoSetupAccountTransaction(contracts)).
+		SetScript(loadSportSetupAccountTransaction(contracts)).
 		SetGasLimit(100).
 		SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
 		SetPayer(b.ServiceKey().Address).
@@ -250,7 +248,7 @@ func setupAccount(
 	signer crypto.Signer,
 	contracts Contracts,
 ) (sdk.Address, crypto.Signer) {
-	setupGolazo(t, b, address, signer, contracts)
+	setupSport(t, b, address, signer, contracts)
 	fundAccount(t, b, address, defaultAccountFunding)
 
 	return address, signer

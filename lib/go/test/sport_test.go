@@ -11,16 +11,16 @@ import (
 //------------------------------------------------------------
 // Setup
 //------------------------------------------------------------
-func TestGolazoDeployContracts(t *testing.T) {
+func TestSportDeployContracts(t *testing.T) {
 	b := newEmulator()
-	GolazoDeployContracts(t, b)
+	SportDeployContracts(t, b)
 }
 
-func TestGolazoSetupAccount(t *testing.T) {
+func TestSportSetupAccount(t *testing.T) {
 	b := newEmulator()
-	contracts := GolazoDeployContracts(t, b)
+	contracts := SportDeployContracts(t, b)
 	userAddress, userSigner := createAccount(t, b)
-	setupGolazo(t, b, userAddress, userSigner, contracts)
+	setupSport(t, b, userAddress, userSigner, contracts)
 
 	t.Run("Account should be set up", func(t *testing.T) {
 		accountIsSetUp := accountIsSetup(
@@ -38,7 +38,7 @@ func TestGolazoSetupAccount(t *testing.T) {
 //------------------------------------------------------------
 func TestSeries(t *testing.T) {
 	b := newEmulator()
-	contracts := GolazoDeployContracts(t, b)
+	contracts := SportDeployContracts(t, b)
 	createTestSeries(t, b, contracts)
 }
 
@@ -130,7 +130,7 @@ func testCloseSeries(
 //------------------------------------------------------------
 func TestSets(t *testing.T) {
 	b := newEmulator()
-	contracts := GolazoDeployContracts(t, b)
+	contracts := SportDeployContracts(t, b)
 	createTestSets(t, b, contracts)
 
 }
@@ -187,7 +187,7 @@ func testCreateSet(
 //------------------------------------------------------------
 func TestPlays(t *testing.T) {
 	b := newEmulator()
-	contracts := GolazoDeployContracts(t, b)
+	contracts := SportDeployContracts(t, b)
 	createTestPlays(t, b, contracts)
 }
 
@@ -248,7 +248,7 @@ func testCreatePlay(
 //------------------------------------------------------------
 func TestEditions(t *testing.T) {
 	b := newEmulator()
-	contracts := GolazoDeployContracts(t, b)
+	contracts := SportDeployContracts(t, b)
 	createTestEditions(t, b, contracts)
 }
 
@@ -409,9 +409,9 @@ func createTestEditions(t *testing.T, b *emulator.Blockchain, contracts Contract
 // ------------------------------------------------------------
 func TestMomentNFTs(t *testing.T) {
 	b := newEmulator()
-	contracts := GolazoDeployContracts(t, b)
+	contracts := SportDeployContracts(t, b)
 	userAddress, userSigner := createAccount(t, b)
-	setupGolazo(t, b, userAddress, userSigner, contracts)
+	setupSport(t, b, userAddress, userSigner, contracts)
 
 	createTestEditions(t, b, contracts)
 

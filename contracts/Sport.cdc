@@ -8,7 +8,7 @@ import NonFungibleToken from "./NonFungibleToken.cdc"
 import MetadataViews from 0xMETADATAVIEWSADDRESS
 
 /*
-    Golazo is structured similarly to Golazo.
+    Sport is structured similarly to Sport.
     Unlike TopShot, we use resources for all entities and manage access to their data
     by copying it to structs (this simplifies access control, in particular write access).
     We also encapsulate resource creation for the admin in member functions on the parent type.
@@ -28,9 +28,9 @@ import MetadataViews from 0xMETADATAVIEWSADDRESS
     This is enabled by encapsulation and saves gas for entity lifecycle operations.
  */
 
-// The Golazo NFTs and metadata contract
+// The Sport NFTs and metadata contract
 //
-pub contract Golazo: NonFungibleToken {
+pub contract Sport: NonFungibleToken {
     //------------------------------------------------------------
     // Events
     //------------------------------------------------------------
@@ -131,7 +131,7 @@ pub contract Golazo: NonFungibleToken {
         // initializer
         //
         init (id: UInt64) {
-            let series = (&Golazo.seriesByID[id] as! &Golazo.Series?)!
+            let series = (&Sport.seriesByID[id] as! &Sport.Series?)!
             self.id = series.id
             self.name = series.name
             self.active = series.active
@@ -161,16 +161,16 @@ pub contract Golazo: NonFungibleToken {
         //
         init (name: String) {
             pre {
-                !Golazo.seriesIDByName.containsKey(name): "A Series with that name already exists"
+                !Sport.seriesIDByName.containsKey(name): "A Series with that name already exists"
             }
-            self.id = Golazo.nextSeriesID
+            self.id = Sport.nextSeriesID
             self.name = name
             self.active = true   
 
             // Cache the new series's name => ID
-            Golazo.seriesIDByName[name] = self.id
+            Sport.seriesIDByName[name] = self.id
             // Increment for the nextSeriesID
-            Golazo.nextSeriesID = self.id + 1 as UInt64
+            Sport.nextSeriesID = self.id + 1 as UInt64
 
             emit SeriesCreated(id: self.id, name: self.name)
         }
@@ -178,36 +178,36 @@ pub contract Golazo: NonFungibleToken {
 
     // Get the publicly available data for a Series by id
     //
-    pub fun getSeriesData(id: UInt64): Golazo.SeriesData {
+    pub fun getSeriesData(id: UInt64): Sport.SeriesData {
         pre {
-            Golazo.seriesByID[id] != nil: "Cannot borrow series, no such id"
+            Sport.seriesByID[id] != nil: "Cannot borrow series, no such id"
         }
 
-        return Golazo.SeriesData(id: id)
+        return Sport.SeriesData(id: id)
     }
 
     // Get the publicly available data for a Series by name
     //
-    pub fun getSeriesDataByName(name: String): Golazo.SeriesData {
+    pub fun getSeriesDataByName(name: String): Sport.SeriesData {
         pre {
-            Golazo.seriesIDByName[name] != nil: "Cannot borrow series, no such name"
+            Sport.seriesIDByName[name] != nil: "Cannot borrow series, no such name"
         }
 
-        let id = Golazo.seriesIDByName[name]!
+        let id = Sport.seriesIDByName[name]!
 
-        return Golazo.SeriesData(id: id)
+        return Sport.SeriesData(id: id)
     }
 
     // Get all series names (this will be *long*)
     //
     pub fun getAllSeriesNames(): [String] {
-        return Golazo.seriesIDByName.keys
+        return Sport.seriesIDByName.keys
     }
 
     // Get series id for name
     //
     pub fun getSeriesIDByName(name: String): UInt64? {
-        return Golazo.seriesIDByName[name]
+        return Sport.seriesIDByName[name]
     }
 
     //------------------------------------------------------------
@@ -229,7 +229,7 @@ pub contract Golazo: NonFungibleToken {
         // initializer
         //
         init (id: UInt64) {
-            let set = (&Golazo.setByID[id] as! &Golazo.Set?)!
+            let set = (&Sport.setByID[id] as! &Sport.Set?)!
             self.id = id
             self.name = set.name
             self.setPlaysInEditions = set.setPlaysInEditions
@@ -254,16 +254,16 @@ pub contract Golazo: NonFungibleToken {
         //
         init (name: String) {
             pre {
-                !Golazo.setIDByName.containsKey(name): "A Set with that name already exists"
+                !Sport.setIDByName.containsKey(name): "A Set with that name already exists"
             }
-            self.id = Golazo.nextSetID
+            self.id = Sport.nextSetID
             self.name = name
             self.setPlaysInEditions = {}
 
             // Cache the new set's name => ID
-            Golazo.setIDByName[name] = self.id
+            Sport.setIDByName[name] = self.id
             // Increment for the nextSeriesID
-            Golazo.nextSetID = self.id + 1 as UInt64
+            Sport.nextSetID = self.id + 1 as UInt64
 
             emit SetCreated(id: self.id, name: self.name)
         }
@@ -271,30 +271,30 @@ pub contract Golazo: NonFungibleToken {
 
     // Get the publicly available data for a Set
     //
-    pub fun getSetData(id: UInt64): Golazo.SetData {
+    pub fun getSetData(id: UInt64): Sport.SetData {
         pre {
-            Golazo.setByID[id] != nil: "Cannot borrow set, no such id"
+            Sport.setByID[id] != nil: "Cannot borrow set, no such id"
         }
 
-        return Golazo.SetData(id: id)
+        return Sport.SetData(id: id)
     }
 
     // Get the publicly available data for a Set by name
     //
-    pub fun getSetDataByName(name: String): Golazo.SetData {
+    pub fun getSetDataByName(name: String): Sport.SetData {
         pre {
-            Golazo.setIDByName[name] != nil: "Cannot borrow set, no such name"
+            Sport.setIDByName[name] != nil: "Cannot borrow set, no such name"
         }
 
-        let id = Golazo.setIDByName[name]!
+        let id = Sport.setIDByName[name]!
 
-        return Golazo.SetData(id: id)
+        return Sport.SetData(id: id)
     }
 
     // Get all set names (this will be *long*)
     //
     pub fun getAllSetNames(): [String] {
-        return Golazo.setIDByName.keys
+        return Sport.setIDByName.keys
     }
 
 
@@ -312,7 +312,7 @@ pub contract Golazo: NonFungibleToken {
         // initializer
         //
         init (id: UInt64) {
-            let play = (&Golazo.playByID[id] as! &Golazo.Play?)!
+            let play = (&Sport.playByID[id] as! &Sport.Play?)!
             self.id = id
             self.classification = play.classification
             self.metadata = play.metadata
@@ -331,11 +331,11 @@ pub contract Golazo: NonFungibleToken {
         // initializer
         //
         init (classification: String, metadata: {String: String}) {
-            self.id = Golazo.nextPlayID
+            self.id = Sport.nextPlayID
             self.classification = classification
             self.metadata = metadata
 
-            Golazo.nextPlayID = self.id + 1 as UInt64
+            Sport.nextPlayID = self.id + 1 as UInt64
 
             emit PlayCreated(id: self.id, classification: self.classification, metadata: self.metadata)
         }
@@ -343,12 +343,12 @@ pub contract Golazo: NonFungibleToken {
 
     // Get the publicly available data for a Play
     //
-    pub fun getPlayData(id: UInt64): Golazo.PlayData {
+    pub fun getPlayData(id: UInt64): Sport.PlayData {
         pre {
-            Golazo.playByID[id] != nil: "Cannot borrow play, no such id"
+            Sport.playByID[id] != nil: "Cannot borrow play, no such id"
         }
 
-        return Golazo.PlayData(id: id)
+        return Sport.PlayData(id: id)
     }
 
     //------------------------------------------------------------
@@ -374,7 +374,7 @@ pub contract Golazo: NonFungibleToken {
         // initializer
         //
         init (id: UInt64) {
-            let edition = (&Golazo.editionByID[id] as! &Golazo.Edition?)!
+            let edition = (&Sport.editionByID[id] as! &Sport.Edition?)!
             self.id = id
             self.seriesID = edition.seriesID
             self.playID = edition.playID
@@ -413,18 +413,18 @@ pub contract Golazo: NonFungibleToken {
         // Mint a Moment NFT in this edition, with the given minting mintingDate.
         // Note that this will panic if the max mint size has already been reached.
         //
-        pub fun mint(): @Golazo.NFT {
+        pub fun mint(): @Sport.NFT {
             pre {
                 self.numMinted != self.maxMintSize: "max number of minted moments has been reached"
             }
 
             // Create the Moment NFT, filled out with our information
             let momentNFT <- create NFT(
-                id: Golazo.totalSupply + 1,
+                id: Sport.totalSupply + 1,
                 editionID: self.id,
                 serialNumber: self.numMinted + 1
             )
-            Golazo.totalSupply = Golazo.totalSupply + 1
+            Sport.totalSupply = Sport.totalSupply + 1
             // Keep a running total (you'll notice we used this as the serial number)
             self.numMinted = self.numMinted + 1 as UInt64
 
@@ -442,14 +442,14 @@ pub contract Golazo: NonFungibleToken {
         ) {
             pre {
                 maxMintSize != 0: "max mint size is zero, must either be null or greater than 0"
-                Golazo.seriesByID.containsKey(seriesID): "seriesID does not exist"
-                Golazo.setByID.containsKey(setID): "setID does not exist"
-                Golazo.playByID.containsKey(playID): "playID does not exist"
+                Sport.seriesByID.containsKey(seriesID): "seriesID does not exist"
+                Sport.setByID.containsKey(setID): "setID does not exist"
+                Sport.playByID.containsKey(playID): "playID does not exist"
                 SeriesData(id: seriesID).active == true: "cannot create an Edition with a closed Series"
                 SetData(id: setID).setPlayExistsInEdition(playID: playID) != true: "set play combination already exists in an edition"
             }
 
-            self.id = Golazo.nextEditionID
+            self.id = Sport.nextEditionID
             self.seriesID = seriesID
             self.setID = setID
             self.playID = playID
@@ -464,8 +464,8 @@ pub contract Golazo: NonFungibleToken {
             self.tier = tier
             self.numMinted = 0 as UInt64
 
-            Golazo.nextEditionID = Golazo.nextEditionID + 1 as UInt64
-            Golazo.setByID[setID]?.insertNewPlay(playID: playID)
+            Sport.nextEditionID = Sport.nextEditionID + 1 as UInt64
+            Sport.setByID[setID]?.insertNewPlay(playID: playID)
 
             emit EditionCreated(
                 id: self.id,
@@ -482,10 +482,10 @@ pub contract Golazo: NonFungibleToken {
     //
     pub fun getEditionData(id: UInt64): EditionData {
         pre {
-            Golazo.editionByID[id] != nil: "Cannot borrow edition, no such id"
+            Sport.editionByID[id] != nil: "Cannot borrow edition, no such id"
         }
 
-        return Golazo.EditionData(id: id)
+        return Sport.EditionData(id: id)
     }
 
     //------------------------------------------------------------
@@ -514,7 +514,7 @@ pub contract Golazo: NonFungibleToken {
             serialNumber: UInt64
         ) {
             pre {
-                Golazo.editionByID[editionID] != nil: "no such editionID"
+                Sport.editionByID[editionID] != nil: "no such editionID"
                 EditionData(id: editionID).maxEditionMintSizeReached() != true: "max edition size already reached"
             }
 
@@ -527,17 +527,17 @@ pub contract Golazo: NonFungibleToken {
         }
 
         pub fun name(): String {
-            let editionData = Golazo.getEditionData(id: self.editionID)
-            let fullName: String = Golazo.PlayData(id: editionData.playID).metadata["PlayerJerseyName"] ?? ""
-            let playType: String = Golazo.PlayData(id: editionData.playID).metadata["PlayType"] ?? ""
+            let editionData = Sport.getEditionData(id: self.editionID)
+            let fullName: String = Sport.PlayData(id: editionData.playID).metadata["PlayerJerseyName"] ?? ""
+            let playType: String = Sport.PlayData(id: editionData.playID).metadata["PlayType"] ?? ""
             return fullName
                 .concat(" ")
                 .concat(playType)
         }
 
         pub fun description(): String {
-            let editionData = Golazo.getEditionData(id: self.editionID)
-            let setName: String = Golazo.SetData(id: editionData.setID).name
+            let editionData = Sport.getEditionData(id: self.editionID)
+            let setName: String = Sport.SetData(id: editionData.setID).name
             let serialNumber: String = self.serialNumber.toString()
             let seriesNumber: String = editionData.seriesID.toString()
             return "A series "
@@ -549,13 +549,9 @@ pub contract Golazo: NonFungibleToken {
         }
 
         pub fun thumbnail(): MetadataViews.HTTPFile {
-            let editionData = Golazo.getEditionData(id: self.editionID)
-            // TODO: change to image for golazo
+            let editionData = Sport.getEditionData(id: self.editionID)
+            // TODO: change to image for sport
             switch editionData.tier {
-            case "1":
-                return MetadataViews.HTTPFile(url:"https://ipfs.dapperlabs.com/ipfs/Qmbdj1agtbzpPWZ81wCGaDiMKRFaRN3TU6cfztVCu6nh4o")
-            case "2":
-                return MetadataViews.HTTPFile(url:"https://ipfs.dapperlabs.com/ipfs/Qmbdj1agtbzpPWZ81wCGaDiMKRFaRN3TU6cfztVCu6nh4o")
             default:
                 return MetadataViews.HTTPFile(url:"https://ipfs.dapperlabs.com/ipfs/Qmbdj1agtbzpPWZ81wCGaDiMKRFaRN3TU6cfztVCu6nh4o")
             }
@@ -592,7 +588,7 @@ pub contract Golazo: NonFungibleToken {
         pub fun batchDeposit(tokens: @NonFungibleToken.Collection)
         pub fun getIDs(): [UInt64]
         pub fun borrowNFT(id: UInt64): &NonFungibleToken.NFT
-        pub fun borrowMomentNFT(id: UInt64): &Golazo.NFT? {
+        pub fun borrowMomentNFT(id: UInt64): &Sport.NFT? {
             // If the result isn't nil, the id of the returned reference
             // should be the same as the argument to the function
             post {
@@ -629,7 +625,7 @@ pub contract Golazo: NonFungibleToken {
         // and adds the ID to the id array
         //
         pub fun deposit(token: @NonFungibleToken.NFT) {
-            let token <- token as! @Golazo.NFT
+            let token <- token as! @Sport.NFT
             let id: UInt64 = token.id
 
             // add the new token to the dictionary which removes the old one
@@ -670,10 +666,10 @@ pub contract Golazo: NonFungibleToken {
 
         // borrowMomentNFT gets a reference to an NFT in the collection
         //
-        pub fun borrowMomentNFT(id: UInt64): &Golazo.NFT? {
+        pub fun borrowMomentNFT(id: UInt64): &Sport.NFT? {
             if self.ownedNFTs[id] != nil {
                 let ref = (&self.ownedNFTs[id] as auth &NonFungibleToken.NFT?)!
-                return ref as! &Golazo.NFT
+                return ref as! &Sport.NFT
             } else {
                 return nil
             }
@@ -708,7 +704,7 @@ pub contract Golazo: NonFungibleToken {
         // Mint a single NFT
         // The Edition for the given ID must already exist
         //
-        pub fun mintNFT(editionID: UInt64): @Golazo.NFT
+        pub fun mintNFT(editionID: UInt64): @Sport.NFT
     }
 
     // A resource that allows managing metadata and minting NFTs
@@ -716,53 +712,53 @@ pub contract Golazo: NonFungibleToken {
     pub resource Admin: NFTMinter {
         // Borrow a Series
         //
-        pub fun borrowSeries(id: UInt64): &Golazo.Series {
+        pub fun borrowSeries(id: UInt64): &Sport.Series {
             pre {
-                Golazo.seriesByID[id] != nil: "Cannot borrow series, no such id"
+                Sport.seriesByID[id] != nil: "Cannot borrow series, no such id"
             }
 
-            return (&Golazo.seriesByID[id] as &Golazo.Series?)!
+            return (&Sport.seriesByID[id] as &Sport.Series?)!
         }
 
         // Borrow a Set
         //
-        pub fun borrowSet(id: UInt64): &Golazo.Set {
+        pub fun borrowSet(id: UInt64): &Sport.Set {
             pre {
-                Golazo.setByID[id] != nil: "Cannot borrow Set, no such id"
+                Sport.setByID[id] != nil: "Cannot borrow Set, no such id"
             }
 
-            return (&Golazo.setByID[id] as &Golazo.Set?)!
+            return (&Sport.setByID[id] as &Sport.Set?)!
         }
 
         // Borrow a Play
         //
-        pub fun borrowPlay(id: UInt64): &Golazo.Play {
+        pub fun borrowPlay(id: UInt64): &Sport.Play {
             pre {
-                Golazo.playByID[id] != nil: "Cannot borrow Play, no such id"
+                Sport.playByID[id] != nil: "Cannot borrow Play, no such id"
             }
 
-            return (&Golazo.playByID[id] as &Golazo.Play?)!
+            return (&Sport.playByID[id] as &Sport.Play?)!
         }
 
         // Borrow an Edition
         //
-        pub fun borrowEdition(id: UInt64): &Golazo.Edition {
+        pub fun borrowEdition(id: UInt64): &Sport.Edition {
             pre {
-                Golazo.editionByID[id] != nil: "Cannot borrow edition, no such id"
+                Sport.editionByID[id] != nil: "Cannot borrow edition, no such id"
             }
 
-            return (&Golazo.editionByID[id] as &Golazo.Edition?)!
+            return (&Sport.editionByID[id] as &Sport.Edition?)!
         }
 
         // Create a Series
         //
         pub fun createSeries(name: String): UInt64 {
             // Create and store the new series
-            let series <- create Golazo.Series(
+            let series <- create Sport.Series(
                 name: name,
             )
             let seriesID = series.id
-            Golazo.seriesByID[series.id] <-! series
+            Sport.seriesByID[series.id] <-! series
 
             // Return the new ID for convenience
             return seriesID
@@ -771,7 +767,7 @@ pub contract Golazo: NonFungibleToken {
         // Close a Series
         //
         pub fun closeSeries(id: UInt64): UInt64 {
-            let series = (&Golazo.seriesByID[id] as &Golazo.Series?)!
+            let series = (&Sport.seriesByID[id] as &Sport.Series?)!
             series.close()
             return series.id
         }
@@ -780,11 +776,11 @@ pub contract Golazo: NonFungibleToken {
         //
         pub fun createSet(name: String): UInt64 {
             // Create and store the new set
-            let set <- create Golazo.Set(
+            let set <- create Sport.Set(
                 name: name,
             )
             let setID = set.id
-            Golazo.setByID[set.id] <-! set
+            Sport.setByID[set.id] <-! set
 
             // Return the new ID for convenience
             return setID
@@ -794,12 +790,12 @@ pub contract Golazo: NonFungibleToken {
         //
         pub fun createPlay(classification: String, metadata: {String: String}): UInt64 {
             // Create and store the new play
-            let play <- create Golazo.Play(
+            let play <- create Sport.Play(
                 classification: classification,
                 metadata: metadata,
             )
             let playID = play.id
-            Golazo.playByID[play.id] <-! play
+            Sport.playByID[play.id] <-! play
 
             // Return the new ID for convenience
             return playID
@@ -821,7 +817,7 @@ pub contract Golazo: NonFungibleToken {
                 tier: tier,
             )
             let editionID = edition.id
-            Golazo.editionByID[edition.id] <-! edition
+            Sport.editionByID[edition.id] <-! edition
 
             return editionID
         }
@@ -829,7 +825,7 @@ pub contract Golazo: NonFungibleToken {
         // Close an Edition
         //
         pub fun closeEdition(id: UInt64): UInt64 {
-            let edition = (&Golazo.editionByID[id] as &Golazo.Edition?)!
+            let edition = (&Sport.editionByID[id] as &Sport.Edition?)!
             edition.close()
             return edition.id
         }
@@ -837,10 +833,10 @@ pub contract Golazo: NonFungibleToken {
         // Mint a single NFT
         // The Edition for the given ID must already exist
         //
-        pub fun mintNFT(editionID: UInt64): @Golazo.NFT {
+        pub fun mintNFT(editionID: UInt64): @Sport.NFT {
             pre {
                 // Make sure the edition we are creating this NFT in exists
-                Golazo.editionByID.containsKey(editionID): "No such EditionID"
+                Sport.editionByID.containsKey(editionID): "No such EditionID"
             }
 
             return <- self.borrowEdition(id: editionID).mint()
@@ -851,14 +847,14 @@ pub contract Golazo: NonFungibleToken {
     // Contract lifecycle
     //------------------------------------------------------------
 
-    // Golazo contract initializer
+    // Sport contract initializer
     //
     init() {
         // Set the named paths
-        self.CollectionStoragePath = /storage/GolazoNFTCollection
-        self.CollectionPublicPath = /public/GolazoNFTCollection
-        self.AdminStoragePath = /storage/GolazoAdmin
-        self.MinterPrivatePath = /private/GolazoMinter
+        self.CollectionStoragePath = /storage/SportNFTCollection
+        self.CollectionPublicPath = /public/SportNFTCollection
+        self.AdminStoragePath = /storage/SportAdmin
+        self.MinterPrivatePath = /private/SportMinter
 
         // Initialize the entity counts
         self.totalSupply = 0
@@ -880,7 +876,7 @@ pub contract Golazo: NonFungibleToken {
         self.account.save(<-admin, to: self.AdminStoragePath)
         // Link capabilites to the admin constrained to the Minter
         // and Metadata interfaces
-        self.account.link<&Golazo.Admin{Golazo.NFTMinter}>(
+        self.account.link<&Sport.Admin{Sport.NFTMinter}>(
             self.MinterPrivatePath,
             target: self.AdminStoragePath
         )

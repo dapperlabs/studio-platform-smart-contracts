@@ -1,9 +1,9 @@
-import Golazo from "../../contracts/Golazo.cdc"
+import Sport from "../../contracts/Sport.cdc"
 
 // This script returns all the names for Series.
-// These can be related to Series structs via Golazo.getSeriesByName() .
+// These can be related to Series structs via Sport.getSeriesByName() .
 
 pub fun main(): [String] {
-    return Golazo.getAllSeriesNames()
+    return Sport.getAllSeriesNames()
 }
 

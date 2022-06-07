@@ -1,4 +1,4 @@
-import Golazo from "../../contracts/Golazo.cdc"
+import Sport from "../../contracts/Sport.cdc"
 import MetadataViews from 0xMETADATAVIEWSADDRESS
 
 pub struct NFT {
@@ -20,8 +20,8 @@ pub struct NFT {
 pub fun main(address: Address, id: UInt64): NFT {
     let account = getAccount(address)
 
-    let collectionRef = account.getCapability(Golazo.CollectionPublicPath)
-                            .borrow<&{Golazo.MomentNFTCollectionPublic}>()!
+    let collectionRef = account.getCapability(Sport.CollectionPublicPath)
+                            .borrow<&{Sport.MomentNFTCollectionPublic}>()!
 
     let nft = collectionRef.borrowMomentNFT(id: id)!
     

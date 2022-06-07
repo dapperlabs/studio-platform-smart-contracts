@@ -55,17 +55,17 @@ func createSeries(
 ) {
 	cadenceString, _ := cadence.NewString(name)
 	tx := flow.NewTransaction().
-		SetScript(loadGolazoCreateSeriesTransaction(contracts)).
+		SetScript(loadSportCreateSeriesTransaction(contracts)).
 		SetGasLimit(100).
 		SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
 		SetPayer(b.ServiceKey().Address).
-		AddAuthorizer(contracts.GolazoAddress)
+		AddAuthorizer(contracts.SportAddress)
 	tx.AddArgument(cadenceString)
 
 	signAndSubmit(
 		t, b, tx,
-		[]flow.Address{b.ServiceKey().Address, contracts.GolazoAddress},
-		[]crypto.Signer{b.ServiceKey().Signer(), contracts.GolazoSigner},
+		[]flow.Address{b.ServiceKey().Address, contracts.SportAddress},
+		[]crypto.Signer{b.ServiceKey().Signer(), contracts.SportSigner},
 		shouldRevert,
 	)
 }
@@ -78,17 +78,17 @@ func closeSeries(
 	shouldRevert bool,
 ) {
 	tx := flow.NewTransaction().
-		SetScript(loadGolazoCloseSeriesTransaction(contracts)).
+		SetScript(loadSportCloseSeriesTransaction(contracts)).
 		SetGasLimit(100).
 		SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
 		SetPayer(b.ServiceKey().Address).
-		AddAuthorizer(contracts.GolazoAddress)
+		AddAuthorizer(contracts.SportAddress)
 	tx.AddArgument(cadence.NewUInt64(id))
 
 	signAndSubmit(
 		t, b, tx,
-		[]flow.Address{b.ServiceKey().Address, contracts.GolazoAddress},
-		[]crypto.Signer{b.ServiceKey().Signer(), contracts.GolazoSigner},
+		[]flow.Address{b.ServiceKey().Address, contracts.SportAddress},
+		[]crypto.Signer{b.ServiceKey().Signer(), contracts.SportSigner},
 		shouldRevert,
 	)
 }
@@ -105,17 +105,17 @@ func createSet(
 ) {
 	cadenceString, _ := cadence.NewString(name)
 	tx := flow.NewTransaction().
-		SetScript(loadGolazoCreateSetTransaction(contracts)).
+		SetScript(loadSportCreateSetTransaction(contracts)).
 		SetGasLimit(100).
 		SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
 		SetPayer(b.ServiceKey().Address).
-		AddAuthorizer(contracts.GolazoAddress)
+		AddAuthorizer(contracts.SportAddress)
 	tx.AddArgument(cadenceString)
 
 	signAndSubmit(
 		t, b, tx,
-		[]flow.Address{b.ServiceKey().Address, contracts.GolazoAddress},
-		[]crypto.Signer{b.ServiceKey().Signer(), contracts.GolazoSigner},
+		[]flow.Address{b.ServiceKey().Address, contracts.SportAddress},
+		[]crypto.Signer{b.ServiceKey().Signer(), contracts.SportSigner},
 		shouldRevert,
 	)
 }
@@ -133,18 +133,18 @@ func createPlay(
 ) {
 	cadenceString, _ := cadence.NewString(classification)
 	tx := flow.NewTransaction().
-		SetScript(loadGolazoCreatePlayTransaction(contracts)).
+		SetScript(loadSportCreatePlayTransaction(contracts)).
 		SetGasLimit(100).
 		SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
 		SetPayer(b.ServiceKey().Address).
-		AddAuthorizer(contracts.GolazoAddress)
+		AddAuthorizer(contracts.SportAddress)
 	tx.AddArgument(cadenceString)
 	tx.AddArgument(metadataDict(metadata))
 
 	signAndSubmit(
 		t, b, tx,
-		[]flow.Address{b.ServiceKey().Address, contracts.GolazoAddress},
-		[]crypto.Signer{b.ServiceKey().Signer(), contracts.GolazoSigner},
+		[]flow.Address{b.ServiceKey().Address, contracts.SportAddress},
+		[]crypto.Signer{b.ServiceKey().Signer(), contracts.SportSigner},
 		shouldRevert,
 	)
 }
@@ -165,11 +165,11 @@ func createEdition(
 ) {
 	cadenceString, _ := cadence.NewString(tier)
 	tx := flow.NewTransaction().
-		SetScript(loadGolazoCreateEditionTransaction(contracts)).
+		SetScript(loadSportCreateEditionTransaction(contracts)).
 		SetGasLimit(100).
 		SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
 		SetPayer(b.ServiceKey().Address).
-		AddAuthorizer(contracts.GolazoAddress)
+		AddAuthorizer(contracts.SportAddress)
 	tx.AddArgument(cadence.NewUInt64(seriesID))
 	tx.AddArgument(cadence.NewUInt64(setID))
 	tx.AddArgument(cadence.NewUInt64(playID))
@@ -182,8 +182,8 @@ func createEdition(
 
 	signAndSubmit(
 		t, b, tx,
-		[]flow.Address{b.ServiceKey().Address, contracts.GolazoAddress},
-		[]crypto.Signer{b.ServiceKey().Signer(), contracts.GolazoSigner},
+		[]flow.Address{b.ServiceKey().Address, contracts.SportAddress},
+		[]crypto.Signer{b.ServiceKey().Signer(), contracts.SportSigner},
 		shouldRevert,
 	)
 }
@@ -196,17 +196,17 @@ func closeEdition(
 	shouldRevert bool,
 ) {
 	tx := flow.NewTransaction().
-		SetScript(loadGolazoCloseEditionTransaction(contracts)).
+		SetScript(loadSportCloseEditionTransaction(contracts)).
 		SetGasLimit(100).
 		SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
 		SetPayer(b.ServiceKey().Address).
-		AddAuthorizer(contracts.GolazoAddress)
+		AddAuthorizer(contracts.SportAddress)
 	tx.AddArgument(cadence.NewUInt64(editionID))
 
 	signAndSubmit(
 		t, b, tx,
-		[]flow.Address{b.ServiceKey().Address, contracts.GolazoAddress},
-		[]crypto.Signer{b.ServiceKey().Signer(), contracts.GolazoSigner},
+		[]flow.Address{b.ServiceKey().Address, contracts.SportAddress},
+		[]crypto.Signer{b.ServiceKey().Signer(), contracts.SportSigner},
 		shouldRevert,
 	)
 }
@@ -223,18 +223,18 @@ func mintMomentNFT(
 	shouldRevert bool,
 ) {
 	tx := flow.NewTransaction().
-		SetScript(loadGolazoMintMomentNFTTransaction(contracts)).
+		SetScript(loadSportMintMomentNFTTransaction(contracts)).
 		SetGasLimit(100).
 		SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
 		SetPayer(b.ServiceKey().Address).
-		AddAuthorizer(contracts.GolazoAddress)
+		AddAuthorizer(contracts.SportAddress)
 	tx.AddArgument(cadence.BytesToAddress(recipientAddress.Bytes()))
 	tx.AddArgument(cadence.NewUInt64(editionID))
 
 	signAndSubmit(
 		t, b, tx,
-		[]flow.Address{b.ServiceKey().Address, contracts.GolazoAddress},
-		[]crypto.Signer{b.ServiceKey().Signer(), contracts.GolazoSigner},
+		[]flow.Address{b.ServiceKey().Address, contracts.SportAddress},
+		[]crypto.Signer{b.ServiceKey().Signer(), contracts.SportSigner},
 		shouldRevert,
 	)
 }
@@ -250,7 +250,7 @@ func transferMomentNFT(
 	shouldRevert bool,
 ) {
 	tx := flow.NewTransaction().
-		SetScript(loadGolazoTransferNFTTransaction(contracts)).
+		SetScript(loadSportTransferNFTTransaction(contracts)).
 		SetGasLimit(100).
 		SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
 		SetPayer(b.ServiceKey().Address).

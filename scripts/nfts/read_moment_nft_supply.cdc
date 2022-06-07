@@ -1,8 +1,8 @@
-import Golazo from "../../contracts/Golazo.cdc"
+import Sport from "../../contracts/Sport.cdc"
 
-// This scripts returns the number of Golazo currently in existence.
+// This scripts returns the number of Sport currently in existence.
 
 pub fun main(): UInt64 {    
-    return Golazo.totalSupply
+    return Sport.totalSupply
 }
 

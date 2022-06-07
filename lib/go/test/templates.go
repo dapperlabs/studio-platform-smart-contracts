@@ -13,59 +13,59 @@ import (
 // Handle relative paths by making these regular expressions
 
 const (
-	nftAddressPlaceholder    = "\"[^\"]*NonFungibleToken.cdc\""
-	GolazoAddressPlaceholder = "\"[^\"]*Golazo.cdc\""
+	nftAddressPlaceholder           = "\"[^\"]*NonFungibleToken.cdc\""
+	SportAddressPlaceholder         = "\"[^\"]*Sport.cdc\""
 	metadataViewsAddressPlaceholder = "0xMETADATAVIEWSADDRESS"
 
-	GolazoPath                 = "../../../contracts/Golazo.cdc"
-	GolazoTransactionsRootPath = "../../../transactions"
-	GolazoScriptsRootPath      = "../../../scripts"
+	SportPath                 = "../../../contracts/Sport.cdc"
+	SportTransactionsRootPath = "../../../transactions"
+	SportScriptsRootPath      = "../../../scripts"
 
 	// Accounts
-	GolazoSetupAccountPath   = GolazoTransactionsRootPath + "/user/setup_Golazo_account.cdc"
-	GolazoAccountIsSetupPath = GolazoScriptsRootPath + "/user/account_is_setup.cdc"
+	SportSetupAccountPath   = SportTransactionsRootPath + "/user/setup_Sport_account.cdc"
+	SportAccountIsSetupPath = SportScriptsRootPath + "/user/account_is_setup.cdc"
 
 	// Series
-	GolazoCreateSeriesPath       = GolazoTransactionsRootPath + "/admin/series/create_series.cdc"
-	GolazoCloseSeriesPath        = GolazoTransactionsRootPath + "/admin/series/close_series.cdc"
-	GolazoReadAllSeriesPath      = GolazoScriptsRootPath + "/series/read_all_series.cdc"
-	GolazoReadSeriesByIDPath     = GolazoScriptsRootPath + "/series/read_series_by_id.cdc"
-	GolazoReadSeriesByNamePath   = GolazoScriptsRootPath + "/series/read_series_by_name.cdc"
-	GolazoReadAllSeriesNamesPath = GolazoScriptsRootPath + "/series/read_all_series_names.cdc"
+	SportCreateSeriesPath       = SportTransactionsRootPath + "/admin/series/create_series.cdc"
+	SportCloseSeriesPath        = SportTransactionsRootPath + "/admin/series/close_series.cdc"
+	SportReadAllSeriesPath      = SportScriptsRootPath + "/series/read_all_series.cdc"
+	SportReadSeriesByIDPath     = SportScriptsRootPath + "/series/read_series_by_id.cdc"
+	SportReadSeriesByNamePath   = SportScriptsRootPath + "/series/read_series_by_name.cdc"
+	SportReadAllSeriesNamesPath = SportScriptsRootPath + "/series/read_all_series_names.cdc"
 
 	// Sets
-	GolazoCreateSetPath       = GolazoTransactionsRootPath + "/admin/sets/create_set.cdc"
-	GolazoReadAllSetsPath     = GolazoScriptsRootPath + "/sets/read_all_sets.cdc"
-	GolazoReadSetByIDPath     = GolazoScriptsRootPath + "/sets/read_set_by_id.cdc"
-	GolazoReadSetsByNamePath  = GolazoScriptsRootPath + "/sets/read_sets_by_name.cdc"
-	GolazoReadAllSetNamesPath = GolazoScriptsRootPath + "/sets/read_all_set_names.cdc"
+	SportCreateSetPath       = SportTransactionsRootPath + "/admin/sets/create_set.cdc"
+	SportReadAllSetsPath     = SportScriptsRootPath + "/sets/read_all_sets.cdc"
+	SportReadSetByIDPath     = SportScriptsRootPath + "/sets/read_set_by_id.cdc"
+	SportReadSetsByNamePath  = SportScriptsRootPath + "/sets/read_sets_by_name.cdc"
+	SportReadAllSetNamesPath = SportScriptsRootPath + "/sets/read_all_set_names.cdc"
 
 	// Plays
-	GolazoCreatePlayPath   = GolazoTransactionsRootPath + "/admin/plays/create_play.cdc"
-	GolazoReadPlayByIDPath = GolazoScriptsRootPath + "/plays/read_play_by_id.cdc"
-	GolazoReadAllPlaysPath = GolazoScriptsRootPath + "/plays/read_all_plays.cdc"
+	SportCreatePlayPath   = SportTransactionsRootPath + "/admin/plays/create_play.cdc"
+	SportReadPlayByIDPath = SportScriptsRootPath + "/plays/read_play_by_id.cdc"
+	SportReadAllPlaysPath = SportScriptsRootPath + "/plays/read_all_plays.cdc"
 
 	// Editions
-	GolazoCreateEditionPath   = GolazoTransactionsRootPath + "/admin/editions/create_edition.cdc"
-	GolazoCloseEditionPath    = GolazoTransactionsRootPath + "/admin/editions/close_edition.cdc"
-	GolazoReadEditionByIDPath = GolazoScriptsRootPath + "/editions/read_edition_by_id.cdc"
-	GolazoReadAllEditionsPath = GolazoScriptsRootPath + "/edition/read_all_editions.cdc"
+	SportCreateEditionPath   = SportTransactionsRootPath + "/admin/editions/create_edition.cdc"
+	SportCloseEditionPath    = SportTransactionsRootPath + "/admin/editions/close_edition.cdc"
+	SportReadEditionByIDPath = SportScriptsRootPath + "/editions/read_edition_by_id.cdc"
+	SportReadAllEditionsPath = SportScriptsRootPath + "/edition/read_all_editions.cdc"
 
 	// Moment NFTs
-	GolazoMintMomentNFTPath           = GolazoTransactionsRootPath + "/admin/nfts/mint_moment_nft.cdc"
-	GolazoMintMomentNFTMultiPath      = GolazoTransactionsRootPath + "/admin/nfts/mint_moment_nft_multi.cdc"
-	GolazoTransferNFTPath             = GolazoTransactionsRootPath + "/user/transfer_moment_nft.cdc"
-	GolazoReadMomentNFTSupplyPath     = GolazoScriptsRootPath + "/nfts/read_moment_nft_supply.cdc"
-	GolazoReadMomentNFTPropertiesPath = GolazoScriptsRootPath + "/nfts/read_moment_nft_properties.cdc"
-	GolazoReadCollectionNFTLengthPath = GolazoScriptsRootPath + "/nfts/read_collection_nft_length.cdc"
-	GolazoReadCollectionNFTIDsPath    = GolazoScriptsRootPath + "/nfts/read_collection_nft_ids.cdc"
-	GolazoDisplayMetadataViewPath    = GolazoScriptsRootPath + "/nfts/metadata_display_view.cdc"
+	SportMintMomentNFTPath           = SportTransactionsRootPath + "/admin/nfts/mint_moment_nft.cdc"
+	SportMintMomentNFTMultiPath      = SportTransactionsRootPath + "/admin/nfts/mint_moment_nft_multi.cdc"
+	SportTransferNFTPath             = SportTransactionsRootPath + "/user/transfer_moment_nft.cdc"
+	SportReadMomentNFTSupplyPath     = SportScriptsRootPath + "/nfts/read_moment_nft_supply.cdc"
+	SportReadMomentNFTPropertiesPath = SportScriptsRootPath + "/nfts/read_moment_nft_properties.cdc"
+	SportReadCollectionNFTLengthPath = SportScriptsRootPath + "/nfts/read_collection_nft_length.cdc"
+	SportReadCollectionNFTIDsPath    = SportScriptsRootPath + "/nfts/read_collection_nft_ids.cdc"
+	SportDisplayMetadataViewPath     = SportScriptsRootPath + "/nfts/metadata_display_view.cdc"
 
 	// MetadataViews
 	MetadataViewsContractsBaseURL = "https://raw.githubusercontent.com/onflow/flow-nft/master/contracts/"
 	MetadataViewsInterfaceFile    = "MetadataViews.cdc"
-	MetadataFTReplaceAddress  = `"./utility/FungibleToken.cdc"`
-	MetadataNFTReplaceAddress = `"./NonFungibleToken.cdc"`
+	MetadataFTReplaceAddress      = `"./utility/FungibleToken.cdc"`
+	MetadataNFTReplaceAddress     = `"./NonFungibleToken.cdc"`
 )
 
 //------------------------------------------------------------
@@ -75,8 +75,8 @@ func replaceAddresses(code []byte, contracts Contracts) []byte {
 	nftRe := regexp.MustCompile(nftAddressPlaceholder)
 	code = nftRe.ReplaceAll(code, []byte("0x"+contracts.NFTAddress.String()))
 
-	GolazoRe := regexp.MustCompile(GolazoAddressPlaceholder)
-	code = GolazoRe.ReplaceAll(code, []byte("0x"+contracts.GolazoAddress.String()))
+	SportRe := regexp.MustCompile(SportAddressPlaceholder)
+	code = SportRe.ReplaceAll(code, []byte("0x"+contracts.SportAddress.String()))
 
 	code = []byte(strings.ReplaceAll(string(code), metadataViewsAddressPlaceholder, "0x"+contracts.MetadataViewAddress.String()))
 
@@ -96,13 +96,13 @@ func DownloadFile(url string) ([]byte, error) {
 
 func LoadMetadataViews(ftAddress flow.Address, nftAddress flow.Address) []byte {
 	code, _ := DownloadFile(MetadataViewsContractsBaseURL + MetadataViewsInterfaceFile)
-	code = []byte(strings.Replace(strings.Replace(string(code), MetadataFTReplaceAddress, "0x"+ftAddress.String(), 1),MetadataNFTReplaceAddress, "0x"+nftAddress.String(), 1))
+	code = []byte(strings.Replace(strings.Replace(string(code), MetadataFTReplaceAddress, "0x"+ftAddress.String(), 1), MetadataNFTReplaceAddress, "0x"+nftAddress.String(), 1))
 
 	return code
 }
 
-func LoadGolazo(nftAddress flow.Address, metadataViewsAddr flow.Address) []byte {
-	code := readFile(GolazoPath)
+func LoadSport(nftAddress flow.Address, metadataViewsAddr flow.Address) []byte {
+	code := readFile(SportPath)
 
 	nftRe := regexp.MustCompile(nftAddressPlaceholder)
 	code = nftRe.ReplaceAll(code, []byte("0x"+nftAddress.String()))
@@ -111,16 +111,16 @@ func LoadGolazo(nftAddress flow.Address, metadataViewsAddr flow.Address) []byte 
 	return code
 }
 
-func loadGolazoSetupAccountTransaction(contracts Contracts) []byte {
+func loadSportSetupAccountTransaction(contracts Contracts) []byte {
 	return replaceAddresses(
-		readFile(GolazoSetupAccountPath),
+		readFile(SportSetupAccountPath),
 		contracts,
 	)
 }
 
-func loadGolazoAccountIsSetupScript(contracts Contracts) []byte {
+func loadSportAccountIsSetupScript(contracts Contracts) []byte {
 	return replaceAddresses(
-		readFile(GolazoAccountIsSetupPath),
+		readFile(SportAccountIsSetupPath),
 		contracts,
 	)
 }
@@ -128,44 +128,44 @@ func loadGolazoAccountIsSetupScript(contracts Contracts) []byte {
 //------------------------------------------------------------
 // Series
 //------------------------------------------------------------
-func loadGolazoCreateSeriesTransaction(contracts Contracts) []byte {
+func loadSportCreateSeriesTransaction(contracts Contracts) []byte {
 	return replaceAddresses(
-		readFile(GolazoCreateSeriesPath),
+		readFile(SportCreateSeriesPath),
 		contracts,
 	)
 }
 
-func loadGolazoReadSeriesByIDScript(contracts Contracts) []byte {
+func loadSportReadSeriesByIDScript(contracts Contracts) []byte {
 	return replaceAddresses(
-		readFile(GolazoReadSeriesByIDPath),
+		readFile(SportReadSeriesByIDPath),
 		contracts,
 	)
 }
 
-func loadGolazoReadSeriesByNameScript(contracts Contracts) []byte {
+func loadSportReadSeriesByNameScript(contracts Contracts) []byte {
 	return replaceAddresses(
-		readFile(GolazoReadSeriesByNamePath),
+		readFile(SportReadSeriesByNamePath),
 		contracts,
 	)
 }
 
-func loadGolazoReadAllSeriesScript(contracts Contracts) []byte {
+func loadSportReadAllSeriesScript(contracts Contracts) []byte {
 	return replaceAddresses(
-		readFile(GolazoReadAllSeriesPath),
+		readFile(SportReadAllSeriesPath),
 		contracts,
 	)
 }
 
-func loadGolazoReadAllSeriesNamesScript(contracts Contracts) []byte {
+func loadSportReadAllSeriesNamesScript(contracts Contracts) []byte {
 	return replaceAddresses(
-		readFile(GolazoReadAllSeriesNamesPath),
+		readFile(SportReadAllSeriesNamesPath),
 		contracts,
 	)
 }
 
-func loadGolazoCloseSeriesTransaction(contracts Contracts) []byte {
+func loadSportCloseSeriesTransaction(contracts Contracts) []byte {
 	return replaceAddresses(
-		readFile(GolazoCloseSeriesPath),
+		readFile(SportCloseSeriesPath),
 		contracts,
 	)
 }
@@ -173,37 +173,37 @@ func loadGolazoCloseSeriesTransaction(contracts Contracts) []byte {
 //------------------------------------------------------------
 // Sets
 //------------------------------------------------------------
-func loadGolazoCreateSetTransaction(contracts Contracts) []byte {
+func loadSportCreateSetTransaction(contracts Contracts) []byte {
 	return replaceAddresses(
-		readFile(GolazoCreateSetPath),
+		readFile(SportCreateSetPath),
 		contracts,
 	)
 }
 
-func loadGolazoReadSetByIDScript(contracts Contracts) []byte {
+func loadSportReadSetByIDScript(contracts Contracts) []byte {
 	return replaceAddresses(
-		readFile(GolazoReadSetByIDPath),
+		readFile(SportReadSetByIDPath),
 		contracts,
 	)
 }
 
-func loadGolazoReadAllSetsScript(contracts Contracts) []byte {
+func loadSportReadAllSetsScript(contracts Contracts) []byte {
 	return replaceAddresses(
-		readFile(GolazoReadAllSetsPath),
+		readFile(SportReadAllSetsPath),
 		contracts,
 	)
 }
 
-func loadGolazoReadSetsByNameScript(contracts Contracts) []byte {
+func loadSportReadSetsByNameScript(contracts Contracts) []byte {
 	return replaceAddresses(
-		readFile(GolazoReadSetsByNamePath),
+		readFile(SportReadSetsByNamePath),
 		contracts,
 	)
 }
 
-func loadGolazoReadAllSetNamesScript(contracts Contracts) []byte {
+func loadSportReadAllSetNamesScript(contracts Contracts) []byte {
 	return replaceAddresses(
-		readFile(GolazoReadAllSetNamesPath),
+		readFile(SportReadAllSetNamesPath),
 		contracts,
 	)
 }
@@ -211,23 +211,23 @@ func loadGolazoReadAllSetNamesScript(contracts Contracts) []byte {
 //------------------------------------------------------------
 // Plays
 //------------------------------------------------------------
-func loadGolazoCreatePlayTransaction(contracts Contracts) []byte {
+func loadSportCreatePlayTransaction(contracts Contracts) []byte {
 	return replaceAddresses(
-		readFile(GolazoCreatePlayPath),
+		readFile(SportCreatePlayPath),
 		contracts,
 	)
 }
 
-func loadGolazoReadPlayByIDScript(contracts Contracts) []byte {
+func loadSportReadPlayByIDScript(contracts Contracts) []byte {
 	return replaceAddresses(
-		readFile(GolazoReadPlayByIDPath),
+		readFile(SportReadPlayByIDPath),
 		contracts,
 	)
 }
 
-func loadGolazoReadAllPlaysScript(contracts Contracts) []byte {
+func loadSportReadAllPlaysScript(contracts Contracts) []byte {
 	return replaceAddresses(
-		readFile(GolazoReadAllPlaysPath),
+		readFile(SportReadAllPlaysPath),
 		contracts,
 	)
 }
@@ -235,30 +235,30 @@ func loadGolazoReadAllPlaysScript(contracts Contracts) []byte {
 //------------------------------------------------------------
 // Editions
 //------------------------------------------------------------
-func loadGolazoCreateEditionTransaction(contracts Contracts) []byte {
+func loadSportCreateEditionTransaction(contracts Contracts) []byte {
 	return replaceAddresses(
-		readFile(GolazoCreateEditionPath),
+		readFile(SportCreateEditionPath),
 		contracts,
 	)
 }
 
-func loadGolazoReadEditionByIDScript(contracts Contracts) []byte {
+func loadSportReadEditionByIDScript(contracts Contracts) []byte {
 	return replaceAddresses(
-		readFile(GolazoReadEditionByIDPath),
+		readFile(SportReadEditionByIDPath),
 		contracts,
 	)
 }
 
-func loadGolazoCloseEditionTransaction(contracts Contracts) []byte {
+func loadSportCloseEditionTransaction(contracts Contracts) []byte {
 	return replaceAddresses(
-		readFile(GolazoCloseEditionPath),
+		readFile(SportCloseEditionPath),
 		contracts,
 	)
 }
 
-func loadGolazoReadAllEditionsScript(contracts Contracts) []byte {
+func loadSportReadAllEditionsScript(contracts Contracts) []byte {
 	return replaceAddresses(
-		readFile(GolazoReadAllEditionsPath),
+		readFile(SportReadAllEditionsPath),
 		contracts,
 	)
 }
@@ -266,59 +266,58 @@ func loadGolazoReadAllEditionsScript(contracts Contracts) []byte {
 //------------------------------------------------------------
 // Moment NFTs
 //------------------------------------------------------------
-func loadGolazoMintMomentNFTTransaction(contracts Contracts) []byte {
+func loadSportMintMomentNFTTransaction(contracts Contracts) []byte {
 	return replaceAddresses(
-		readFile(GolazoMintMomentNFTPath),
+		readFile(SportMintMomentNFTPath),
 		contracts,
 	)
 }
 
-func loadGolazoMintMomentNFTMultiTransaction(contracts Contracts) []byte {
+func loadSportMintMomentNFTMultiTransaction(contracts Contracts) []byte {
 	return replaceAddresses(
-		readFile(GolazoMintMomentNFTMultiPath),
+		readFile(SportMintMomentNFTMultiPath),
 		contracts,
 	)
 }
 
-func loadGolazoReadMomentNFTSupplyScript(contracts Contracts) []byte {
+func loadSportReadMomentNFTSupplyScript(contracts Contracts) []byte {
 	return replaceAddresses(
-		readFile(GolazoReadMomentNFTSupplyPath),
+		readFile(SportReadMomentNFTSupplyPath),
 		contracts,
 	)
 }
 
-func loadGolazoReadMomentNFTPropertiesScript(contracts Contracts) []byte {
+func loadSportReadMomentNFTPropertiesScript(contracts Contracts) []byte {
 	return replaceAddresses(
-		readFile(GolazoReadMomentNFTPropertiesPath),
+		readFile(SportReadMomentNFTPropertiesPath),
 		contracts,
 	)
 }
 
-func loadGolazoReadCollectionNFTLengthScript(contracts Contracts) []byte {
+func loadSportReadCollectionNFTLengthScript(contracts Contracts) []byte {
 	return replaceAddresses(
-		readFile(GolazoReadCollectionNFTLengthPath),
+		readFile(SportReadCollectionNFTLengthPath),
 		contracts,
 	)
 }
 
-func loadGolazoReadCollectionNFTIDsScript(contracts Contracts) []byte {
+func loadSportReadCollectionNFTIDsScript(contracts Contracts) []byte {
 	return replaceAddresses(
-		readFile(GolazoReadCollectionNFTIDsPath),
+		readFile(SportReadCollectionNFTIDsPath),
 		contracts,
 	)
 }
 
-func loadGolazoTransferNFTTransaction(contracts Contracts) []byte {
+func loadSportTransferNFTTransaction(contracts Contracts) []byte {
 	return replaceAddresses(
-		readFile(GolazoTransferNFTPath),
+		readFile(SportTransferNFTPath),
 		contracts,
 	)
 }
 
-func loadGolazoDisplayMetadataViewScript(contracts Contracts) []byte {
+func loadSportDisplayMetadataViewScript(contracts Contracts) []byte {
 	return replaceAddresses(
-		readFile(GolazoDisplayMetadataViewPath),
+		readFile(SportDisplayMetadataViewPath),
 		contracts,
 	)
 }
-
