@@ -1,7 +1,11 @@
 package test
 
 import (
+	"io/ioutil"
+	"net/http"
 	"regexp"
+
+	"strings"
 
 	"github.com/onflow/flow-go-sdk"
 )
@@ -11,7 +15,8 @@ import (
 const (
 	nftAddressPlaceholder    = "\"[^\"]*NonFungibleToken.cdc\""
 	GolazoAddressPlaceholder = "\"[^\"]*Golazo.cdc\""
-	
+	metadataViewsAddressPlaceholder = "METADATAVIEWSADDRESS"
+
 	GolazoPath                 = "../../../contracts/Golazo.cdc"
 	GolazoTransactionsRootPath = "../../../transactions"
 	GolazoScriptsRootPath      = "../../../scripts"
@@ -54,6 +59,12 @@ const (
 	GolazoReadMomentNFTPropertiesPath = GolazoScriptsRootPath + "/nfts/read_moment_nft_properties.cdc"
 	GolazoReadCollectionNFTLengthPath = GolazoScriptsRootPath + "/nfts/read_collection_nft_length.cdc"
 	GolazoReadCollectionNFTIDsPath    = GolazoScriptsRootPath + "/nfts/read_collection_nft_ids.cdc"
+
+	// MetadataViews
+	MetadataViewsContractsBaseURL = "https://raw.githubusercontent.com/onflow/flow-nft/master/contracts/"
+	MetadataViewsInterfaceFile    = "MetadataViews.cdc"
+	MetadataFTReplaceAddress  = `"./utility/FungibleToken.cdc"`
+	MetadataNFTReplaceAddress = `"./NonFungibleToken.cdc"`
 )
 
 //------------------------------------------------------------
@@ -69,11 +80,30 @@ func replaceAddresses(code []byte, contracts Contracts) []byte {
 	return code
 }
 
-func LoadGolazo(nftAddress flow.Address) []byte {
+func DownloadFile(url string) ([]byte, error) {
+	// Get the data
+	resp, err := http.Get(url)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	return ioutil.ReadAll(resp.Body)
+}
+
+func LoadMetadataViews(ftAddress flow.Address, nftAddress flow.Address) []byte {
+	code, _ := DownloadFile(MetadataViewsContractsBaseURL + MetadataViewsInterfaceFile)
+	code = []byte(strings.Replace(strings.Replace(string(code), MetadataFTReplaceAddress, "0x"+ftAddress.String(), 1),MetadataNFTReplaceAddress, "0x"+nftAddress.String(), 1))
+
+	return code
+}
+
+func LoadGolazo(nftAddress flow.Address, metadataViewsAddr flow.Address) []byte {
 	code := readFile(GolazoPath)
 
 	nftRe := regexp.MustCompile(nftAddressPlaceholder)
 	code = nftRe.ReplaceAll(code, []byte("0x"+nftAddress.String()))
+	code = []byte(strings.ReplaceAll(string(code), metadataViewsAddressPlaceholder, metadataViewsAddr.String()))
 
 	return code
 }

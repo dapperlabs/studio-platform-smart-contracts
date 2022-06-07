@@ -5,6 +5,7 @@
 
 
 import NonFungibleToken from "./NonFungibleToken.cdc"
+import MetadataViews from 0xMETADATAVIEWSADDRESS
 
 /*
     Golazo is structured similarly to Golazo.
@@ -493,7 +494,7 @@ pub contract Golazo: NonFungibleToken {
 
     // A Moment NFT
     //
-    pub resource NFT: NonFungibleToken.INFT {
+    pub resource NFT: NonFungibleToken.INFT, MetadataViews.Resolver {
         pub let id: UInt64
         pub let editionID: UInt64
         pub let serialNumber: UInt64
@@ -524,6 +525,59 @@ pub contract Golazo: NonFungibleToken {
 
             emit MomentNFTMinted(id: self.id, editionID: self.editionID, serialNumber: self.serialNumber)
         }
+
+        pub fun name(): String {
+            let editionData = Golazo.getEditionData(id: self.editionID)
+            let fullName: String = Golazo.PlayData(id: editionData.playID).metadata["PlayerJerseyName"] ?? ""
+            let playType: String = Golazo.PlayData(id: editionData.playID).metadata["PlayType"] ?? ""
+            return fullName
+                .concat(" ")
+                .concat(playType)
+        }
+
+        pub fun description(): String {
+            let editionData = Golazo.getEditionData(id: self.editionID)
+            let setName: String = Golazo.SetData(id: editionData.setID).name
+            let serialNumber: String = self.serialNumber.toString()
+            let seriesNumber: String = editionData.seriesID.toString()
+            return "A series "
+                .concat(seriesNumber)
+                .concat(" ")
+                .concat(setName)
+                .concat(" moment with serial number ")
+                .concat(serialNumber)
+        }
+
+        pub fun thumbnail(): MetadataViews.HTTPFile {
+            let editionData = Golazo.getEditionData(id: self.editionID)
+            // TODO: change to image for golazo
+            switch editionData.tier {
+            case "1":
+                return MetadataViews.HTTPFile(url:"https://ipfs.dapperlabs.com/ipfs/Qmbdj1agtbzpPWZ81wCGaDiMKRFaRN3TU6cfztVCu6nh4o")
+            case "2":
+                return MetadataViews.HTTPFile(url:"https://ipfs.dapperlabs.com/ipfs/Qmbdj1agtbzpPWZ81wCGaDiMKRFaRN3TU6cfztVCu6nh4o")
+            default:
+                return MetadataViews.HTTPFile(url:"https://ipfs.dapperlabs.com/ipfs/Qmbdj1agtbzpPWZ81wCGaDiMKRFaRN3TU6cfztVCu6nh4o")
+        }
+
+        pub fun getViews(): [Type] {
+            return [
+                Type<MetadataViews.Display>(),
+            ]
+        }
+
+        pub fun resolveView(_ view: Type): AnyStruct? {
+            switch view {
+                case Type<MetadataViews.Display>():
+                    return MetadataViews.Display(
+                        name: self.name(),
+                        description: self.description(),
+                        thumbnail: self.thumbnail()
+                    )
+            }
+
+            return nil
+        }  
     }
 
     //------------------------------------------------------------

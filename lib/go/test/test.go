@@ -56,9 +56,23 @@ func GolazoDeployContracts(t *testing.T, b *emulator.Blockchain) Contracts {
 	accountKeys := test.AccountKeyGenerator()
 
 	nftAddress := deployNFTContract(t, b)
+	metadataCode := LoadMetadataViews(ftAddress, nftAddress)
+	metadataViewsAddr, err := b.CreateAccount(nil, []sdktemplates.Contract{
+		{
+			Name:   "MetadataViews",
+			Source: string(metadataCode),
+		},
+	})
+	if !assert.NoError(t, err) {
+		t.Log(err.Error())
+	}
+	_, err = b.CommitBlock()
+	assert.NoError(t, err)
 
 	GolazoAccountKey, GolazoSigner := accountKeys.NewWithSigner()
-	GolazoCode := LoadGolazo(nftAddress)
+	GolazoCode := LoadGolazo(nftAddress, metadataViewsAddr)
+
+	
 
 	GolazoAddress, err := b.CreateAccount(
 		[]*flow.AccountKey{GolazoAccountKey},
