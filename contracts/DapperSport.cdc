@@ -28,7 +28,7 @@ import MetadataViews from 0xMETADATAVIEWSADDRESS
     This is enabled by encapsulation and saves gas for entity lifecycle operations.
  */
 
-// The DapperSport NFTs and metadata contract
+/// The DapperSport NFTs and metadata contract
 //
 pub contract DapperSport: NonFungibleToken {
     //------------------------------------------------------------
@@ -46,24 +46,24 @@ pub contract DapperSport: NonFungibleToken {
 
     // Series Events
     //
-    // Emitted when a new series has been created by an admin
+    /// Emitted when a new series has been created by an admin
     pub event SeriesCreated(id: UInt64, name: String)
-    // Emitted when a series is closed by an admin
+    /// Emitted when a series is closed by an admin
     pub event SeriesClosed(id: UInt64)
 
     // Set Events
     //
-    // Emitted when a new set has been created by an admin
+    /// Emitted when a new set has been created by an admin
     pub event SetCreated(id: UInt64, name: String)
 
     // Play Events
     //
-    // Emitted when a new play has been created by an admin
+    /// Emitted when a new play has been created by an admin
     pub event PlayCreated(id: UInt64, classification: String, metadata: {String: String})
 
     // Edition Events
     //
-    // Emitted when a new edition has been created by an admin
+    /// Emitted when a new edition has been created by an admin
     pub event EditionCreated(
         id: UInt64, 
         seriesID: UInt64, 
@@ -72,12 +72,14 @@ pub contract DapperSport: NonFungibleToken {
         maxMintSize: UInt64?,
         tier: String,
     )
-    // Emitted when an edition is either closed by an admin, or the max amount of moments have been minted
+    /// Emitted when an edition is either closed by an admin, or the max amount of moments have been minted
     pub event EditionClosed(id: UInt64)
 
     // NFT Events
     //
+    /// Emitted when a moment nft is minted
     pub event MomentNFTMinted(id: UInt64, editionID: UInt64, serialNumber: UInt64)
+    /// Emitted when a moment nft resource is destroyed
     pub event MomentNFTBurned(id: UInt64)
 
     //------------------------------------------------------------
@@ -121,7 +123,7 @@ pub contract DapperSport: NonFungibleToken {
     // Series
     //------------------------------------------------------------
 
-    // A public struct to access Series data
+    /// A public struct to access Series data
     //
     pub struct SeriesData {
         pub let id: UInt64
@@ -138,7 +140,7 @@ pub contract DapperSport: NonFungibleToken {
         }
     }
 
-    // A top-level Series with a unique ID and name
+    /// A top-level Series with a unique ID and name
     //
     pub resource Series {
         pub let id: UInt64
@@ -176,7 +178,7 @@ pub contract DapperSport: NonFungibleToken {
         }
     }
 
-    // Get the publicly available data for a Series by id
+    /// Get the publicly available data for a Series by id
     //
     pub fun getSeriesData(id: UInt64): DapperSport.SeriesData {
         pre {
@@ -186,7 +188,7 @@ pub contract DapperSport: NonFungibleToken {
         return DapperSport.SeriesData(id: id)
     }
 
-    // Get the publicly available data for a Series by name
+    /// Get the publicly available data for a Series by name
     //
     pub fun getSeriesDataByName(name: String): DapperSport.SeriesData {
         pre {
@@ -198,13 +200,13 @@ pub contract DapperSport: NonFungibleToken {
         return DapperSport.SeriesData(id: id)
     }
 
-    // Get all series names (this will be *long*)
+    /// Get all series names (this will be *long*)
     //
     pub fun getAllSeriesNames(): [String] {
         return DapperSport.seriesIDByName.keys
     }
 
-    // Get series id for name
+    /// Get series id by name
     //
     pub fun getSeriesIDByName(name: String): UInt64? {
         return DapperSport.seriesIDByName[name]
@@ -214,14 +216,14 @@ pub contract DapperSport: NonFungibleToken {
     // Set
     //------------------------------------------------------------
 
-    // A public struct to access Set data
+    /// A public struct to access Set data
     //
     pub struct SetData {
         pub let id: UInt64
         pub let name: String
         pub var setPlaysInEditions: {UInt64: Bool}
 
-        // member function to check the setPlaysInEditions to see if this Set/Play combination already exists
+        /// member function to check the setPlaysInEditions to see if this Set/Play combination already exists
         pub fun setPlayExistsInEdition(playID: UInt64): Bool {
            return self.setPlaysInEditions.containsKey(playID)
         }
@@ -236,7 +238,7 @@ pub contract DapperSport: NonFungibleToken {
         }
     }
 
-    // A top level Set with a unique ID and a name
+    /// A top level Set with a unique ID and a name
     //
     pub resource Set {
         pub let id: UInt64
@@ -269,7 +271,7 @@ pub contract DapperSport: NonFungibleToken {
         }
     }
 
-    // Get the publicly available data for a Set
+    /// Get the publicly available data for a Set
     //
     pub fun getSetData(id: UInt64): DapperSport.SetData {
         pre {
@@ -279,7 +281,7 @@ pub contract DapperSport: NonFungibleToken {
         return DapperSport.SetData(id: id)
     }
 
-    // Get the publicly available data for a Set by name
+    /// Get the publicly available data for a Set by name
     //
     pub fun getSetDataByName(name: String): DapperSport.SetData {
         pre {
@@ -291,7 +293,7 @@ pub contract DapperSport: NonFungibleToken {
         return DapperSport.SetData(id: id)
     }
 
-    // Get all set names (this will be *long*)
+    /// Get all set names (this will be *long*)
     //
     pub fun getAllSetNames(): [String] {
         return DapperSport.setIDByName.keys
@@ -302,7 +304,7 @@ pub contract DapperSport: NonFungibleToken {
     // Play
     //------------------------------------------------------------
 
-    // A public struct to access Play data
+    /// A public struct to access Play data
     //
     pub struct PlayData {
         pub let id: UInt64
@@ -319,7 +321,7 @@ pub contract DapperSport: NonFungibleToken {
         }
     }
 
-    // A top level Play with a unique ID and a classification
+    /// A top level Play with a unique ID and a classification
     //
     pub resource Play {
         pub let id: UInt64
@@ -341,7 +343,7 @@ pub contract DapperSport: NonFungibleToken {
         }
     }
 
-    // Get the publicly available data for a Play
+    /// Get the publicly available data for a Play
     //
     pub fun getPlayData(id: UInt64): DapperSport.PlayData {
         pre {
@@ -355,7 +357,7 @@ pub contract DapperSport: NonFungibleToken {
     // Edition
     //------------------------------------------------------------
 
-    // A public struct to access Edition data
+    /// A public struct to access Edition data
     //
     pub struct EditionData {
         pub let id: UInt64
@@ -366,7 +368,7 @@ pub contract DapperSport: NonFungibleToken {
         pub let tier: String
         pub var numMinted: UInt64
 
-       // member function to check if max edition size has been reached
+       /// member function to check if max edition size has been reached
        pub fun maxEditionMintSizeReached(): Bool {
             return self.numMinted == self.maxMintSize 
         }
@@ -385,7 +387,7 @@ pub contract DapperSport: NonFungibleToken {
         }
     }
 
-    // A top level Edition that contains a Series, Set, and Play
+    /// A top level Edition that contains a Series, Set, and Play
     //
     pub resource Edition {
         pub let id: UInt64
@@ -478,7 +480,7 @@ pub contract DapperSport: NonFungibleToken {
         }
     }
 
-    // Get the publicly available data for an Edition
+    /// Get the publicly available data for an Edition
     //
     pub fun getEditionData(id: UInt64): EditionData {
         pre {
@@ -492,7 +494,7 @@ pub contract DapperSport: NonFungibleToken {
     // NFT
     //------------------------------------------------------------
 
-    // A Moment NFT
+    /// A Moment NFT
     //
     pub resource NFT: NonFungibleToken.INFT, MetadataViews.Resolver {
         pub let id: UInt64
@@ -500,13 +502,13 @@ pub contract DapperSport: NonFungibleToken {
         pub let serialNumber: UInt64
         pub let mintingDate: UFix64
 
-        // Destructor
+        /// Destructor
         //
         destroy() {
             emit MomentNFTBurned(id: self.id)
         }
 
-        // NFT initializer
+        /// NFT initializer
         //
         init(
             id: UInt64,
@@ -526,6 +528,8 @@ pub contract DapperSport: NonFungibleToken {
             emit MomentNFTMinted(id: self.id, editionID: self.editionID, serialNumber: self.serialNumber)
         }
 
+        /// get the name of an nft
+        //
         pub fun name(): String {
             let editionData = DapperSport.getEditionData(id: self.editionID)
             let fullName: String = DapperSport.PlayData(id: editionData.playID).metadata["PlayerJerseyName"] ?? ""
@@ -535,6 +539,8 @@ pub contract DapperSport: NonFungibleToken {
                 .concat(playType)
         }
 
+        /// get the description of an nft
+        //
         pub fun description(): String {
             let editionData = DapperSport.getEditionData(id: self.editionID)
             let setName: String = DapperSport.SetData(id: editionData.setID).name
@@ -548,6 +554,8 @@ pub contract DapperSport: NonFungibleToken {
                 .concat(serialNumber)
         }
 
+        /// get a thumbnail image that represents this nft
+        //
         pub fun thumbnail(): MetadataViews.HTTPFile {
             let editionData = DapperSport.getEditionData(id: self.editionID)
             // TODO: change to image for DapperSport
@@ -557,12 +565,16 @@ pub contract DapperSport: NonFungibleToken {
             }
         }
 
+        /// get the metadata view types available for this nft
+        //
         pub fun getViews(): [Type] {
             return [
                 Type<MetadataViews.Display>()
             ]
         }
 
+        /// resolve a metadata view type returning the properties of the view type
+        //
         pub fun resolveView(_ view: Type): AnyStruct? {
             switch view {
                 case Type<MetadataViews.Display>():
@@ -581,7 +593,7 @@ pub contract DapperSport: NonFungibleToken {
     // Collection
     //------------------------------------------------------------
 
-    // A public collection interface that allows Moment NFTs to be borrowed
+    /// A public collection interface that allows Moment NFTs to be borrowed
     //
     pub resource interface MomentNFTCollectionPublic {
         pub fun deposit(token: @NonFungibleToken.NFT)
@@ -598,7 +610,7 @@ pub contract DapperSport: NonFungibleToken {
         }
     }
 
-    // An NFT Collection
+    /// An NFT Collection
     //
     pub resource Collection:
         NonFungibleToken.Provider,
@@ -606,12 +618,12 @@ pub contract DapperSport: NonFungibleToken {
         NonFungibleToken.CollectionPublic,
         MomentNFTCollectionPublic
     {
-        // dictionary of NFT conforming tokens
-        // NFT is a resource type with an UInt64 ID field
+        /// dictionary of NFT conforming tokens
+        /// NFT is a resource type with an UInt64 ID field
         //
         pub var ownedNFTs: @{UInt64: NonFungibleToken.NFT}
 
-        // withdraw removes an NFT from the collection and moves it to the caller
+        /// withdraw removes an NFT from the collection and moves it to the caller
         //
         pub fun withdraw(withdrawID: UInt64): @NonFungibleToken.NFT {
             let token <- self.ownedNFTs.remove(key: withdrawID) ?? panic("missing NFT")
@@ -621,8 +633,8 @@ pub contract DapperSport: NonFungibleToken {
             return <-token
         }
 
-        // deposit takes a NFT and adds it to the collections dictionary
-        // and adds the ID to the id array
+        /// deposit takes a NFT and adds it to the collections dictionary
+        /// and adds the ID to the id array
         //
         pub fun deposit(token: @NonFungibleToken.NFT) {
             let token <- token as! @DapperSport.NFT
@@ -636,8 +648,8 @@ pub contract DapperSport: NonFungibleToken {
             destroy oldToken
         }
 
-        // batchDeposit takes a Collection object as an argument
-        // and deposits each contained NFT into this Collection
+        /// batchDeposit takes a Collection object as an argument
+        /// and deposits each contained NFT into this Collection
         //
         pub fun batchDeposit(tokens: @NonFungibleToken.Collection) {
             // Get an array of the IDs to be deposited
@@ -652,19 +664,19 @@ pub contract DapperSport: NonFungibleToken {
             destroy tokens
         }
 
-        // getIDs returns an array of the IDs that are in the collection
+        /// getIDs returns an array of the IDs that are in the collection
         //
         pub fun getIDs(): [UInt64] {
             return self.ownedNFTs.keys
         }
 
-        // borrowNFT gets a reference to an NFT in the collection
+        /// borrowNFT gets a reference to an NFT in the collection
         //
         pub fun borrowNFT(id: UInt64): &NonFungibleToken.NFT {
             return (&self.ownedNFTs[id] as &NonFungibleToken.NFT?)!
         }
 
-        // borrowMomentNFT gets a reference to an NFT in the collection
+        /// borrowMomentNFT gets a reference to an NFT in the collection
         //
         pub fun borrowMomentNFT(id: UInt64): &DapperSport.NFT? {
             if self.ownedNFTs[id] != nil {
@@ -675,20 +687,20 @@ pub contract DapperSport: NonFungibleToken {
             }
         }
 
-        // Collection destructor
+        /// Collection destructor
         //
         destroy() {
             destroy self.ownedNFTs
         }
 
-        // Collection initializer
+        /// Collection initializer
         //
         init() {
             self.ownedNFTs <- {}
         }
     }
 
-    // public function that anyone can call to create a new empty collection
+    /// public function that anyone can call to create a new empty collection
     //
     pub fun createEmptyCollection(): @NonFungibleToken.Collection {
         return <- create Collection()
@@ -698,7 +710,7 @@ pub contract DapperSport: NonFungibleToken {
     // Admin
     //------------------------------------------------------------
 
-    // An interface containing the Admin function that allows minting NFTs
+    /// An interface containing the Admin function that allows minting NFTs
     //
     pub resource interface NFTMinter {
         // Mint a single NFT
@@ -707,10 +719,10 @@ pub contract DapperSport: NonFungibleToken {
         pub fun mintNFT(editionID: UInt64): @DapperSport.NFT
     }
 
-    // A resource that allows managing metadata and minting NFTs
+    /// A resource that allows managing metadata and minting NFTs
     //
     pub resource Admin: NFTMinter {
-        // Borrow a Series
+        /// Borrow a Series
         //
         pub fun borrowSeries(id: UInt64): &DapperSport.Series {
             pre {
@@ -720,7 +732,7 @@ pub contract DapperSport: NonFungibleToken {
             return (&DapperSport.seriesByID[id] as &DapperSport.Series?)!
         }
 
-        // Borrow a Set
+        /// Borrow a Set
         //
         pub fun borrowSet(id: UInt64): &DapperSport.Set {
             pre {
@@ -730,7 +742,7 @@ pub contract DapperSport: NonFungibleToken {
             return (&DapperSport.setByID[id] as &DapperSport.Set?)!
         }
 
-        // Borrow a Play
+        /// Borrow a Play
         //
         pub fun borrowPlay(id: UInt64): &DapperSport.Play {
             pre {
@@ -740,7 +752,7 @@ pub contract DapperSport: NonFungibleToken {
             return (&DapperSport.playByID[id] as &DapperSport.Play?)!
         }
 
-        // Borrow an Edition
+        /// Borrow an Edition
         //
         pub fun borrowEdition(id: UInt64): &DapperSport.Edition {
             pre {
@@ -750,7 +762,7 @@ pub contract DapperSport: NonFungibleToken {
             return (&DapperSport.editionByID[id] as &DapperSport.Edition?)!
         }
 
-        // Create a Series
+        /// Create a Series
         //
         pub fun createSeries(name: String): UInt64 {
             // Create and store the new series
@@ -764,7 +776,7 @@ pub contract DapperSport: NonFungibleToken {
             return seriesID
         }
         
-        // Close a Series
+        /// Close a Series
         //
         pub fun closeSeries(id: UInt64): UInt64 {
             let series = (&DapperSport.seriesByID[id] as &DapperSport.Series?)!
@@ -772,7 +784,7 @@ pub contract DapperSport: NonFungibleToken {
             return series.id
         }
 
-        // Create a Set
+        /// Create a Set
         //
         pub fun createSet(name: String): UInt64 {
             // Create and store the new set
@@ -786,7 +798,7 @@ pub contract DapperSport: NonFungibleToken {
             return setID
         }
 
-        // Create a Play
+        /// Create a Play
         //
         pub fun createPlay(classification: String, metadata: {String: String}): UInt64 {
             // Create and store the new play
@@ -801,7 +813,7 @@ pub contract DapperSport: NonFungibleToken {
             return playID
         }
 
-        // Create an Edition
+        /// Create an Edition
         //
         pub fun createEdition(            
             seriesID: UInt64,
@@ -822,7 +834,7 @@ pub contract DapperSport: NonFungibleToken {
             return editionID
         }
 
-        // Close an Edition
+        /// Close an Edition
         //
         pub fun closeEdition(id: UInt64): UInt64 {
             let edition = (&DapperSport.editionByID[id] as &DapperSport.Edition?)!
@@ -830,8 +842,8 @@ pub contract DapperSport: NonFungibleToken {
             return edition.id
         }
 
-        // Mint a single NFT
-        // The Edition for the given ID must already exist
+        /// Mint a single NFT
+        /// The Edition for the given ID must already exist
         //
         pub fun mintNFT(editionID: UInt64): @DapperSport.NFT {
             pre {
@@ -847,7 +859,7 @@ pub contract DapperSport: NonFungibleToken {
     // Contract lifecycle
     //------------------------------------------------------------
 
-    // DapperSport contract initializer
+    /// DapperSport contract initializer
     //
     init() {
         // Set the named paths
