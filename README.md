@@ -9,7 +9,7 @@
 ## Entities
 
 ### Series
-Series encompass periods of time and will be named using strings like: `Summer 2021` or `Series 3`. 
+Series encompass periods of time and will be named using strings like: `18/19 season` or `21/22 season`. 
 More that one series can be open at any given time, and in order for an Edition to be created, it must have a SeriesID.
 
 **On Chain Fields**
@@ -21,7 +21,7 @@ More that one series can be open at any given time, and in order for an Edition 
 - CreateSeries: Mints a new series onto Flow
 - CloseSeries: Stops any new Editions from using the specified series
 ### Sets
-Sets are categories: `Greatest Touchdowns` or similar. Sets have a unique name.An Edition must have a SetID to be created.
+Sets are categories. Sets have a unique name. An Edition must have a SetID to be created.
 Sets do not close and cannot be retired. Sets contain a dictionary of all the SetID/PlayID combinations that exist within
 an Edition. This is checked everytime a new Edition is created to ensure they are unique.
 
@@ -40,16 +40,21 @@ This will contain Player, Team, and Game metadata some of which may be blank dep
 - Classification (Name TBC: example, PLAYER_GAME, TEAM_GAME, PLAYER_MELT, TEAM_MELT)
 - Metadata (stored as a string map. This can technically be anything, but the agreeed upon fields are as follows)
   - PlayType
-  - HomeTeamName
-  - AwayTeamName
-  - TeamName
+  - GameID
   - GameDate
-  - HomeTeamScore
-  - AwayTeamScore
+  - GameMatchday
+  - GameSeason
+  - GameHighlightedTeam
+  - GameTime
+  - GameScore
+  - GameHalf
   - PlayerFirstName
   - PlayerLastName
+  - PlayerJerseyName
   - PlayerPosition
   - PlayerNumber
+  - PlayerCountry
+  - PlayerOptaID
 
 **Transactions**
 - CreatePlay: Mints a new Play on Flow
