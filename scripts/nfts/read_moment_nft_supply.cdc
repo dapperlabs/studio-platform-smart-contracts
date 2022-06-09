@@ -1,8 +1,8 @@
-import Sport from "../../contracts/Sport.cdc"
+import DapperSport from "../../contracts/DapperSport.cdc"
 
-// This scripts returns the number of Sport currently in existence.
+// This scripts returns the number of DapperSport currently in existence.
 
 pub fun main(): UInt64 {    
-    return Sport.totalSupply
+    return DapperSport.totalSupply
 }
 

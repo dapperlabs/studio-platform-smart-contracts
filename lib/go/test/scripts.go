@@ -16,7 +16,7 @@ func accountIsSetup(
 	contracts Contracts,
 	address flow.Address,
 ) bool {
-	script := loadSportAccountIsSetupScript(contracts)
+	script := loadDapperSportAccountIsSetupScript(contracts)
 	result := executeScriptAndCheck(t, b, script, [][]byte{jsoncdc.MustEncode(cadence.BytesToAddress(address.Bytes()))})
 
 	return result.ToGoValue().(bool)
@@ -28,7 +28,7 @@ func getSeriesData(
 	contracts Contracts,
 	id uint64,
 ) SeriesData {
-	script := loadSportReadSeriesByIDScript(contracts)
+	script := loadDapperSportReadSeriesByIDScript(contracts)
 	result := executeScriptAndCheck(t, b, script, [][]byte{jsoncdc.MustEncode(cadence.UInt64(id))})
 
 	return parseSeriesData(result)
@@ -40,7 +40,7 @@ func getSetData(
 	contracts Contracts,
 	id uint64,
 ) SetData {
-	script := loadSportReadSetByIDScript(contracts)
+	script := loadDapperSportReadSetByIDScript(contracts)
 	result := executeScriptAndCheck(t, b, script, [][]byte{jsoncdc.MustEncode(cadence.UInt64(id))})
 
 	return parseSetData(result)
@@ -52,7 +52,7 @@ func getPlayData(
 	contracts Contracts,
 	id uint64,
 ) PlayData {
-	script := loadSportReadPlayByIDScript(contracts)
+	script := loadDapperSportReadPlayByIDScript(contracts)
 	result := executeScriptAndCheck(t, b, script, [][]byte{jsoncdc.MustEncode(cadence.UInt64(id))})
 
 	return parsePlayData(result)
@@ -64,7 +64,7 @@ func getEditionData(
 	contracts Contracts,
 	id uint64,
 ) EditionData {
-	script := loadSportReadEditionByIDScript(contracts)
+	script := loadDapperSportReadEditionByIDScript(contracts)
 	result := executeScriptAndCheck(t, b, script, [][]byte{jsoncdc.MustEncode(cadence.UInt64(id))})
 
 	return parseEditionData(result)
@@ -75,7 +75,7 @@ func getMomentNFTSupply(
 	b *emulator.Blockchain,
 	contracts Contracts,
 ) uint64 {
-	script := loadSportReadMomentNFTSupplyScript(contracts)
+	script := loadDapperSportReadMomentNFTSupplyScript(contracts)
 	result := executeScriptAndCheck(t, b, script, [][]byte{})
 
 	return result.ToGoValue().(uint64)
@@ -88,7 +88,7 @@ func getMomentNFTProperties(
 	collectionAddress flow.Address,
 	nftID uint64,
 ) OurNFTData {
-	script := loadSportReadMomentNFTPropertiesScript(contracts)
+	script := loadDapperSportReadMomentNFTPropertiesScript(contracts)
 	result := executeScriptAndCheck(t, b, script, [][]byte{
 		jsoncdc.MustEncode(cadence.BytesToAddress(collectionAddress.Bytes())),
 		jsoncdc.MustEncode(cadence.UInt64(nftID)),
@@ -104,7 +104,7 @@ func getMomentNFTDisplayMetadataView(
 	collectionAddress flow.Address,
 	nftID uint64,
 ) DisplayView {
-	script := loadSportDisplayMetadataViewScript(contracts)
+	script := loadDapperSportDisplayMetadataViewScript(contracts)
 	result := executeScriptAndCheck(t, b, script, [][]byte{
 		jsoncdc.MustEncode(cadence.BytesToAddress(collectionAddress.Bytes())),
 		jsoncdc.MustEncode(cadence.UInt64(nftID)),

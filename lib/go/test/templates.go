@@ -14,52 +14,52 @@ import (
 
 const (
 	nftAddressPlaceholder           = "\"[^\"]*NonFungibleToken.cdc\""
-	SportAddressPlaceholder         = "\"[^\"]*Sport.cdc\""
+	DapperSportAddressPlaceholder   = "\"[^\"]*DapperSport.cdc\""
 	metadataViewsAddressPlaceholder = "0xMETADATAVIEWSADDRESS"
 
-	SportPath                 = "../../../contracts/Sport.cdc"
-	SportTransactionsRootPath = "../../../transactions"
-	SportScriptsRootPath      = "../../../scripts"
+	DapperSportPath                 = "../../../contracts/DapperSport.cdc"
+	DapperSportTransactionsRootPath = "../../../transactions"
+	DapperSportScriptsRootPath      = "../../../scripts"
 
 	// Accounts
-	SportSetupAccountPath   = SportTransactionsRootPath + "/user/setup_Sport_account.cdc"
-	SportAccountIsSetupPath = SportScriptsRootPath + "/user/account_is_setup.cdc"
+	DapperSportSetupAccountPath   = DapperSportTransactionsRootPath + "/user/setup_DapperSport_account.cdc"
+	DapperSportAccountIsSetupPath = DapperSportScriptsRootPath + "/user/account_is_setup.cdc"
 
 	// Series
-	SportCreateSeriesPath       = SportTransactionsRootPath + "/admin/series/create_series.cdc"
-	SportCloseSeriesPath        = SportTransactionsRootPath + "/admin/series/close_series.cdc"
-	SportReadAllSeriesPath      = SportScriptsRootPath + "/series/read_all_series.cdc"
-	SportReadSeriesByIDPath     = SportScriptsRootPath + "/series/read_series_by_id.cdc"
-	SportReadSeriesByNamePath   = SportScriptsRootPath + "/series/read_series_by_name.cdc"
-	SportReadAllSeriesNamesPath = SportScriptsRootPath + "/series/read_all_series_names.cdc"
+	DapperSportCreateSeriesPath       = DapperSportTransactionsRootPath + "/admin/series/create_series.cdc"
+	DapperSportCloseSeriesPath        = DapperSportTransactionsRootPath + "/admin/series/close_series.cdc"
+	DapperSportReadAllSeriesPath      = DapperSportScriptsRootPath + "/series/read_all_series.cdc"
+	DapperSportReadSeriesByIDPath     = DapperSportScriptsRootPath + "/series/read_series_by_id.cdc"
+	DapperSportReadSeriesByNamePath   = DapperSportScriptsRootPath + "/series/read_series_by_name.cdc"
+	DapperSportReadAllSeriesNamesPath = DapperSportScriptsRootPath + "/series/read_all_series_names.cdc"
 
 	// Sets
-	SportCreateSetPath       = SportTransactionsRootPath + "/admin/sets/create_set.cdc"
-	SportReadAllSetsPath     = SportScriptsRootPath + "/sets/read_all_sets.cdc"
-	SportReadSetByIDPath     = SportScriptsRootPath + "/sets/read_set_by_id.cdc"
-	SportReadSetsByNamePath  = SportScriptsRootPath + "/sets/read_sets_by_name.cdc"
-	SportReadAllSetNamesPath = SportScriptsRootPath + "/sets/read_all_set_names.cdc"
+	DapperSportCreateSetPath       = DapperSportTransactionsRootPath + "/admin/sets/create_set.cdc"
+	DapperSportReadAllSetsPath     = DapperSportScriptsRootPath + "/sets/read_all_sets.cdc"
+	DapperSportReadSetByIDPath     = DapperSportScriptsRootPath + "/sets/read_set_by_id.cdc"
+	DapperSportReadSetsByNamePath  = DapperSportScriptsRootPath + "/sets/read_sets_by_name.cdc"
+	DapperSportReadAllSetNamesPath = DapperSportScriptsRootPath + "/sets/read_all_set_names.cdc"
 
 	// Plays
-	SportCreatePlayPath   = SportTransactionsRootPath + "/admin/plays/create_play.cdc"
-	SportReadPlayByIDPath = SportScriptsRootPath + "/plays/read_play_by_id.cdc"
-	SportReadAllPlaysPath = SportScriptsRootPath + "/plays/read_all_plays.cdc"
+	DapperSportCreatePlayPath   = DapperSportTransactionsRootPath + "/admin/plays/create_play.cdc"
+	DapperSportReadPlayByIDPath = DapperSportScriptsRootPath + "/plays/read_play_by_id.cdc"
+	DapperSportReadAllPlaysPath = DapperSportScriptsRootPath + "/plays/read_all_plays.cdc"
 
 	// Editions
-	SportCreateEditionPath   = SportTransactionsRootPath + "/admin/editions/create_edition.cdc"
-	SportCloseEditionPath    = SportTransactionsRootPath + "/admin/editions/close_edition.cdc"
-	SportReadEditionByIDPath = SportScriptsRootPath + "/editions/read_edition_by_id.cdc"
-	SportReadAllEditionsPath = SportScriptsRootPath + "/edition/read_all_editions.cdc"
+	DapperSportCreateEditionPath   = DapperSportTransactionsRootPath + "/admin/editions/create_edition.cdc"
+	DapperSportCloseEditionPath    = DapperSportTransactionsRootPath + "/admin/editions/close_edition.cdc"
+	DapperSportReadEditionByIDPath = DapperSportScriptsRootPath + "/editions/read_edition_by_id.cdc"
+	DapperSportReadAllEditionsPath = DapperSportScriptsRootPath + "/edition/read_all_editions.cdc"
 
 	// Moment NFTs
-	SportMintMomentNFTPath           = SportTransactionsRootPath + "/admin/nfts/mint_moment_nft.cdc"
-	SportMintMomentNFTMultiPath      = SportTransactionsRootPath + "/admin/nfts/mint_moment_nft_multi.cdc"
-	SportTransferNFTPath             = SportTransactionsRootPath + "/user/transfer_moment_nft.cdc"
-	SportReadMomentNFTSupplyPath     = SportScriptsRootPath + "/nfts/read_moment_nft_supply.cdc"
-	SportReadMomentNFTPropertiesPath = SportScriptsRootPath + "/nfts/read_moment_nft_properties.cdc"
-	SportReadCollectionNFTLengthPath = SportScriptsRootPath + "/nfts/read_collection_nft_length.cdc"
-	SportReadCollectionNFTIDsPath    = SportScriptsRootPath + "/nfts/read_collection_nft_ids.cdc"
-	SportDisplayMetadataViewPath     = SportScriptsRootPath + "/nfts/metadata_display_view.cdc"
+	DapperSportMintMomentNFTPath           = DapperSportTransactionsRootPath + "/admin/nfts/mint_moment_nft.cdc"
+	DapperSportMintMomentNFTMultiPath      = DapperSportTransactionsRootPath + "/admin/nfts/mint_moment_nft_multi.cdc"
+	DapperSportTransferNFTPath             = DapperSportTransactionsRootPath + "/user/transfer_moment_nft.cdc"
+	DapperSportReadMomentNFTSupplyPath     = DapperSportScriptsRootPath + "/nfts/read_moment_nft_supply.cdc"
+	DapperSportReadMomentNFTPropertiesPath = DapperSportScriptsRootPath + "/nfts/read_moment_nft_properties.cdc"
+	DapperSportReadCollectionNFTLengthPath = DapperSportScriptsRootPath + "/nfts/read_collection_nft_length.cdc"
+	DapperSportReadCollectionNFTIDsPath    = DapperSportScriptsRootPath + "/nfts/read_collection_nft_ids.cdc"
+	DapperSportDisplayMetadataViewPath     = DapperSportScriptsRootPath + "/nfts/metadata_display_view.cdc"
 
 	// MetadataViews
 	MetadataViewsContractsBaseURL = "https://raw.githubusercontent.com/onflow/flow-nft/master/contracts/"
@@ -75,8 +75,8 @@ func replaceAddresses(code []byte, contracts Contracts) []byte {
 	nftRe := regexp.MustCompile(nftAddressPlaceholder)
 	code = nftRe.ReplaceAll(code, []byte("0x"+contracts.NFTAddress.String()))
 
-	SportRe := regexp.MustCompile(SportAddressPlaceholder)
-	code = SportRe.ReplaceAll(code, []byte("0x"+contracts.SportAddress.String()))
+	DapperSportRe := regexp.MustCompile(DapperSportAddressPlaceholder)
+	code = DapperSportRe.ReplaceAll(code, []byte("0x"+contracts.DapperSportAddress.String()))
 
 	code = []byte(strings.ReplaceAll(string(code), metadataViewsAddressPlaceholder, "0x"+contracts.MetadataViewAddress.String()))
 
@@ -101,8 +101,8 @@ func LoadMetadataViews(ftAddress flow.Address, nftAddress flow.Address) []byte {
 	return code
 }
 
-func LoadSport(nftAddress flow.Address, metadataViewsAddr flow.Address) []byte {
-	code := readFile(SportPath)
+func LoadDapperSport(nftAddress flow.Address, metadataViewsAddr flow.Address) []byte {
+	code := readFile(DapperSportPath)
 
 	nftRe := regexp.MustCompile(nftAddressPlaceholder)
 	code = nftRe.ReplaceAll(code, []byte("0x"+nftAddress.String()))
@@ -111,16 +111,16 @@ func LoadSport(nftAddress flow.Address, metadataViewsAddr flow.Address) []byte {
 	return code
 }
 
-func loadSportSetupAccountTransaction(contracts Contracts) []byte {
+func loadDapperSportSetupAccountTransaction(contracts Contracts) []byte {
 	return replaceAddresses(
-		readFile(SportSetupAccountPath),
+		readFile(DapperSportSetupAccountPath),
 		contracts,
 	)
 }
 
-func loadSportAccountIsSetupScript(contracts Contracts) []byte {
+func loadDapperSportAccountIsSetupScript(contracts Contracts) []byte {
 	return replaceAddresses(
-		readFile(SportAccountIsSetupPath),
+		readFile(DapperSportAccountIsSetupPath),
 		contracts,
 	)
 }
@@ -128,44 +128,44 @@ func loadSportAccountIsSetupScript(contracts Contracts) []byte {
 //------------------------------------------------------------
 // Series
 //------------------------------------------------------------
-func loadSportCreateSeriesTransaction(contracts Contracts) []byte {
+func loadDapperSportCreateSeriesTransaction(contracts Contracts) []byte {
 	return replaceAddresses(
-		readFile(SportCreateSeriesPath),
+		readFile(DapperSportCreateSeriesPath),
 		contracts,
 	)
 }
 
-func loadSportReadSeriesByIDScript(contracts Contracts) []byte {
+func loadDapperSportReadSeriesByIDScript(contracts Contracts) []byte {
 	return replaceAddresses(
-		readFile(SportReadSeriesByIDPath),
+		readFile(DapperSportReadSeriesByIDPath),
 		contracts,
 	)
 }
 
-func loadSportReadSeriesByNameScript(contracts Contracts) []byte {
+func loadDapperSportReadSeriesByNameScript(contracts Contracts) []byte {
 	return replaceAddresses(
-		readFile(SportReadSeriesByNamePath),
+		readFile(DapperSportReadSeriesByNamePath),
 		contracts,
 	)
 }
 
-func loadSportReadAllSeriesScript(contracts Contracts) []byte {
+func loadDapperSportReadAllSeriesScript(contracts Contracts) []byte {
 	return replaceAddresses(
-		readFile(SportReadAllSeriesPath),
+		readFile(DapperSportReadAllSeriesPath),
 		contracts,
 	)
 }
 
-func loadSportReadAllSeriesNamesScript(contracts Contracts) []byte {
+func loadDapperSportReadAllSeriesNamesScript(contracts Contracts) []byte {
 	return replaceAddresses(
-		readFile(SportReadAllSeriesNamesPath),
+		readFile(DapperSportReadAllSeriesNamesPath),
 		contracts,
 	)
 }
 
-func loadSportCloseSeriesTransaction(contracts Contracts) []byte {
+func loadDapperSportCloseSeriesTransaction(contracts Contracts) []byte {
 	return replaceAddresses(
-		readFile(SportCloseSeriesPath),
+		readFile(DapperSportCloseSeriesPath),
 		contracts,
 	)
 }
@@ -173,37 +173,37 @@ func loadSportCloseSeriesTransaction(contracts Contracts) []byte {
 //------------------------------------------------------------
 // Sets
 //------------------------------------------------------------
-func loadSportCreateSetTransaction(contracts Contracts) []byte {
+func loadDapperSportCreateSetTransaction(contracts Contracts) []byte {
 	return replaceAddresses(
-		readFile(SportCreateSetPath),
+		readFile(DapperSportCreateSetPath),
 		contracts,
 	)
 }
 
-func loadSportReadSetByIDScript(contracts Contracts) []byte {
+func loadDapperSportReadSetByIDScript(contracts Contracts) []byte {
 	return replaceAddresses(
-		readFile(SportReadSetByIDPath),
+		readFile(DapperSportReadSetByIDPath),
 		contracts,
 	)
 }
 
-func loadSportReadAllSetsScript(contracts Contracts) []byte {
+func loadDapperSportReadAllSetsScript(contracts Contracts) []byte {
 	return replaceAddresses(
-		readFile(SportReadAllSetsPath),
+		readFile(DapperSportReadAllSetsPath),
 		contracts,
 	)
 }
 
-func loadSportReadSetsByNameScript(contracts Contracts) []byte {
+func loadDapperSportReadSetsByNameScript(contracts Contracts) []byte {
 	return replaceAddresses(
-		readFile(SportReadSetsByNamePath),
+		readFile(DapperSportReadSetsByNamePath),
 		contracts,
 	)
 }
 
-func loadSportReadAllSetNamesScript(contracts Contracts) []byte {
+func loadDapperSportReadAllSetNamesScript(contracts Contracts) []byte {
 	return replaceAddresses(
-		readFile(SportReadAllSetNamesPath),
+		readFile(DapperSportReadAllSetNamesPath),
 		contracts,
 	)
 }
@@ -211,23 +211,23 @@ func loadSportReadAllSetNamesScript(contracts Contracts) []byte {
 //------------------------------------------------------------
 // Plays
 //------------------------------------------------------------
-func loadSportCreatePlayTransaction(contracts Contracts) []byte {
+func loadDapperSportCreatePlayTransaction(contracts Contracts) []byte {
 	return replaceAddresses(
-		readFile(SportCreatePlayPath),
+		readFile(DapperSportCreatePlayPath),
 		contracts,
 	)
 }
 
-func loadSportReadPlayByIDScript(contracts Contracts) []byte {
+func loadDapperSportReadPlayByIDScript(contracts Contracts) []byte {
 	return replaceAddresses(
-		readFile(SportReadPlayByIDPath),
+		readFile(DapperSportReadPlayByIDPath),
 		contracts,
 	)
 }
 
-func loadSportReadAllPlaysScript(contracts Contracts) []byte {
+func loadDapperSportReadAllPlaysScript(contracts Contracts) []byte {
 	return replaceAddresses(
-		readFile(SportReadAllPlaysPath),
+		readFile(DapperSportReadAllPlaysPath),
 		contracts,
 	)
 }
@@ -235,30 +235,30 @@ func loadSportReadAllPlaysScript(contracts Contracts) []byte {
 //------------------------------------------------------------
 // Editions
 //------------------------------------------------------------
-func loadSportCreateEditionTransaction(contracts Contracts) []byte {
+func loadDapperSportCreateEditionTransaction(contracts Contracts) []byte {
 	return replaceAddresses(
-		readFile(SportCreateEditionPath),
+		readFile(DapperSportCreateEditionPath),
 		contracts,
 	)
 }
 
-func loadSportReadEditionByIDScript(contracts Contracts) []byte {
+func loadDapperSportReadEditionByIDScript(contracts Contracts) []byte {
 	return replaceAddresses(
-		readFile(SportReadEditionByIDPath),
+		readFile(DapperSportReadEditionByIDPath),
 		contracts,
 	)
 }
 
-func loadSportCloseEditionTransaction(contracts Contracts) []byte {
+func loadDapperSportCloseEditionTransaction(contracts Contracts) []byte {
 	return replaceAddresses(
-		readFile(SportCloseEditionPath),
+		readFile(DapperSportCloseEditionPath),
 		contracts,
 	)
 }
 
-func loadSportReadAllEditionsScript(contracts Contracts) []byte {
+func loadDapperSportReadAllEditionsScript(contracts Contracts) []byte {
 	return replaceAddresses(
-		readFile(SportReadAllEditionsPath),
+		readFile(DapperSportReadAllEditionsPath),
 		contracts,
 	)
 }
@@ -266,58 +266,58 @@ func loadSportReadAllEditionsScript(contracts Contracts) []byte {
 //------------------------------------------------------------
 // Moment NFTs
 //------------------------------------------------------------
-func loadSportMintMomentNFTTransaction(contracts Contracts) []byte {
+func loadDapperSportMintMomentNFTTransaction(contracts Contracts) []byte {
 	return replaceAddresses(
-		readFile(SportMintMomentNFTPath),
+		readFile(DapperSportMintMomentNFTPath),
 		contracts,
 	)
 }
 
-func loadSportMintMomentNFTMultiTransaction(contracts Contracts) []byte {
+func loadDapperSportMintMomentNFTMultiTransaction(contracts Contracts) []byte {
 	return replaceAddresses(
-		readFile(SportMintMomentNFTMultiPath),
+		readFile(DapperSportMintMomentNFTMultiPath),
 		contracts,
 	)
 }
 
-func loadSportReadMomentNFTSupplyScript(contracts Contracts) []byte {
+func loadDapperSportReadMomentNFTSupplyScript(contracts Contracts) []byte {
 	return replaceAddresses(
-		readFile(SportReadMomentNFTSupplyPath),
+		readFile(DapperSportReadMomentNFTSupplyPath),
 		contracts,
 	)
 }
 
-func loadSportReadMomentNFTPropertiesScript(contracts Contracts) []byte {
+func loadDapperSportReadMomentNFTPropertiesScript(contracts Contracts) []byte {
 	return replaceAddresses(
-		readFile(SportReadMomentNFTPropertiesPath),
+		readFile(DapperSportReadMomentNFTPropertiesPath),
 		contracts,
 	)
 }
 
-func loadSportReadCollectionNFTLengthScript(contracts Contracts) []byte {
+func loadDapperSportReadCollectionNFTLengthScript(contracts Contracts) []byte {
 	return replaceAddresses(
-		readFile(SportReadCollectionNFTLengthPath),
+		readFile(DapperSportReadCollectionNFTLengthPath),
 		contracts,
 	)
 }
 
-func loadSportReadCollectionNFTIDsScript(contracts Contracts) []byte {
+func loadDapperSportReadCollectionNFTIDsScript(contracts Contracts) []byte {
 	return replaceAddresses(
-		readFile(SportReadCollectionNFTIDsPath),
+		readFile(DapperSportReadCollectionNFTIDsPath),
 		contracts,
 	)
 }
 
-func loadSportTransferNFTTransaction(contracts Contracts) []byte {
+func loadDapperSportTransferNFTTransaction(contracts Contracts) []byte {
 	return replaceAddresses(
-		readFile(SportTransferNFTPath),
+		readFile(DapperSportTransferNFTPath),
 		contracts,
 	)
 }
 
-func loadSportDisplayMetadataViewScript(contracts Contracts) []byte {
+func loadDapperSportDisplayMetadataViewScript(contracts Contracts) []byte {
 	return replaceAddresses(
-		readFile(SportDisplayMetadataViewPath),
+		readFile(DapperSportDisplayMetadataViewPath),
 		contracts,
 	)
 }

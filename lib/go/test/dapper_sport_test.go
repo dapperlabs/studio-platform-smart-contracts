@@ -11,27 +11,27 @@ import (
 
 const (
 	playerJerseyName = "Deewai"
-	playType = "Goal"
+	playType         = "Goal"
 )
 
 var (
 	editions = make(map[uint64]EditionData)
-	sets = make(map[uint64]SetData)
+	sets     = make(map[uint64]SetData)
 )
 
 //------------------------------------------------------------
 // Setup
 //------------------------------------------------------------
-func TestSportDeployContracts(t *testing.T) {
+func TestDapperSportDeployContracts(t *testing.T) {
 	b := newEmulator()
-	SportDeployContracts(t, b)
+	DapperSportDeployContracts(t, b)
 }
 
-func TestSportSetupAccount(t *testing.T) {
+func TestDapperSportSetupAccount(t *testing.T) {
 	b := newEmulator()
-	contracts := SportDeployContracts(t, b)
+	contracts := DapperSportDeployContracts(t, b)
 	userAddress, userSigner := createAccount(t, b)
-	setupSport(t, b, userAddress, userSigner, contracts)
+	setupDapperSport(t, b, userAddress, userSigner, contracts)
 
 	t.Run("Account should be set up", func(t *testing.T) {
 		accountIsSetUp := accountIsSetup(
@@ -49,7 +49,7 @@ func TestSportSetupAccount(t *testing.T) {
 //------------------------------------------------------------
 func TestSeries(t *testing.T) {
 	b := newEmulator()
-	contracts := SportDeployContracts(t, b)
+	contracts := DapperSportDeployContracts(t, b)
 	createTestSeries(t, b, contracts)
 }
 
@@ -141,7 +141,7 @@ func testCloseSeries(
 //------------------------------------------------------------
 func TestSets(t *testing.T) {
 	b := newEmulator()
-	contracts := SportDeployContracts(t, b)
+	contracts := DapperSportDeployContracts(t, b)
 	createTestSets(t, b, contracts)
 
 }
@@ -199,7 +199,7 @@ func testCreateSet(
 //------------------------------------------------------------
 func TestPlays(t *testing.T) {
 	b := newEmulator()
-	contracts := SportDeployContracts(t, b)
+	contracts := DapperSportDeployContracts(t, b)
 	createTestPlays(t, b, contracts)
 }
 
@@ -211,7 +211,7 @@ func createTestPlays(t *testing.T, b *emulator.Blockchain, contracts Contracts) 
 			contracts,
 			"TEST_CLASSIFICATION",
 			map[string]string{"test play metadata a": "TEST PLAY METADATA A",
-			 "PlayerJerseyName":playerJerseyName, "PlayType":playType},
+				"PlayerJerseyName": playerJerseyName, "PlayType": playType},
 			1,
 			false,
 		)
@@ -224,7 +224,7 @@ func createTestPlays(t *testing.T, b *emulator.Blockchain, contracts Contracts) 
 			contracts,
 			"TEST_CLASSIFICATION",
 			map[string]string{"test play metadata b": "TEST PLAY METADATA B",
-			"PlayerJerseyName":playerJerseyName, "PlayType":playType},
+				"PlayerJerseyName": playerJerseyName, "PlayType": playType},
 			2,
 			false,
 		)
@@ -262,7 +262,7 @@ func testCreatePlay(
 //------------------------------------------------------------
 func TestEditions(t *testing.T) {
 	b := newEmulator()
-	contracts := SportDeployContracts(t, b)
+	contracts := DapperSportDeployContracts(t, b)
 	createTestEditions(t, b, contracts)
 }
 
@@ -424,9 +424,9 @@ func createTestEditions(t *testing.T, b *emulator.Blockchain, contracts Contract
 // ------------------------------------------------------------
 func TestMomentNFTs(t *testing.T) {
 	b := newEmulator()
-	contracts := SportDeployContracts(t, b)
+	contracts := DapperSportDeployContracts(t, b)
 	userAddress, userSigner := createAccount(t, b)
-	setupSport(t, b, userAddress, userSigner, contracts)
+	setupDapperSport(t, b, userAddress, userSigner, contracts)
 
 	createTestEditions(t, b, contracts)
 
@@ -556,7 +556,7 @@ func testMintMomentNFT(
 			userAddress,
 			shouldBeID,
 		)
-		assert.Equal(t, playerJerseyName + " " + playType, displayView.Name)
+		assert.Equal(t, playerJerseyName+" "+playType, displayView.Name)
 		assert.Equal(t, fmt.Sprintf("A series %d %s moment with serial number %d", editions[editionID].SeriesID, sets[editions[editionID].SetID].Name, nftProperties.SerialNumber), displayView.Description)
 		//TODO: check the image reurned based on tier
 		assert.Equal(t, "https://ipfs.dapperlabs.com/ipfs/Qmbdj1agtbzpPWZ81wCGaDiMKRFaRN3TU6cfztVCu6nh4o", displayView.ImageURL)

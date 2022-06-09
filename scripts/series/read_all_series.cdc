@@ -1,14 +1,14 @@
-import Sport from "../../contracts/Sport.cdc"
+import DapperSport from "../../contracts/DapperSport.cdc"
 
 // This script returns all the Series structs.
 // This will eventually be *long*.
 
-pub fun main(): [Sport.SeriesData] {
-    let series: [Sport.SeriesData] = []
+pub fun main(): [DapperSport.SeriesData] {
+    let series: [DapperSport.SeriesData] = []
     var id: UInt64 = 1
     // Note < , as nextSeriesID has not yet been used
-    while id < Sport.nextSeriesID {
-        series.append(Sport.getSeriesData(id: id))
+    while id < DapperSport.nextSeriesID {
+        series.append(DapperSport.getSeriesData(id: id))
         id = id + 1
     }
     return series

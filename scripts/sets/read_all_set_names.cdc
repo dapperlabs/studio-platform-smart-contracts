@@ -1,9 +1,9 @@
-import Sport from "../../contracts/Sport.cdc"
+import DapperSport from "../../contracts/DapperSport.cdc"
 
 // This script returns all the names for Set.
-// These can be related to Set structs via Sport.getSetByName() .
+// These can be related to Set structs via DapperSport.getSetByName() .
 
 pub fun main(): [String] {
-    return Sport.getAllSetNames()
+    return DapperSport.getAllSetNames()
 }
 

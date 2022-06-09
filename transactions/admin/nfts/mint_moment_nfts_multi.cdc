@@ -1,24 +1,24 @@
 import NonFungibleToken from "../../../contracts/NonFungibleToken.cdc"
-import Sport from "../../../contracts/Sport.cdc"
+import DapperSport from "../../../contracts/DapperSport.cdc"
 
 transaction(recipientAddress: Address, editionIDs: [UInt64], counts: [UInt64]) {
     
     // local variable for storing the minter reference
-    let minter: &{Sport.NFTMinter}
-    let recipient: &{Sport.MomentNFTCollectionPublic}
+    let minter: &{DapperSport.NFTMinter}
+    let recipient: &{DapperSport.MomentNFTCollectionPublic}
 
     prepare(signer: AuthAccount) {
         // borrow a reference to the NFTMinter resource in storage
-        self.minter = signer.getCapability(Sport.MinterPrivatePath)
-            .borrow<&{Sport.NFTMinter}>()
+        self.minter = signer.getCapability(DapperSport.MinterPrivatePath)
+            .borrow<&{DapperSport.NFTMinter}>()
             ?? panic("Could not borrow a reference to the NFT minter")
 
         // get the recipients public account object
         let recipientAccount = getAccount(recipientAddress)
 
         // borrow a public reference to the receivers collection
-        self.recipient = recipientAccount.getCapability(Sport.CollectionPublicPath)
-            .borrow<&{Sport.MomentNFTCollectionPublic}>()
+        self.recipient = recipientAccount.getCapability(DapperSport.CollectionPublicPath)
+            .borrow<&{DapperSport.MomentNFTCollectionPublic}>()
             ?? panic("Could not borrow a reference to the collection receiver")
 
     }

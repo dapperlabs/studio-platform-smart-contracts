@@ -1,9 +1,9 @@
-import Sport from "../../contracts/Sport.cdc"
+import DapperSport from "../../contracts/DapperSport.cdc"
 
 // This script returns a Series struct for the given name,
 // if it exists
 
-pub fun main(seriesName: String): Sport.SeriesData {
-    return Sport.getSeriesDataByName(name: seriesName)
+pub fun main(seriesName: String): DapperSport.SeriesData {
+    return DapperSport.getSeriesDataByName(name: seriesName)
 }
 

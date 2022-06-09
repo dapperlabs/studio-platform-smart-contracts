@@ -31,8 +31,8 @@ var (
 type Contracts struct {
 	NFTAddress          flow.Address
 	MetadataViewAddress flow.Address
-	SportAddress        flow.Address
-	SportSigner         crypto.Signer
+	DapperSportAddress  flow.Address
+	DapperSportSigner   crypto.Signer
 }
 
 func deployNFTContract(t *testing.T, b *emulator.Blockchain) flow.Address {
@@ -53,7 +53,7 @@ func deployNFTContract(t *testing.T, b *emulator.Blockchain) flow.Address {
 	return nftAddress
 }
 
-func SportDeployContracts(t *testing.T, b *emulator.Blockchain) Contracts {
+func DapperSportDeployContracts(t *testing.T, b *emulator.Blockchain) Contracts {
 	accountKeys := test.AccountKeyGenerator()
 
 	nftAddress := deployNFTContract(t, b)
@@ -70,22 +70,22 @@ func SportDeployContracts(t *testing.T, b *emulator.Blockchain) Contracts {
 	_, err = b.CommitBlock()
 	assert.NoError(t, err)
 
-	SportAccountKey, SportSigner := accountKeys.NewWithSigner()
-	SportCode := LoadSport(nftAddress, metadataViewsAddr)
+	DapperSportAccountKey, DapperSportSigner := accountKeys.NewWithSigner()
+	DapperSportCode := LoadDapperSport(nftAddress, metadataViewsAddr)
 
-	SportAddress, err := b.CreateAccount(
-		[]*flow.AccountKey{SportAccountKey},
+	DapperSportAddress, err := b.CreateAccount(
+		[]*flow.AccountKey{DapperSportAccountKey},
 		nil,
 	)
 	require.NoError(t, err)
 
-	fundAccount(t, b, SportAddress, defaultAccountFunding)
+	fundAccount(t, b, DapperSportAddress, defaultAccountFunding)
 
 	tx1 := sdktemplates.AddAccountContract(
-		SportAddress,
+		DapperSportAddress,
 		sdktemplates.Contract{
-			Name:   "Sport",
-			Source: string(SportCode),
+			Name:   "DapperSport",
+			Source: string(DapperSportCode),
 		},
 	)
 
@@ -96,8 +96,8 @@ func SportDeployContracts(t *testing.T, b *emulator.Blockchain) Contracts {
 
 	signAndSubmit(
 		t, b, tx1,
-		[]flow.Address{b.ServiceKey().Address, SportAddress},
-		[]crypto.Signer{b.ServiceKey().Signer(), SportSigner},
+		[]flow.Address{b.ServiceKey().Address, DapperSportAddress},
+		[]crypto.Signer{b.ServiceKey().Signer(), DapperSportSigner},
 		false,
 	)
 
@@ -107,8 +107,8 @@ func SportDeployContracts(t *testing.T, b *emulator.Blockchain) Contracts {
 	return Contracts{
 		nftAddress,
 		metadataViewsAddr,
-		SportAddress,
-		SportSigner,
+		DapperSportAddress,
+		DapperSportSigner,
 	}
 }
 
@@ -219,7 +219,7 @@ func createAccount(t *testing.T, b *emulator.Blockchain) (sdk.Address, crypto.Si
 	return address, signer
 }
 
-func setupSport(
+func setupDapperSport(
 	t *testing.T,
 	b *emulator.Blockchain,
 	userAddress sdk.Address,
@@ -227,7 +227,7 @@ func setupSport(
 	contracts Contracts,
 ) {
 	tx := flow.NewTransaction().
-		SetScript(loadSportSetupAccountTransaction(contracts)).
+		SetScript(loadDapperSportSetupAccountTransaction(contracts)).
 		SetGasLimit(100).
 		SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
 		SetPayer(b.ServiceKey().Address).
@@ -248,7 +248,7 @@ func setupAccount(
 	signer crypto.Signer,
 	contracts Contracts,
 ) (sdk.Address, crypto.Signer) {
-	setupSport(t, b, address, signer, contracts)
+	setupDapperSport(t, b, address, signer, contracts)
 	fundAccount(t, b, address, defaultAccountFunding)
 
 	return address, signer

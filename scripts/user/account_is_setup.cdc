@@ -1,14 +1,14 @@
 import NonFungibleToken from "../../contracts/NonFungibleToken.cdc"
-import Sport from "../../contracts/Sport.cdc"
+import DapperSport from "../../contracts/DapperSport.cdc"
 
-// Check to see if an account looks like it has been set up to hold Sport NFTs.
+// Check to see if an account looks like it has been set up to hold DapperSport NFTs.
 
 pub fun main(address: Address): Bool {
     let account = getAccount(address)
     return account.getCapability<&{
             NonFungibleToken.CollectionPublic,
-            Sport.MomentNFTCollectionPublic
-        }>(Sport.CollectionPublicPath)
+            DapperSport.MomentNFTCollectionPublic
+        }>(DapperSport.CollectionPublicPath)
         != nil
 }
 

@@ -55,17 +55,17 @@ func createSeries(
 ) {
 	cadenceString, _ := cadence.NewString(name)
 	tx := flow.NewTransaction().
-		SetScript(loadSportCreateSeriesTransaction(contracts)).
+		SetScript(loadDapperSportCreateSeriesTransaction(contracts)).
 		SetGasLimit(100).
 		SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
 		SetPayer(b.ServiceKey().Address).
-		AddAuthorizer(contracts.SportAddress)
+		AddAuthorizer(contracts.DapperSportAddress)
 	tx.AddArgument(cadenceString)
 
 	signAndSubmit(
 		t, b, tx,
-		[]flow.Address{b.ServiceKey().Address, contracts.SportAddress},
-		[]crypto.Signer{b.ServiceKey().Signer(), contracts.SportSigner},
+		[]flow.Address{b.ServiceKey().Address, contracts.DapperSportAddress},
+		[]crypto.Signer{b.ServiceKey().Signer(), contracts.DapperSportSigner},
 		shouldRevert,
 	)
 }
@@ -78,17 +78,17 @@ func closeSeries(
 	shouldRevert bool,
 ) {
 	tx := flow.NewTransaction().
-		SetScript(loadSportCloseSeriesTransaction(contracts)).
+		SetScript(loadDapperSportCloseSeriesTransaction(contracts)).
 		SetGasLimit(100).
 		SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
 		SetPayer(b.ServiceKey().Address).
-		AddAuthorizer(contracts.SportAddress)
+		AddAuthorizer(contracts.DapperSportAddress)
 	tx.AddArgument(cadence.NewUInt64(id))
 
 	signAndSubmit(
 		t, b, tx,
-		[]flow.Address{b.ServiceKey().Address, contracts.SportAddress},
-		[]crypto.Signer{b.ServiceKey().Signer(), contracts.SportSigner},
+		[]flow.Address{b.ServiceKey().Address, contracts.DapperSportAddress},
+		[]crypto.Signer{b.ServiceKey().Signer(), contracts.DapperSportSigner},
 		shouldRevert,
 	)
 }
@@ -105,17 +105,17 @@ func createSet(
 ) {
 	cadenceString, _ := cadence.NewString(name)
 	tx := flow.NewTransaction().
-		SetScript(loadSportCreateSetTransaction(contracts)).
+		SetScript(loadDapperSportCreateSetTransaction(contracts)).
 		SetGasLimit(100).
 		SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
 		SetPayer(b.ServiceKey().Address).
-		AddAuthorizer(contracts.SportAddress)
+		AddAuthorizer(contracts.DapperSportAddress)
 	tx.AddArgument(cadenceString)
 
 	signAndSubmit(
 		t, b, tx,
-		[]flow.Address{b.ServiceKey().Address, contracts.SportAddress},
-		[]crypto.Signer{b.ServiceKey().Signer(), contracts.SportSigner},
+		[]flow.Address{b.ServiceKey().Address, contracts.DapperSportAddress},
+		[]crypto.Signer{b.ServiceKey().Signer(), contracts.DapperSportSigner},
 		shouldRevert,
 	)
 }
@@ -133,18 +133,18 @@ func createPlay(
 ) {
 	cadenceString, _ := cadence.NewString(classification)
 	tx := flow.NewTransaction().
-		SetScript(loadSportCreatePlayTransaction(contracts)).
+		SetScript(loadDapperSportCreatePlayTransaction(contracts)).
 		SetGasLimit(100).
 		SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
 		SetPayer(b.ServiceKey().Address).
-		AddAuthorizer(contracts.SportAddress)
+		AddAuthorizer(contracts.DapperSportAddress)
 	tx.AddArgument(cadenceString)
 	tx.AddArgument(metadataDict(metadata))
 
 	signAndSubmit(
 		t, b, tx,
-		[]flow.Address{b.ServiceKey().Address, contracts.SportAddress},
-		[]crypto.Signer{b.ServiceKey().Signer(), contracts.SportSigner},
+		[]flow.Address{b.ServiceKey().Address, contracts.DapperSportAddress},
+		[]crypto.Signer{b.ServiceKey().Signer(), contracts.DapperSportSigner},
 		shouldRevert,
 	)
 }
@@ -165,11 +165,11 @@ func createEdition(
 ) {
 	cadenceString, _ := cadence.NewString(tier)
 	tx := flow.NewTransaction().
-		SetScript(loadSportCreateEditionTransaction(contracts)).
+		SetScript(loadDapperSportCreateEditionTransaction(contracts)).
 		SetGasLimit(100).
 		SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
 		SetPayer(b.ServiceKey().Address).
-		AddAuthorizer(contracts.SportAddress)
+		AddAuthorizer(contracts.DapperSportAddress)
 	tx.AddArgument(cadence.NewUInt64(seriesID))
 	tx.AddArgument(cadence.NewUInt64(setID))
 	tx.AddArgument(cadence.NewUInt64(playID))
@@ -182,8 +182,8 @@ func createEdition(
 
 	signAndSubmit(
 		t, b, tx,
-		[]flow.Address{b.ServiceKey().Address, contracts.SportAddress},
-		[]crypto.Signer{b.ServiceKey().Signer(), contracts.SportSigner},
+		[]flow.Address{b.ServiceKey().Address, contracts.DapperSportAddress},
+		[]crypto.Signer{b.ServiceKey().Signer(), contracts.DapperSportSigner},
 		shouldRevert,
 	)
 }
@@ -196,17 +196,17 @@ func closeEdition(
 	shouldRevert bool,
 ) {
 	tx := flow.NewTransaction().
-		SetScript(loadSportCloseEditionTransaction(contracts)).
+		SetScript(loadDapperSportCloseEditionTransaction(contracts)).
 		SetGasLimit(100).
 		SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
 		SetPayer(b.ServiceKey().Address).
-		AddAuthorizer(contracts.SportAddress)
+		AddAuthorizer(contracts.DapperSportAddress)
 	tx.AddArgument(cadence.NewUInt64(editionID))
 
 	signAndSubmit(
 		t, b, tx,
-		[]flow.Address{b.ServiceKey().Address, contracts.SportAddress},
-		[]crypto.Signer{b.ServiceKey().Signer(), contracts.SportSigner},
+		[]flow.Address{b.ServiceKey().Address, contracts.DapperSportAddress},
+		[]crypto.Signer{b.ServiceKey().Signer(), contracts.DapperSportSigner},
 		shouldRevert,
 	)
 }
@@ -223,18 +223,18 @@ func mintMomentNFT(
 	shouldRevert bool,
 ) {
 	tx := flow.NewTransaction().
-		SetScript(loadSportMintMomentNFTTransaction(contracts)).
+		SetScript(loadDapperSportMintMomentNFTTransaction(contracts)).
 		SetGasLimit(100).
 		SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
 		SetPayer(b.ServiceKey().Address).
-		AddAuthorizer(contracts.SportAddress)
+		AddAuthorizer(contracts.DapperSportAddress)
 	tx.AddArgument(cadence.BytesToAddress(recipientAddress.Bytes()))
 	tx.AddArgument(cadence.NewUInt64(editionID))
 
 	signAndSubmit(
 		t, b, tx,
-		[]flow.Address{b.ServiceKey().Address, contracts.SportAddress},
-		[]crypto.Signer{b.ServiceKey().Signer(), contracts.SportSigner},
+		[]flow.Address{b.ServiceKey().Address, contracts.DapperSportAddress},
+		[]crypto.Signer{b.ServiceKey().Signer(), contracts.DapperSportSigner},
 		shouldRevert,
 	)
 }
@@ -250,7 +250,7 @@ func transferMomentNFT(
 	shouldRevert bool,
 ) {
 	tx := flow.NewTransaction().
-		SetScript(loadSportTransferNFTTransaction(contracts)).
+		SetScript(loadDapperSportTransferNFTTransaction(contracts)).
 		SetGasLimit(100).
 		SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
 		SetPayer(b.ServiceKey().Address).
