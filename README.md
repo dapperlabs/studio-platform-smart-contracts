@@ -69,7 +69,6 @@ the edition.
 The MaxEditionSize is optional. If it is not set, moments can be minted unlimitedly. An Edition will close, if either of these things happen:
 - The max number of moments are minted
 - The CloseEdition transaction is used
-- 
 `MaxEditionSize` cannot be changed once it is set.
 
 **Fields**
