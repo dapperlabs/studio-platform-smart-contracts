@@ -4,6 +4,6 @@ import DapperSport from "../../contracts/DapperSport.cdc"
 // if it exists
 
 pub fun main(id: UInt64): DapperSport.PlayData {
-    return DapperSport.getPlayData(id: id)
+    return DapperSport.getPlayData(id: id)!
 }
 

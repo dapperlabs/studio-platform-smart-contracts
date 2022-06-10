@@ -4,6 +4,6 @@ import DapperSport from "../../contracts/DapperSport.cdc"
 // if it exists
 
 pub fun main(seriesName: String): DapperSport.SeriesData {
-    return DapperSport.getSeriesDataByName(name: seriesName)
+    return DapperSport.getSeriesDataByName(name: seriesName)!
 }
 

@@ -8,6 +8,7 @@ import (
 	fttemplates "github.com/onflow/flow-ft/lib/go/templates"
 	"github.com/onflow/flow-go-sdk"
 	"github.com/onflow/flow-go-sdk/crypto"
+	"github.com/stretchr/testify/require"
 )
 
 //------------------------------------------------------------
@@ -35,10 +36,13 @@ func fundAccount(
 	tx.AddArgument(cadence.NewAddress(receiverAddress))
 	tx.AddArgument(cadenceUFix64(amount))
 
+	signer, err := b.ServiceKey().Signer()
+	require.NoError(t, err)
+
 	signAndSubmit(
 		t, b, tx,
 		[]flow.Address{b.ServiceKey().Address},
-		[]crypto.Signer{b.ServiceKey().Signer()},
+		[]crypto.Signer{signer},
 		false,
 	)
 }
@@ -62,10 +66,13 @@ func createSeries(
 		AddAuthorizer(contracts.DapperSportAddress)
 	tx.AddArgument(cadenceString)
 
+	signer, err := b.ServiceKey().Signer()
+	require.NoError(t, err)
+
 	signAndSubmit(
 		t, b, tx,
 		[]flow.Address{b.ServiceKey().Address, contracts.DapperSportAddress},
-		[]crypto.Signer{b.ServiceKey().Signer(), contracts.DapperSportSigner},
+		[]crypto.Signer{signer, contracts.DapperSportSigner},
 		shouldRevert,
 	)
 }
@@ -85,10 +92,13 @@ func closeSeries(
 		AddAuthorizer(contracts.DapperSportAddress)
 	tx.AddArgument(cadence.NewUInt64(id))
 
+	signer, err := b.ServiceKey().Signer()
+	require.NoError(t, err)
+
 	signAndSubmit(
 		t, b, tx,
 		[]flow.Address{b.ServiceKey().Address, contracts.DapperSportAddress},
-		[]crypto.Signer{b.ServiceKey().Signer(), contracts.DapperSportSigner},
+		[]crypto.Signer{signer, contracts.DapperSportSigner},
 		shouldRevert,
 	)
 }
@@ -112,10 +122,13 @@ func createSet(
 		AddAuthorizer(contracts.DapperSportAddress)
 	tx.AddArgument(cadenceString)
 
+	signer, err := b.ServiceKey().Signer()
+	require.NoError(t, err)
+
 	signAndSubmit(
 		t, b, tx,
 		[]flow.Address{b.ServiceKey().Address, contracts.DapperSportAddress},
-		[]crypto.Signer{b.ServiceKey().Signer(), contracts.DapperSportSigner},
+		[]crypto.Signer{signer, contracts.DapperSportSigner},
 		shouldRevert,
 	)
 }
@@ -141,10 +154,13 @@ func createPlay(
 	tx.AddArgument(cadenceString)
 	tx.AddArgument(metadataDict(metadata))
 
+	signer, err := b.ServiceKey().Signer()
+	require.NoError(t, err)
+
 	signAndSubmit(
 		t, b, tx,
 		[]flow.Address{b.ServiceKey().Address, contracts.DapperSportAddress},
-		[]crypto.Signer{b.ServiceKey().Signer(), contracts.DapperSportSigner},
+		[]crypto.Signer{signer, contracts.DapperSportSigner},
 		shouldRevert,
 	)
 }
@@ -180,10 +196,13 @@ func createEdition(
 		tx.AddArgument(cadence.Optional{})
 	}
 
+	signer, err := b.ServiceKey().Signer()
+	require.NoError(t, err)
+
 	signAndSubmit(
 		t, b, tx,
 		[]flow.Address{b.ServiceKey().Address, contracts.DapperSportAddress},
-		[]crypto.Signer{b.ServiceKey().Signer(), contracts.DapperSportSigner},
+		[]crypto.Signer{signer, contracts.DapperSportSigner},
 		shouldRevert,
 	)
 }
@@ -203,10 +222,13 @@ func closeEdition(
 		AddAuthorizer(contracts.DapperSportAddress)
 	tx.AddArgument(cadence.NewUInt64(editionID))
 
+	signer, err := b.ServiceKey().Signer()
+	require.NoError(t, err)
+
 	signAndSubmit(
 		t, b, tx,
 		[]flow.Address{b.ServiceKey().Address, contracts.DapperSportAddress},
-		[]crypto.Signer{b.ServiceKey().Signer(), contracts.DapperSportSigner},
+		[]crypto.Signer{signer, contracts.DapperSportSigner},
 		shouldRevert,
 	)
 }
@@ -231,10 +253,13 @@ func mintMomentNFT(
 	tx.AddArgument(cadence.BytesToAddress(recipientAddress.Bytes()))
 	tx.AddArgument(cadence.NewUInt64(editionID))
 
+	signer, err := b.ServiceKey().Signer()
+	require.NoError(t, err)
+
 	signAndSubmit(
 		t, b, tx,
 		[]flow.Address{b.ServiceKey().Address, contracts.DapperSportAddress},
-		[]crypto.Signer{b.ServiceKey().Signer(), contracts.DapperSportSigner},
+		[]crypto.Signer{signer, contracts.DapperSportSigner},
 		shouldRevert,
 	)
 }
@@ -258,10 +283,13 @@ func transferMomentNFT(
 	tx.AddArgument(cadence.BytesToAddress(recipientAddress.Bytes()))
 	tx.AddArgument(cadence.NewUInt64(nftID))
 
+	signer, err := b.ServiceKey().Signer()
+	require.NoError(t, err)
+
 	signAndSubmit(
 		t, b, tx,
 		[]flow.Address{b.ServiceKey().Address, senderAddress},
-		[]crypto.Signer{b.ServiceKey().Signer(), senderSigner},
+		[]crypto.Signer{signer, senderSigner},
 		shouldRevert,
 	)
 }

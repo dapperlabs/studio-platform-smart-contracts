@@ -94,10 +94,13 @@ func DapperSportDeployContracts(t *testing.T, b *emulator.Blockchain) Contracts 
 		SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
 		SetPayer(b.ServiceKey().Address)
 
+	signer, err := b.ServiceKey().Signer()
+	assert.NoError(t, err)
+	
 	signAndSubmit(
 		t, b, tx1,
 		[]flow.Address{b.ServiceKey().Address, DapperSportAddress},
-		[]crypto.Signer{b.ServiceKey().Signer(), DapperSportSigner},
+		[]crypto.Signer{signer, DapperSportSigner},
 		false,
 	)
 
@@ -233,10 +236,13 @@ func setupDapperSport(
 		SetPayer(b.ServiceKey().Address).
 		AddAuthorizer(userAddress)
 
+	signer, err := b.ServiceKey().Signer()
+	assert.NoError(t, err)
+
 	signAndSubmit(
 		t, b, tx,
 		[]flow.Address{b.ServiceKey().Address, userAddress},
-		[]crypto.Signer{b.ServiceKey().Signer(), userSigner},
+		[]crypto.Signer{signer, userSigner},
 		false,
 	)
 }

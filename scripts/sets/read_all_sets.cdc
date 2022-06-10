@@ -8,7 +8,7 @@ pub fun main(): [DapperSport.SetData] {
     var id: UInt64 = 1
     // Note < , as nextSetID has not yet been used
     while id < DapperSport.nextSetID {
-        sets.append(DapperSport.getSetData(id: id))
+        sets.append(DapperSport.getSetData(id: id)!)
         id = id + 1
     }
     return sets

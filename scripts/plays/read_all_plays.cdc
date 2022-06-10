@@ -8,7 +8,7 @@ pub fun main(): [DapperSport.PlayData] {
     var id: UInt64 = 1
     // Note < , as nextPlayID has not yet been used
     while id < DapperSport.nextPlayID {
-        plays.append(DapperSport.getPlayData(id: id))
+        plays.append(DapperSport.getPlayData(id: id)!)
         id = id + 1
     }
     return plays

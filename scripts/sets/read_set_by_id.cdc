@@ -4,6 +4,6 @@ import DapperSport from "../../contracts/DapperSport.cdc"
 // if it exists
 
 pub fun main(id: UInt64): DapperSport.SetData {
-    return DapperSport.getSetData(id: id)
+    return DapperSport.getSetData(id: id)!
 }
 
