@@ -130,7 +130,7 @@ pub contract DapperSport: NonFungibleToken {
         pub let name: String
         pub let active: Bool
 
-        // initializer
+        /// initializer
         //
         init (id: UInt64) {
             let series = (&DapperSport.seriesByID[id] as! &DapperSport.Series?)!
@@ -243,8 +243,8 @@ pub contract DapperSport: NonFungibleToken {
     pub resource Set {
         pub let id: UInt64
         pub let name: String
-        // Store a dictionary of all the Plays which are paired with the Set inside Editions
-        // This enforces only one Set/Play unique pair can be used for an Edition
+        /// Store a dictionary of all the Plays which are paired with the Set inside Editions
+        /// This enforces only one Set/Play unique pair can be used for an Edition
         access(self) var setPlaysInEditions: {UInt64: Bool}
 
         /// member function to insert a new Play to the setPlaysInEditions dictionary
@@ -401,9 +401,9 @@ pub contract DapperSport: NonFungibleToken {
         pub let setID: UInt64
         pub let playID: UInt64
         pub let tier: String
-        // Null value indicates that there is unlimited minting potential for the Edition
+        /// Null value indicates that there is unlimited minting potential for the Edition
         pub var maxMintSize: UInt64?
-        // Updates each time we mint a new moment for the Edition to keep a running total
+        /// Updates each time we mint a new moment for the Edition to keep a running total
         pub var numMinted: UInt64
 
         /// Close this edition so that no more Moment NFTs can be minted in it
