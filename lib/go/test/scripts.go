@@ -112,3 +112,51 @@ func getMomentNFTDisplayMetadataView(
 
 	return parseMetadataDisplayView(result)
 }
+
+func getMomentNFTEditionMetadataView(
+	t *testing.T,
+	b *emulator.Blockchain,
+	contracts Contracts,
+	collectionAddress flow.Address,
+	nftID uint64,
+) EditionView {
+	script := loadDapperSportEditionMetadataViewScript(contracts)
+	result := executeScriptAndCheck(t, b, script, [][]byte{
+		jsoncdc.MustEncode(cadence.BytesToAddress(collectionAddress.Bytes())),
+		jsoncdc.MustEncode(cadence.UInt64(nftID)),
+	})
+
+	return parseMetadataEditionView(result)
+}
+
+func getMomentNFTSerialMetadataView(
+	t *testing.T,
+	b *emulator.Blockchain,
+	contracts Contracts,
+	collectionAddress flow.Address,
+	nftID uint64,
+) uint64 {
+	script := loadDapperSportSerialMetadataViewScript(contracts)
+	result := executeScriptAndCheck(t, b, script, [][]byte{
+		jsoncdc.MustEncode(cadence.BytesToAddress(collectionAddress.Bytes())),
+		jsoncdc.MustEncode(cadence.UInt64(nftID)),
+	})
+
+	return parseMetadataSerialView(result)
+}
+
+func getMomentNFTCollectionDataMetadataView(
+	t *testing.T,
+	b *emulator.Blockchain,
+	contracts Contracts,
+	collectionAddress flow.Address,
+	nftID uint64,
+) NFTCollectionDataView {
+	script := loadDapperSportNFTCollectionDataMetadataViewScript(contracts)
+	result := executeScriptAndCheck(t, b, script, [][]byte{
+		jsoncdc.MustEncode(cadence.BytesToAddress(collectionAddress.Bytes())),
+		jsoncdc.MustEncode(cadence.UInt64(nftID)),
+	})
+
+	return parseMetadataNFTCollectionDataView(result)
+}

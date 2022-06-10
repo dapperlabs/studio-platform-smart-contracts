@@ -34,10 +34,25 @@ type OurNFTData struct {
 	MintingDate uint64
 }
 
-type DisplayView struct{
-	Name string
+type DisplayView struct {
+	Name        string
 	Description string
-	ImageURL string
+	ImageURL    string
+}
+
+type EditionView struct {
+	Number uint64
+	Max    uint64
+}
+
+type NFTCollectionDataView struct {
+	StoragePath                   string
+	PublicPath                    string
+	ProviderPath                  string
+	PublicCollection              string
+	PublicLinkedType              string
+	ProviderLinkedType            string
+	CreateEmptyCollectionFunction string
 }
 
 func cadenceStringDictToGo(cadenceDict cadence.Dictionary) map[string]string {
@@ -106,5 +121,30 @@ func parseMetadataDisplayView(value cadence.Value) DisplayView {
 		fields[0].ToGoValue().(string),
 		fields[1].ToGoValue().(string),
 		fields[2].ToGoValue().(string),
+	}
+}
+
+func parseMetadataEditionView(value cadence.Value) EditionView {
+	fields := value.(cadence.Struct).Fields
+	return EditionView{
+		fields[1].ToGoValue().(uint64),
+		fields[2].ToGoValue().(uint64),
+	}
+}
+
+func parseMetadataSerialView(value cadence.Value) uint64 {
+	return value.ToGoValue().(uint64)
+}
+
+func parseMetadataNFTCollectionDataView(value cadence.Value) NFTCollectionDataView {
+	fields := value.(cadence.Struct).Fields
+	return NFTCollectionDataView{
+		StoragePath: fields[0].ToGoValue().(string),
+		PublicPath: fields[1].ToGoValue().(string),
+		ProviderPath: fields[2].ToGoValue().(string),
+		PublicCollection: fields[3].ToGoValue().(string),
+		PublicLinkedType: fields[4].ToGoValue().(string),
+		ProviderLinkedType: fields[5].ToGoValue().(string),
+		CreateEmptyCollectionFunction: fields[6].ToGoValue().(string),
 	}
 }

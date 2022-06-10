@@ -2,6 +2,7 @@ package test
 
 import (
 	"fmt"
+	"log"
 	"testing"
 
 	emulator "github.com/onflow/flow-emulator"
@@ -560,6 +561,35 @@ func testMintMomentNFT(
 		assert.Equal(t, fmt.Sprintf("A series %d %s moment with serial number %d", editions[editionID].SeriesID, sets[editions[editionID].SetID].Name, nftProperties.SerialNumber), displayView.Description)
 		//TODO: check the image reurned based on tier
 		assert.Equal(t, "https://ipfs.dapperlabs.com/ipfs/Qmbdj1agtbzpPWZ81wCGaDiMKRFaRN3TU6cfztVCu6nh4o", displayView.ImageURL)
+
+		editionView := getMomentNFTEditionMetadataView(
+			t,
+			b,
+			contracts,
+			userAddress,
+			shouldBeID,
+		)
+		assert.Equal(t, editions[editionID].ID, editionView.Number)
+		assert.Equal(t, *editions[editionID].MaxMintSize, editionView.Max)
+
+		serialView := getMomentNFTSerialMetadataView(
+			t,
+			b,
+			contracts,
+			userAddress,
+			shouldBeID,
+		)
+		assert.Equal(t, shouldBeSerialNumber, serialView)
+
+		nftCollectionDataView := getMomentNFTCollectionDataMetadataView(
+			t,
+			b,
+			contracts,
+			userAddress,
+			shouldBeID,
+		)
+		// TODO: check paths
+		log.Printf("%+v", nftCollectionDataView)
 	} else {
 		assert.Equal(t, previousSupply, newSupply)
 	}

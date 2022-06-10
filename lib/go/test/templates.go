@@ -52,14 +52,17 @@ const (
 	DapperSportReadAllEditionsPath = DapperSportScriptsRootPath + "/edition/read_all_editions.cdc"
 
 	// Moment NFTs
-	DapperSportMintMomentNFTPath           = DapperSportTransactionsRootPath + "/admin/nfts/mint_moment_nft.cdc"
-	DapperSportMintMomentNFTMultiPath      = DapperSportTransactionsRootPath + "/admin/nfts/mint_moment_nft_multi.cdc"
-	DapperSportTransferNFTPath             = DapperSportTransactionsRootPath + "/user/transfer_moment_nft.cdc"
-	DapperSportReadMomentNFTSupplyPath     = DapperSportScriptsRootPath + "/nfts/read_moment_nft_supply.cdc"
-	DapperSportReadMomentNFTPropertiesPath = DapperSportScriptsRootPath + "/nfts/read_moment_nft_properties.cdc"
-	DapperSportReadCollectionNFTLengthPath = DapperSportScriptsRootPath + "/nfts/read_collection_nft_length.cdc"
-	DapperSportReadCollectionNFTIDsPath    = DapperSportScriptsRootPath + "/nfts/read_collection_nft_ids.cdc"
-	DapperSportDisplayMetadataViewPath     = DapperSportScriptsRootPath + "/nfts/metadata_display_view.cdc"
+	DapperSportMintMomentNFTPath                 = DapperSportTransactionsRootPath + "/admin/nfts/mint_moment_nft.cdc"
+	DapperSportMintMomentNFTMultiPath            = DapperSportTransactionsRootPath + "/admin/nfts/mint_moment_nft_multi.cdc"
+	DapperSportTransferNFTPath                   = DapperSportTransactionsRootPath + "/user/transfer_moment_nft.cdc"
+	DapperSportReadMomentNFTSupplyPath           = DapperSportScriptsRootPath + "/nfts/read_moment_nft_supply.cdc"
+	DapperSportReadMomentNFTPropertiesPath       = DapperSportScriptsRootPath + "/nfts/read_moment_nft_properties.cdc"
+	DapperSportReadCollectionNFTLengthPath       = DapperSportScriptsRootPath + "/nfts/read_collection_nft_length.cdc"
+	DapperSportReadCollectionNFTIDsPath          = DapperSportScriptsRootPath + "/nfts/read_collection_nft_ids.cdc"
+	DapperSportDisplayMetadataViewPath           = DapperSportScriptsRootPath + "/nfts/metadata_display_view.cdc"
+	DapperSportEditionMetadataViewPath           = DapperSportScriptsRootPath + "/nfts/metadata_edition_view.cdc"
+	DapperSportSerialMetadataViewPath            = DapperSportScriptsRootPath + "/nfts/metadata_serial_view.cdc"
+	DapperSportNFTCollectionDataMetadataViewPath = DapperSportScriptsRootPath + "/nfts/metadata_nft_collection_data_view.cdc"
 
 	// MetadataViews
 	MetadataViewsContractsBaseURL = "https://raw.githubusercontent.com/onflow/flow-nft/master/contracts/"
@@ -318,6 +321,27 @@ func loadDapperSportTransferNFTTransaction(contracts Contracts) []byte {
 func loadDapperSportDisplayMetadataViewScript(contracts Contracts) []byte {
 	return replaceAddresses(
 		readFile(DapperSportDisplayMetadataViewPath),
+		contracts,
+	)
+}
+
+func loadDapperSportEditionMetadataViewScript(contracts Contracts) []byte {
+	return replaceAddresses(
+		readFile(DapperSportEditionMetadataViewPath),
+		contracts,
+	)
+}
+
+func loadDapperSportSerialMetadataViewScript(contracts Contracts) []byte {
+	return replaceAddresses(
+		readFile(DapperSportSerialMetadataViewPath),
+		contracts,
+	)
+}
+
+func loadDapperSportNFTCollectionDataMetadataViewScript(contracts Contracts) []byte {
+	return replaceAddresses(
+		readFile(DapperSportNFTCollectionDataMetadataViewPath),
 		contracts,
 	)
 }

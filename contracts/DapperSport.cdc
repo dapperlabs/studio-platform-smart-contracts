@@ -575,7 +575,10 @@ pub contract DapperSport: NonFungibleToken {
         ///
         pub fun getViews(): [Type] {
             return [
-                Type<MetadataViews.Display>()
+                Type<MetadataViews.Display>(),
+                Type<MetadataViews.Edition>(),
+                Type<MetadataViews.Serial>(),
+                Type<MetadataViews.NFTCollectionData>()
             ]
         }
 
@@ -588,6 +591,30 @@ pub contract DapperSport: NonFungibleToken {
                         name: self.name(),
                         description: self.description(),
                         thumbnail: self.thumbnail()
+                    )
+
+                case Type<MetadataViews.Edition>():
+                let editionData = DapperSport.getEditionData(id: self.editionID)!
+                    return MetadataViews.Edition(
+                        name: nil,
+                        number: editionData.id,
+                        max: editionData.maxMintSize
+                    )
+
+                case Type<MetadataViews.Serial>():
+                    return MetadataViews.Serial(self.serialNumber)
+
+                case Type<MetadataViews.NFTCollectionData>():
+                    return MetadataViews.NFTCollectionData(
+                        storagePath: DapperSport.CollectionStoragePath,
+                        publicPath: DapperSport.CollectionPublicPath,
+                        providerPath: /private/dapperSportCollection,
+                        publicCollection: Type<&DapperSport.Collection{DapperSport.MomentNFTCollectionPublic}>(),
+                        publicLinkedType: Type<&DapperSport.Collection{DapperSport.MomentNFTCollectionPublic, NonFungibleToken.CollectionPublic, NonFungibleToken.Receiver, MetadataViews.ResolverCollection}>(),
+                        providerLinkedType: Type<&DapperSport.Collection{DapperSport.MomentNFTCollectionPublic, NonFungibleToken.CollectionPublic, NonFungibleToken.Provider, MetadataViews.ResolverCollection}>(),
+                        createEmptyCollectionFunction: (fun (): @NonFungibleToken.Collection {
+                            return <-DapperSport.createEmptyCollection()
+                        })
                     )
             }
 
