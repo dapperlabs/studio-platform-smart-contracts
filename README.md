@@ -10,7 +10,7 @@
 
 ### Series
 Series encompass periods of time and will be named using strings like: `18/19 season` or `21/22 season`. 
-More that one series can be open at any given time, and in order for an Edition to be created, it must have a SeriesID.
+More than one series can be open at any given time, and in order for an Edition to be created, it must have a SeriesID.
 
 **On Chain Fields**
 - FlowID
