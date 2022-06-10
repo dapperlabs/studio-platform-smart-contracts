@@ -32,6 +32,7 @@ an Edition. This is checked everytime a new Edition is created to ensure they ar
 
 **Transactions**
 - CreateSet: Mints a new set onto Flow
+
 ### Plays
 Plays contain the actual play metadata, including stats from LaLiga and Elias. 
 This will contain Player, Team, and Game metadata some of which may be blank depending on the type of moment.
