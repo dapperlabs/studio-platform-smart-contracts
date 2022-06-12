@@ -439,7 +439,6 @@ func TestMomentNFTs(t *testing.T) {
 			uint64(1),
 			userAddress,
 			uint64(1),
-			uint64(1),
 			false,
 		)
 	})
@@ -452,7 +451,6 @@ func TestMomentNFTs(t *testing.T) {
 			uint64(1),
 			userAddress,
 			uint64(2),
-			uint64(2),
 			false,
 		)
 	})
@@ -464,7 +462,6 @@ func TestMomentNFTs(t *testing.T) {
 			contracts,
 			uint64(2),
 			userAddress,
-			uint64(3),
 			uint64(1),
 			false,
 		)
@@ -477,7 +474,6 @@ func TestMomentNFTs(t *testing.T) {
 			contracts,
 			uint64(2),
 			userAddress,
-			uint64(4),
 			uint64(2),
 			false,
 		)
@@ -491,7 +487,6 @@ func TestMomentNFTs(t *testing.T) {
 			uint64(1),
 			userAddress,
 			uint64(3),
-			uint64(3),
 			true,
 		)
 	})
@@ -504,7 +499,6 @@ func TestMomentNFTs(t *testing.T) {
 			uint64(3),
 			userAddress,
 			uint64(1),
-			uint64(1),
 			true,
 		)
 	})
@@ -516,14 +510,13 @@ func testMintMomentNFT(
 	contracts Contracts,
 	editionID uint64,
 	userAddress flow.Address,
-	shouldBeID uint64,
 	shouldBeSerialNumber uint64,
 	shouldRevert bool,
 ) {
 	// Make sure the total supply of NFTs is tracked correctly
 	previousSupply := getMomentNFTSupply(t, b, contracts)
 
-	mintMomentNFT(
+	nftID := mintMomentNFT(
 		t,
 		b,
 		contracts,
@@ -541,9 +534,8 @@ func testMintMomentNFT(
 			b,
 			contracts,
 			userAddress,
-			shouldBeID,
+			nftID,
 		)
-		assert.Equal(t, shouldBeID, nftProperties.ID)
 		assert.Equal(t, editionID, nftProperties.EditionID)
 		assert.Equal(t, shouldBeSerialNumber, nftProperties.SerialNumber)
 		assert.Equal(t, shouldBeSerialNumber, nftProperties.SerialNumber)
@@ -555,7 +547,7 @@ func testMintMomentNFT(
 			b,
 			contracts,
 			userAddress,
-			shouldBeID,
+			nftID,
 		)
 		assert.Equal(t, playerJerseyName+" "+playType, displayView.Name)
 		assert.Equal(t, fmt.Sprintf("A series %d %s moment with serial number %d", editions[editionID].SeriesID, sets[editions[editionID].SetID].Name, nftProperties.SerialNumber), displayView.Description)
@@ -567,7 +559,7 @@ func testMintMomentNFT(
 			b,
 			contracts,
 			userAddress,
-			shouldBeID,
+			nftID,
 		)
 		assert.Equal(t, editions[editionID].ID, editionView.Number)
 		assert.Equal(t, *editions[editionID].MaxMintSize, editionView.Max)
@@ -577,7 +569,7 @@ func testMintMomentNFT(
 			b,
 			contracts,
 			userAddress,
-			shouldBeID,
+			nftID,
 		)
 		assert.Equal(t, shouldBeSerialNumber, serialView)
 
@@ -586,7 +578,7 @@ func testMintMomentNFT(
 			b,
 			contracts,
 			userAddress,
-			shouldBeID,
+			nftID,
 		)
 		// TODO: check paths
 		log.Printf("%+v", nftCollectionDataView)

@@ -1,6 +1,7 @@
 package test
 
 import (
+	"strings"
 	"testing"
 
 	"github.com/onflow/cadence"
@@ -243,7 +244,7 @@ func mintMomentNFT(
 	recipientAddress flow.Address,
 	editionID uint64,
 	shouldRevert bool,
-) {
+) uint64 {
 	tx := flow.NewTransaction().
 		SetScript(loadDapperSportMintMomentNFTTransaction(contracts)).
 		SetGasLimit(100).
@@ -256,12 +257,19 @@ func mintMomentNFT(
 	signer, err := b.ServiceKey().Signer()
 	require.NoError(t, err)
 
-	signAndSubmit(
+	result := signAndSubmit(
 		t, b, tx,
 		[]flow.Address{b.ServiceKey().Address, contracts.DapperSportAddress},
 		[]crypto.Signer{signer, contracts.DapperSportSigner},
 		shouldRevert,
 	)
+	nftID := uint64(0)
+	for _, event := range result.Events {
+		if strings.Contains(event.Type, "DapperSport.MomentNFTMinted") {
+			nftID = uint64(event.Value.Fields[0].(cadence.UInt64))
+		}
+	}
+	return nftID
 }
 
 func transferMomentNFT(

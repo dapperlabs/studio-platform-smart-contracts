@@ -428,7 +428,7 @@ pub contract DapperSport: NonFungibleToken {
 
             // Create the Moment NFT, filled out with our information
             let momentNFT <- create NFT(
-                id: DapperSport.totalSupply + 1,
+                id: self.uuid,
                 editionID: self.id,
                 serialNumber: self.numMinted + 1
             )
