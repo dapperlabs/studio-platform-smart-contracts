@@ -22,7 +22,7 @@ const (
 	DapperSportScriptsRootPath      = "../../../scripts"
 
 	// Accounts
-	DapperSportSetupAccountPath   = DapperSportTransactionsRootPath + "/user/setup_DapperSport_account.cdc"
+	DapperSportSetupAccountPath   = DapperSportTransactionsRootPath + "/user/setup_dappersport_account.cdc"
 	DapperSportAccountIsSetupPath = DapperSportScriptsRootPath + "/user/account_is_setup.cdc"
 
 	// Series
