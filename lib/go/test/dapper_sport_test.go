@@ -552,7 +552,7 @@ func testMintMomentNFT(
 		assert.Equal(t, playerJerseyName+" "+playType, displayView.Name)
 		assert.Equal(t, fmt.Sprintf("A series %d %s moment with serial number %d", editions[editionID].SeriesID, sets[editions[editionID].SetID].Name, nftProperties.SerialNumber), displayView.Description)
 		//TODO: check the image reurned based on tier
-		assert.Equal(t, "https://ipfs.dapperlabs.com/ipfs/Qmbdj1agtbzpPWZ81wCGaDiMKRFaRN3TU6cfztVCu6nh4o", displayView.ImageURL)
+		assert.Equal(t, "https://ipfs.dapperlabs.com/ipfs/QmPvr5zTwji1UGpun57cbj719MUBsB5syjgikbwCMPmruQ", displayView.ImageURL)
 
 		editionView := getMomentNFTEditionMetadataView(
 			t,
