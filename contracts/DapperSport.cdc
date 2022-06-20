@@ -80,7 +80,7 @@ pub contract DapperSport: NonFungibleToken {
     /// Emitted when a moment nft is minted
     pub event MomentNFTMinted(id: UInt64, editionID: UInt64, serialNumber: UInt64)
     /// Emitted when a moment nft resource is destroyed
-    pub event MomentNFTBurned(id: UInt64)
+    pub event MomentNFTBurned(id: UInt64,  editionID: UInt64)
 
     //------------------------------------------------------------
     // Named values
@@ -511,7 +511,7 @@ pub contract DapperSport: NonFungibleToken {
         /// Destructor
         ///
         destroy() {
-            emit MomentNFTBurned(id: self.id)
+            emit MomentNFTBurned(id: self.id, editionID: self.editionID)
         }
 
         /// NFT initializer
