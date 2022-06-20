@@ -46,13 +46,12 @@ type EditionView struct {
 }
 
 type NFTCollectionDataView struct {
-	StoragePath                   string
-	PublicPath                    string
-	ProviderPath                  string
-	PublicCollection              string
-	PublicLinkedType              string
-	ProviderLinkedType            string
-	CreateEmptyCollectionFunction string
+	StoragePath        string
+	PublicPath         string
+	ProviderPath       string
+	PublicCollection   string
+	PublicLinkedType   string
+	ProviderLinkedType string
 }
 
 func cadenceStringDictToGo(cadenceDict cadence.Dictionary) map[string]string {
@@ -126,9 +125,13 @@ func parseMetadataDisplayView(value cadence.Value) DisplayView {
 
 func parseMetadataEditionView(value cadence.Value) EditionView {
 	fields := value.(cadence.Struct).Fields
+	maxMintSize := uint64(0)
+	if fields[2].ToGoValue() != nil{
+		maxMintSize = fields[2].ToGoValue().(uint64)
+	}
 	return EditionView{
 		fields[1].ToGoValue().(uint64),
-		fields[2].ToGoValue().(uint64),
+		maxMintSize,
 	}
 }
 
@@ -139,12 +142,11 @@ func parseMetadataSerialView(value cadence.Value) uint64 {
 func parseMetadataNFTCollectionDataView(value cadence.Value) NFTCollectionDataView {
 	fields := value.(cadence.Struct).Fields
 	return NFTCollectionDataView{
-		StoragePath: fields[0].ToGoValue().(string),
-		PublicPath: fields[1].ToGoValue().(string),
-		ProviderPath: fields[2].ToGoValue().(string),
-		PublicCollection: fields[3].ToGoValue().(string),
-		PublicLinkedType: fields[4].ToGoValue().(string),
-		ProviderLinkedType: fields[5].ToGoValue().(string),
-		CreateEmptyCollectionFunction: fields[6].ToGoValue().(string),
+		StoragePath:        fields[0].(cadence.Path).Identifier,
+		PublicPath:         fields[1].(cadence.Path).Identifier,
+		ProviderPath:       fields[2].(cadence.Path).Identifier,
+		PublicCollection:   fields[3].(cadence.TypeValue).StaticType.ID(),
+		PublicLinkedType:   fields[4].(cadence.TypeValue).StaticType.ID(),
+		ProviderLinkedType: fields[5].(cadence.TypeValue).StaticType.ID(),
 	}
 }

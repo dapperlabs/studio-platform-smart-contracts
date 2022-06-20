@@ -580,8 +580,17 @@ func testMintMomentNFT(
 			userAddress,
 			nftID,
 		)
-		// TODO: check paths
-		log.Printf("%+v", nftCollectionDataView)
+		assert.Equal(t, "DapperSportNFTCollection", nftCollectionDataView.StoragePath)
+		assert.Equal(t, "DapperSportNFTCollection", nftCollectionDataView.PublicPath)
+		assert.Equal(t, "dapperSportCollection", nftCollectionDataView.ProviderPath)
+		assert.Equal(t, fmt.Sprintf("&A.%s.DapperSport.Collection{A.%s.DapperSport.MomentNFTCollectionPublic}",
+		contracts.DapperSportAddress.Hex(), contracts.DapperSportAddress.Hex()), nftCollectionDataView.PublicCollection)
+		assert.Equal(t, fmt.Sprintf("&A.%s.DapperSport.Collection{A.%s.DapperSport.MomentNFTCollectionPublic,A.%s.NonFungibleToken.CollectionPublic,A.%s.NonFungibleToken.Receiver,A.%s.MetadataViews.ResolverCollection}",
+		contracts.DapperSportAddress.Hex(), contracts.DapperSportAddress.Hex(), contracts.NFTAddress.Hex(), contracts.NFTAddress.Hex(), contracts.MetadataViewAddress.Hex()),
+		nftCollectionDataView.PublicLinkedType)
+		assert.Equal(t, fmt.Sprintf("&A.%s.DapperSport.Collection{A.%s.DapperSport.MomentNFTCollectionPublic,A.%s.NonFungibleToken.CollectionPublic,A.%s.NonFungibleToken.Receiver,A.%s.MetadataViews.ResolverCollection}",
+		contracts.DapperSportAddress.Hex(), contracts.DapperSportAddress.Hex(), contracts.NFTAddress.Hex(), contracts.NFTAddress.Hex(), contracts.MetadataViewAddress.Hex()),
+		nftCollectionDataView.ProviderLinkedType)
 	} else {
 		assert.Equal(t, previousSupply, newSupply)
 	}
