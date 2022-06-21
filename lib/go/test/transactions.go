@@ -134,6 +134,32 @@ func createSet(
 	)
 }
 
+func lockSet(
+	t *testing.T,
+	b *emulator.Blockchain,
+	contracts Contracts,
+	id uint64,
+	shouldRevert bool,
+) {
+	tx := flow.NewTransaction().
+		SetScript(loadDapperSportLockSetTransaction(contracts)).
+		SetGasLimit(100).
+		SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
+		SetPayer(b.ServiceKey().Address).
+		AddAuthorizer(contracts.DapperSportAddress)
+	tx.AddArgument(cadence.NewUInt64(id))
+
+	signer, err := b.ServiceKey().Signer()
+	require.NoError(t, err)
+
+	signAndSubmit(
+		t, b, tx,
+		[]flow.Address{b.ServiceKey().Address, contracts.DapperSportAddress},
+		[]crypto.Signer{signer, contracts.DapperSportSigner},
+		shouldRevert,
+	)
+}
+
 //------------------------------------------------------------
 // Plays
 //------------------------------------------------------------

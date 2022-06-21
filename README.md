@@ -23,7 +23,7 @@ More than one series can be open at any given time, and in order for an Edition 
 
 ### Sets
 Sets are categories. Sets have a unique name. An Edition must have a SetID to be created.
-Sets do not close and cannot be retired. Sets contain a dictionary of all the SetID/PlayID combinations that exist within
+Sets can be locked which makes it impossible to make new Editions from them. Sets contain a dictionary of all the SetID/PlayID combinations that exist within
 an Edition. This is checked everytime a new Edition is created to ensure they are unique.
 
 **On Chain Fields**

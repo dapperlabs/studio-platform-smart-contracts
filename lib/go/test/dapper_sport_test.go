@@ -168,6 +168,27 @@ func createTestSets(t *testing.T, b *emulator.Blockchain, contracts Contracts) {
 			false,
 		)
 	})
+
+	t.Run("Should create a new set to test set locking", func(t *testing.T) {
+		testCreateSet(
+			t,
+			b,
+			contracts,
+			"Set Three",
+			3,
+			false,
+		)
+	})
+
+	t.Run("Should be able to lock a set", func(t *testing.T) {
+		testLockSet(
+			t,
+			b,
+			contracts,
+			3,
+			false,
+		)
+	})
 }
 
 func testCreateSet(
@@ -191,6 +212,31 @@ func testCreateSet(
 		assert.Equal(t, shouldBeID, set.ID)
 		assert.Equal(t, setName, set.Name)
 		sets[set.ID] = set
+	}
+}
+
+func testLockSet(
+	t *testing.T,
+	b *emulator.Blockchain,
+	contracts Contracts,
+	setID uint64,
+	shouldRevert bool,
+) {
+	wasLocked := getSetData(t, b, contracts, setID).Locked
+	lockSet(
+		t,
+		b,
+		contracts,
+		setID,
+		shouldRevert,
+	)
+
+	set := getSetData(t, b, contracts, setID)
+	assert.Equal(t, setID, set.ID)
+	if !shouldRevert {
+		assert.Equal(t, true, set.Locked)
+	} else {
+		assert.Equal(t, wasLocked, set.Locked)
 	}
 }
 
@@ -407,6 +453,21 @@ func createTestEditions(t *testing.T, b *emulator.Blockchain, contracts Contract
 		)
 	})
 
+	t.Run("Should not be able to create a new edition with a locked set", func(t *testing.T) {
+		testCreateEdition(
+			t,
+			b,
+			contracts,
+			1,
+			3,
+			1,
+			nil,
+			"COMMON",
+			4,
+			true,
+		)
+	})
+
 	t.Run("Should be able to close and edition that has no max mint size", func(t *testing.T) {
 		testCloseEdition(
 			t,
@@ -417,6 +478,8 @@ func createTestEditions(t *testing.T, b *emulator.Blockchain, contracts Contract
 			false,
 		)
 	})
+
+	
 }
 
 // ------------------------------------------------------------

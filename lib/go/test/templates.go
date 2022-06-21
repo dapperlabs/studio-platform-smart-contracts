@@ -35,6 +35,7 @@ const (
 
 	// Sets
 	DapperSportCreateSetPath       = DapperSportTransactionsRootPath + "/admin/sets/create_set.cdc"
+	DapperSportLockSetPath       = DapperSportTransactionsRootPath + "/admin/sets/lock_set.cdc"
 	DapperSportReadAllSetsPath     = DapperSportScriptsRootPath + "/sets/read_all_sets.cdc"
 	DapperSportReadSetByIDPath     = DapperSportScriptsRootPath + "/sets/read_set_by_id.cdc"
 	DapperSportReadSetsByNamePath  = DapperSportScriptsRootPath + "/sets/read_sets_by_name.cdc"
@@ -179,6 +180,13 @@ func loadDapperSportCloseSeriesTransaction(contracts Contracts) []byte {
 func loadDapperSportCreateSetTransaction(contracts Contracts) []byte {
 	return replaceAddresses(
 		readFile(DapperSportCreateSetPath),
+		contracts,
+	)
+}
+
+func loadDapperSportLockSetTransaction(contracts Contracts) []byte {
+	return replaceAddresses(
+		readFile(DapperSportLockSetPath),
 		contracts,
 	)
 }

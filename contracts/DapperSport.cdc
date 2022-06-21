@@ -56,6 +56,9 @@ pub contract DapperSport: NonFungibleToken {
     /// Emitted when a new set has been created by an admin
     pub event SetCreated(id: UInt64, name: String)
 
+    /// Emitted when a Set is locked, meaning Editions cannot be created with the set
+    pub event SetLocked(setID: UInt64)
+
     // Play Events
     //
     /// Emitted when a new play has been created by an admin
@@ -221,6 +224,7 @@ pub contract DapperSport: NonFungibleToken {
     pub struct SetData {
         pub let id: UInt64
         pub let name: String
+        pub let locked: Bool
         pub var setPlaysInEditions: {UInt64: Bool}
 
         /// member function to check the setPlaysInEditions to see if this Set/Play combination already exists
@@ -234,6 +238,7 @@ pub contract DapperSport: NonFungibleToken {
             let set = (&DapperSport.setByID[id] as! &DapperSport.Set?)!
             self.id = id
             self.name = set.name
+            self.locked = set.locked
             self.setPlaysInEditions = set.getSetPlaysInEditions()
         }
     }
@@ -243,9 +248,20 @@ pub contract DapperSport: NonFungibleToken {
     pub resource Set {
         pub let id: UInt64
         pub let name: String
+
         /// Store a dictionary of all the Plays which are paired with the Set inside Editions
         /// This enforces only one Set/Play unique pair can be used for an Edition
         access(self) var setPlaysInEditions: {UInt64: Bool}
+
+        // Indicates if the Set is currently locked.
+        // When a Set is created, it is unlocked 
+        // and Editions can be created with it.
+        // When a Set is locked, new Editions cannot be created with the Set.
+        // A Set can never be changed from locked to unlocked,
+        // the decision to lock a Set is final.
+        // If a Set is locked, Moments can still be minted from the 
+        // Editions already created from the Set.
+        pub var locked: Bool
 
         /// member function to insert a new Play to the setPlaysInEditions dictionary
         pub fun insertNewPlay(playID: UInt64) {
@@ -266,6 +282,7 @@ pub contract DapperSport: NonFungibleToken {
             self.id = DapperSport.nextSetID
             self.name = name
             self.setPlaysInEditions = {}
+            self.locked = false
 
             // Cache the new set's name => ID
             DapperSport.setIDByName[name] = self.id
@@ -273,6 +290,17 @@ pub contract DapperSport: NonFungibleToken {
             DapperSport.nextSetID = self.id + 1 as UInt64
 
             emit SetCreated(id: self.id, name: self.name)
+        }
+
+        // lock() locks the Set so that no more Plays can be added to it
+        //
+        // Pre-Conditions:
+        // The Set should not be locked
+        pub fun lock() {
+            if !self.locked {
+                self.locked = true
+                emit SetLocked(setID: self.id)
+            }
         }
     }
 
@@ -453,8 +481,9 @@ pub contract DapperSport: NonFungibleToken {
                 DapperSport.seriesByID.containsKey(seriesID): "seriesID does not exist"
                 DapperSport.setByID.containsKey(setID): "setID does not exist"
                 DapperSport.playByID.containsKey(playID): "playID does not exist"
-                SeriesData(id: seriesID).active == true: "cannot create an Edition with a closed Series"
-                SetData(id: setID).setPlayExistsInEdition(playID: playID) != true: "set play combination already exists in an edition"
+                DapperSport.getSeriesData(id: seriesID)!.active == true: "cannot create an Edition with a closed Series"
+                DapperSport.getSetData(id: setID)!.locked == false: "cannot create an Edition with a locked Set"
+                DapperSport.getSetData(id: setID)!.setPlayExistsInEdition(playID: playID) != true: "set play combination already exists in an edition"
             }
 
             self.id = DapperSport.nextEditionID
@@ -836,6 +865,14 @@ pub contract DapperSport: NonFungibleToken {
 
             // Return the new ID for convenience
             return setID
+        }
+
+        /// Locks a Set
+        ///
+        pub fun lockSet(id: UInt64): UInt64 {
+            let set = (&DapperSport.setByID[id] as &DapperSport.Set?)!
+            set.lock()
+            return set.id
         }
 
         /// Create a Play

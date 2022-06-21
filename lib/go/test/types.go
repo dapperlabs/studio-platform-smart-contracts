@@ -12,6 +12,7 @@ type SeriesData struct {
 type SetData struct {
 	ID   uint64
 	Name string
+	Locked bool
 }
 type PlayData struct {
 	ID             uint64
@@ -76,6 +77,7 @@ func parseSetData(value cadence.Value) SetData {
 	return SetData{
 		fields[0].ToGoValue().(uint64),
 		fields[1].ToGoValue().(string),
+		fields[2].ToGoValue().(bool),
 	}
 }
 
