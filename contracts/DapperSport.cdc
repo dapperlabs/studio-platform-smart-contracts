@@ -605,7 +605,7 @@ pub contract DapperSport: NonFungibleToken {
         pub fun getViews(): [Type] {
             return [
                 Type<MetadataViews.Display>(),
-                Type<MetadataViews.Edition>(),
+                Type<MetadataViews.Editions>(),
                 Type<MetadataViews.Serial>(),
                 Type<MetadataViews.NFTCollectionData>()
             ]
@@ -622,12 +622,16 @@ pub contract DapperSport: NonFungibleToken {
                         thumbnail: self.thumbnail()
                     )
 
-                case Type<MetadataViews.Edition>():
+                case Type<MetadataViews.Editions>():
                 let editionData = DapperSport.getEditionData(id: self.editionID)!
-                    return MetadataViews.Edition(
+                    let editionInfo = MetadataViews.Edition(
                         name: nil,
                         number: editionData.id,
                         max: editionData.maxMintSize
+                    )
+                    let editionList: [MetadataViews.Edition] = [editionInfo]
+                    return MetadataViews.Editions(
+                        editionList
                     )
 
                 case Type<MetadataViews.Serial>():

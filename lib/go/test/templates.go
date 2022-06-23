@@ -61,7 +61,7 @@ const (
 	DapperSportReadCollectionNFTLengthPath       = DapperSportScriptsRootPath + "/nfts/read_collection_nft_length.cdc"
 	DapperSportReadCollectionNFTIDsPath          = DapperSportScriptsRootPath + "/nfts/read_collection_nft_ids.cdc"
 	DapperSportDisplayMetadataViewPath           = DapperSportScriptsRootPath + "/nfts/metadata_display_view.cdc"
-	DapperSportEditionMetadataViewPath           = DapperSportScriptsRootPath + "/nfts/metadata_edition_view.cdc"
+	DapperSportEditionMetadataViewPath           = DapperSportScriptsRootPath + "/nfts/metadata_editions_view.cdc"
 	DapperSportSerialMetadataViewPath            = DapperSportScriptsRootPath + "/nfts/metadata_serial_view.cdc"
 	DapperSportNFTCollectionDataMetadataViewPath = DapperSportScriptsRootPath + "/nfts/metadata_nft_collection_data_view.cdc"
 

@@ -127,12 +127,13 @@ func parseMetadataDisplayView(value cadence.Value) DisplayView {
 
 func parseMetadataEditionView(value cadence.Value) EditionView {
 	fields := value.(cadence.Struct).Fields
+	edition := fields[0].(cadence.Array).Values[0].(cadence.Struct).Fields
 	maxMintSize := uint64(0)
-	if fields[2].ToGoValue() != nil{
-		maxMintSize = fields[2].ToGoValue().(uint64)
+	if edition[2].ToGoValue() != nil{
+		maxMintSize = edition[2].ToGoValue().(uint64)
 	}
 	return EditionView{
-		fields[1].ToGoValue().(uint64),
+		edition[1].ToGoValue().(uint64),
 		maxMintSize,
 	}
 }
