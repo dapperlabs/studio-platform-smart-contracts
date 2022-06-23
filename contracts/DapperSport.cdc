@@ -607,7 +607,8 @@ pub contract DapperSport: NonFungibleToken {
                 Type<MetadataViews.Display>(),
                 Type<MetadataViews.Editions>(),
                 Type<MetadataViews.Serial>(),
-                Type<MetadataViews.NFTCollectionData>()
+                Type<MetadataViews.NFTCollectionData>(),
+                Type<MetadataViews.Traits>()
             ]
         }
 
@@ -649,6 +650,10 @@ pub contract DapperSport: NonFungibleToken {
                             return <-DapperSport.createEmptyCollection()
                         })
                     )
+                case Type<MetadataViews.Traits>():
+                    let editiondata = DapperSport.getEditionData(id: self.editionID)!
+                    let playdata = DapperSport.getPlayData(id: editiondata.playID)!
+                    return MetadataViews.dictToTraits(dict: playdata.metadata, excludedNames: nil)
             }
 
             return nil

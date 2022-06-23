@@ -10,13 +10,23 @@ import (
 )
 
 const (
+	metadatakey1 = "name"
+	metadatakey2 = "PlayerJerseyName"
+	metadatakey3 = "PlayType"
 	playerJerseyName = "Deewai"
 	playType         = "Goal"
+	play1Name = "TEST PLAY METADATA A"
+	play2Name = "TEST PLAY METADATA B"
+	
 )
 
 var (
 	editions = make(map[uint64]EditionData)
 	sets     = make(map[uint64]SetData)
+	playNames = []string{
+		play1Name,
+		play2Name,
+	}
 )
 
 //------------------------------------------------------------
@@ -256,8 +266,7 @@ func createTestPlays(t *testing.T, b *emulator.Blockchain, contracts Contracts) 
 			b,
 			contracts,
 			"TEST_CLASSIFICATION",
-			map[string]string{"test play metadata a": "TEST PLAY METADATA A",
-				"PlayerJerseyName": playerJerseyName, "PlayType": playType},
+			map[string]string{metadatakey1: play1Name, metadatakey2: playerJerseyName, metadatakey3: playType},
 			1,
 			false,
 		)
@@ -269,8 +278,7 @@ func createTestPlays(t *testing.T, b *emulator.Blockchain, contracts Contracts) 
 			b,
 			contracts,
 			"TEST_CLASSIFICATION",
-			map[string]string{"test play metadata b": "TEST PLAY METADATA B",
-				"PlayerJerseyName": playerJerseyName, "PlayType": playType},
+			map[string]string{metadatakey1: play2Name, metadatakey2: playerJerseyName, metadatakey3: playType},
 			2,
 			false,
 		)
@@ -653,6 +661,23 @@ func testMintMomentNFT(
 		assert.Equal(t, fmt.Sprintf("&A.%s.DapperSport.Collection{A.%s.DapperSport.MomentNFTCollectionPublic,A.%s.NonFungibleToken.CollectionPublic,A.%s.NonFungibleToken.Provider,A.%s.MetadataViews.ResolverCollection}",
 			contracts.DapperSportAddress.Hex(), contracts.DapperSportAddress.Hex(), contracts.NFTAddress.Hex(), contracts.NFTAddress.Hex(), contracts.MetadataViewAddress.Hex()),
 			nftCollectionDataView.ProviderLinkedType)
+
+		traitsView := getMomentNFTTraitsMetadataView(
+			t,
+			b,
+			contracts,
+			userAddress,
+			nftID,
+		)
+		assert.Contains(t, traitsView, TraitView{
+			Name: metadatakey1, Value: playNames[editions[editionID].PlayID - 1],
+		})
+		assert.Contains(t, traitsView, TraitView{
+			Name: metadatakey2, Value: playerJerseyName,
+		})
+		assert.Contains(t, traitsView, TraitView{
+			Name: metadatakey3, Value: playType,
+		})
 	} else {
 		assert.Equal(t, previousSupply, newSupply)
 	}

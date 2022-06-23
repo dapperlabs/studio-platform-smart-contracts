@@ -55,6 +55,13 @@ type NFTCollectionDataView struct {
 	ProviderLinkedType string
 }
 
+type TraitView struct{
+	Name string
+	Value string
+}
+
+type TraitsView []TraitView
+
 func cadenceStringDictToGo(cadenceDict cadence.Dictionary) map[string]string {
 	goDict := make(map[string]string)
 	for _, pair := range cadenceDict.Pairs {
@@ -152,4 +159,18 @@ func parseMetadataNFTCollectionDataView(value cadence.Value) NFTCollectionDataVi
 		PublicLinkedType:   fields[4].(cadence.TypeValue).StaticType.ID(),
 		ProviderLinkedType: fields[5].(cadence.TypeValue).StaticType.ID(),
 	}
+}
+
+
+func parseMetadataTraitsView(value cadence.Value) TraitsView {
+	var view TraitsView 
+	fields := value.(cadence.Struct).Fields
+	for _, val := range fields[0].(cadence.Array).Values{
+		trait := val.(cadence.Struct).Fields
+		view = append(view, TraitView{
+			Name: trait[0].ToGoValue().(string),
+			Value: trait[1].ToGoValue().(string),
+		})
+	}
+	return view
 }

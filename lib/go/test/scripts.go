@@ -160,3 +160,19 @@ func getMomentNFTCollectionDataMetadataView(
 
 	return parseMetadataNFTCollectionDataView(result)
 }
+
+func getMomentNFTTraitsMetadataView(
+	t *testing.T,
+	b *emulator.Blockchain,
+	contracts Contracts,
+	collectionAddress flow.Address,
+	nftID uint64,
+) TraitsView {
+	script := loadDapperSportTraitsMetadataViewScript(contracts)
+	result := executeScriptAndCheck(t, b, script, [][]byte{
+		jsoncdc.MustEncode(cadence.BytesToAddress(collectionAddress.Bytes())),
+		jsoncdc.MustEncode(cadence.UInt64(nftID)),
+	})
+
+	return parseMetadataTraitsView(result)
+}

@@ -35,7 +35,7 @@ const (
 
 	// Sets
 	DapperSportCreateSetPath       = DapperSportTransactionsRootPath + "/admin/sets/create_set.cdc"
-	DapperSportLockSetPath       = DapperSportTransactionsRootPath + "/admin/sets/lock_set.cdc"
+	DapperSportLockSetPath         = DapperSportTransactionsRootPath + "/admin/sets/lock_set.cdc"
 	DapperSportReadAllSetsPath     = DapperSportScriptsRootPath + "/sets/read_all_sets.cdc"
 	DapperSportReadSetByIDPath     = DapperSportScriptsRootPath + "/sets/read_set_by_id.cdc"
 	DapperSportReadSetsByNamePath  = DapperSportScriptsRootPath + "/sets/read_sets_by_name.cdc"
@@ -64,6 +64,7 @@ const (
 	DapperSportEditionMetadataViewPath           = DapperSportScriptsRootPath + "/nfts/metadata_editions_view.cdc"
 	DapperSportSerialMetadataViewPath            = DapperSportScriptsRootPath + "/nfts/metadata_serial_view.cdc"
 	DapperSportNFTCollectionDataMetadataViewPath = DapperSportScriptsRootPath + "/nfts/metadata_nft_collection_data_view.cdc"
+	DapperSportTraitsMetadataViewPath            = DapperSportScriptsRootPath + "/nfts/metadata_traits_view.cdc"
 
 	// MetadataViews
 	MetadataViewsContractsBaseURL = "https://raw.githubusercontent.com/onflow/flow-nft/master/contracts/"
@@ -350,6 +351,13 @@ func loadDapperSportSerialMetadataViewScript(contracts Contracts) []byte {
 func loadDapperSportNFTCollectionDataMetadataViewScript(contracts Contracts) []byte {
 	return replaceAddresses(
 		readFile(DapperSportNFTCollectionDataMetadataViewPath),
+		contracts,
+	)
+}
+
+func loadDapperSportTraitsMetadataViewScript(contracts Contracts) []byte {
+	return replaceAddresses(
+		readFile(DapperSportTraitsMetadataViewPath),
 		contracts,
 	)
 }
