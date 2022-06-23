@@ -83,7 +83,7 @@ pub contract DapperSport: NonFungibleToken {
     /// Emitted when a moment nft is minted
     pub event MomentNFTMinted(id: UInt64, editionID: UInt64, serialNumber: UInt64)
     /// Emitted when a moment nft resource is destroyed
-    pub event MomentNFTBurned(id: UInt64,  editionID: UInt64)
+    pub event MomentNFTBurned(id: UInt64,  editionID: UInt64, serialNumber: UInt64)
 
     //------------------------------------------------------------
     // Named values
@@ -483,7 +483,7 @@ pub contract DapperSport: NonFungibleToken {
                 DapperSport.playByID.containsKey(playID): "playID does not exist"
                 DapperSport.getSeriesData(id: seriesID)!.active == true: "cannot create an Edition with a closed Series"
                 DapperSport.getSetData(id: setID)!.locked == false: "cannot create an Edition with a locked Set"
-                DapperSport.getSetData(id: setID)!.setPlayExistsInEdition(playID: playID) != true: "set play combination already exists in an edition"
+                DapperSport.getSetData(id: setID)!.setPlayExistsInEdition(playID: playID) == false: "set play combination already exists in an edition"
             }
 
             self.id = DapperSport.nextEditionID
@@ -540,7 +540,7 @@ pub contract DapperSport: NonFungibleToken {
         /// Destructor
         ///
         destroy() {
-            emit MomentNFTBurned(id: self.id, editionID: self.editionID)
+            emit MomentNFTBurned(id: self.id, editionID: self.editionID, serialNumber: self.serialNumber)
         }
 
         /// NFT initializer
