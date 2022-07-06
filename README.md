@@ -3,8 +3,8 @@
 ## LaLiga Contract Addresses
 | Network   | Address     |              |
 | ----------|:-----------:| -------------|
-| Testnet   |  xxx   | [Flow View Source](https://flow-view-source.com/mainnet/account/0xxxx) |
-| Mainnet   |  xxx   | [Flow View Source](https://flow-view-source.com/testnet/account/0xxxx) |
+| Testnet   |  0x44477dcb6fb36f14   | [Flow View Source](https://flow-view-source.com/testnet/account/0x44477dcb6fb36f14) |
+| Mainnet   |  xxx   | [Flow View Source](https://flow-view-source.com/mainnet/account/0xxxx) |
 
 ## Entities
 
@@ -56,7 +56,9 @@ This will contain Player, Team, and Game metadata some of which may be blank dep
   - PlayerPosition
   - PlayerNumber
   - PlayerCountry
-  - PlayerOptaID
+  - PlayerStatsID
+  - HomeTeamName
+  - AwayTeamName
 
 **Transactions**
 - CreatePlay: Mints a new Play on Flow
