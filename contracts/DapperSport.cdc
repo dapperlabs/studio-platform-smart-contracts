@@ -456,7 +456,6 @@ pub contract DapperSport: NonFungibleToken {
 
             // Create the Moment NFT, filled out with our information
             let momentNFT <- create NFT(
-                id: self.uuid,
                 editionID: self.id,
                 serialNumber: self.numMinted + 1
             )
@@ -546,7 +545,6 @@ pub contract DapperSport: NonFungibleToken {
         /// NFT initializer
         ///
         init(
-            id: UInt64,
             editionID: UInt64,
             serialNumber: UInt64
         ) {
@@ -555,7 +553,7 @@ pub contract DapperSport: NonFungibleToken {
                 EditionData(id: editionID).maxEditionMintSizeReached() != true: "max edition size already reached"
             }
 
-            self.id = id
+            self.id = self.uuid
             self.editionID = editionID
             self.serialNumber = serialNumber
             self.mintingDate = getCurrentBlock().timestamp
