@@ -10,8 +10,8 @@ type SeriesData struct {
 	Active bool
 }
 type SetData struct {
-	ID   uint64
-	Name string
+	ID     uint64
+	Name   string
 	Locked bool
 }
 type PlayData struct {
@@ -55,8 +55,8 @@ type NFTCollectionDataView struct {
 	ProviderLinkedType string
 }
 
-type TraitView struct{
-	Name string
+type TraitView struct {
+	Name  string
 	Value string
 }
 
@@ -136,7 +136,7 @@ func parseMetadataEditionView(value cadence.Value) EditionView {
 	fields := value.(cadence.Struct).Fields
 	edition := fields[0].(cadence.Array).Values[0].(cadence.Struct).Fields
 	maxMintSize := uint64(0)
-	if edition[2].ToGoValue() != nil{
+	if edition[2].ToGoValue() != nil {
 		maxMintSize = edition[2].ToGoValue().(uint64)
 	}
 	return EditionView{
@@ -161,14 +161,13 @@ func parseMetadataNFTCollectionDataView(value cadence.Value) NFTCollectionDataVi
 	}
 }
 
-
 func parseMetadataTraitsView(value cadence.Value) TraitsView {
-	var view TraitsView 
+	var view TraitsView
 	fields := value.(cadence.Struct).Fields
-	for _, val := range fields[0].(cadence.Array).Values{
+	for _, val := range fields[0].(cadence.Array).Values {
 		trait := val.(cadence.Struct).Fields
 		view = append(view, TraitView{
-			Name: trait[0].ToGoValue().(string),
+			Name:  trait[0].ToGoValue().(string),
 			Value: trait[1].ToGoValue().(string),
 		})
 	}
