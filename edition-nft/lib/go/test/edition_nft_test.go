@@ -1,6 +1,7 @@
 package test
 
 import (
+	"fmt"
 	"testing"
 
 	emulator "github.com/onflow/flow-emulator"
@@ -191,6 +192,7 @@ func testMintSeasonalNFT(
 ) {
 	// Make sure the total supply of NFTs is tracked correctly
 	previousSupply := getEditionNFTSupply(t, b, contracts)
+	fmt.Printf("sss %d \n", previousSupply)
 
 	mintSeasonalNFT(
 		t,

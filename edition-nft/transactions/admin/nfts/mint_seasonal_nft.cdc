@@ -10,7 +10,7 @@ transaction(recipientAddress: Address, editionID: UInt64) {
     prepare(signer: AuthAccount) {
         // borrow a reference to the NFTMinter resource in storage
         self.minter = signer.getCapability(AllDaySeasonal.MinterPrivatePath)
-            .borrow<&{AllDay.NFTMinter}>()
+            .borrow<&{AllDaySeasonal.NFTMinter}>()
             ?? panic("Could not borrow a reference to the NFT minter")
 
         // get the recipients public account object
@@ -24,8 +24,8 @@ transaction(recipientAddress: Address, editionID: UInt64) {
 
     execute {
         // mint the NFT and deposit it to the recipient's collection
-        let seasonalNFT <- self.minter.mintNFT(editionID: editionID)
-        self.recipient.deposit(token: <- (seasonalNFT as @NonFungibleToken.NFT))
+        let nft <- self.minter.mintNFT(editionID: editionID)
+        self.recipient.deposit(token: <- (nft as @NonFungibleToken.NFT))
     }
 }
 

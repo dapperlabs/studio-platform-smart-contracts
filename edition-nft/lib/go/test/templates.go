@@ -120,54 +120,40 @@ func closeEditionTransaction(contracts Contracts) []byte {
 //------------------------------------------------------------
 // Moment NFTs
 //------------------------------------------------------------
-func loadAllDayMintSeasonalNFTTransaction(contracts Contracts) []byte {
+func mintEditionNFTTransaction(contracts Contracts) []byte {
 	return replaceAddresses(
-		readFile(AllDayMintMomentNFTPath),
+		readFile(AllDayMintSeasonalNFTPath),
 		contracts,
 	)
 }
 
-//func loadAllDayMintMomentNFTMultiTransaction(contracts Contracts) []byte {
-//	return replaceAddresses(
-//		readFile(AllDayMintMomentNFTMultiPath),
-//		contracts,
-//	)
-//}
-//
-//func loadAllDayReadMomentNFTSupplyScript(contracts Contracts) []byte {
-//	return replaceAddresses(
-//		readFile(AllDayReadMomentNFTSupplyPath),
-//		contracts,
-//	)
-//}
-//
-//func loadAllDayReadMomentNFTPropertiesScript(contracts Contracts) []byte {
-//	return replaceAddresses(
-//		readFile(AllDayReadMomentNFTPropertiesPath),
-//		contracts,
-//	)
-//}
+func getEditionNFTSupplyScript(contracts Contracts) []byte {
+	return replaceAddresses(
+		readFile(AllDayReadSeasonalNFTSupplyPath),
+		contracts,
+	)
+}
 
-func loadAllDayReadSeasonalNFTPropertiesScript(contracts Contracts) []byte {
+func getEditionNFTPropertiesScript(contracts Contracts) []byte {
 	return replaceAddresses(
 		readFile(AllDayReadSeasonalNFTPropertiesPath),
 		contracts,
 	)
 }
 
-func loadAllDayReadCollectionNFTLengthScript(contracts Contracts) []byte {
-	return replaceAddresses(
-		readFile(AllDayReadCollectionNFTLengthPath),
-		contracts,
-	)
-}
-
-func loadAllDayReadCollectionNFTIDsScript(contracts Contracts) []byte {
-	return replaceAddresses(
-		readFile(AllDayReadCollectionNFTIDsPath),
-		contracts,
-	)
-}
+//func readCollectionNFTLengthScript(contracts Contracts) []byte {
+//	return replaceAddresses(
+//		readFile(AllDayReadCollectionNFTLengthPath),
+//		contracts,
+//	)
+//}
+//
+//func loadAllDayReadCollectionNFTIDsScript(contracts Contracts) []byte {
+//	return replaceAddresses(
+//		readFile(AllDayReadCollectionNFTIDsPath),
+//		contracts,
+//	)
+//}
 
 func loadAllDayTransferNFTTransaction(contracts Contracts) []byte {
 	return replaceAddresses(

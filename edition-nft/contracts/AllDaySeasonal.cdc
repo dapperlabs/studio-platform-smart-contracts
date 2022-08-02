@@ -118,7 +118,7 @@ pub contract AllDaySeasonal: NonFungibleToken {
         //
         pub fun close() {
             pre {
-                self.active == true: "not active"
+                self.active == true: "edtion is already closed"
             }
 
             self.active = false
@@ -194,7 +194,7 @@ pub contract AllDaySeasonal: NonFungibleToken {
         ) {
             pre {
                 AllDaySeasonal.editionByID[editionID] != nil: "no such editionID"
-                EditionData(id: editionID).active != true: "edition already closed"
+                EditionData(id: editionID).active == true: "edition already closed"
             }
 
             self.id = id

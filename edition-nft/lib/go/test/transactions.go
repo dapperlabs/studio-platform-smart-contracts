@@ -98,7 +98,7 @@ func mintSeasonalNFT(
 	shouldRevert bool,
 ) {
 	tx := flow.NewTransaction().
-		SetScript(loadAllDayMintSeasonalNFTTransaction(contracts)).
+		SetScript(mintEditionNFTTransaction(contracts)).
 		SetGasLimit(100).
 		SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
 		SetPayer(b.ServiceKey().Address).
