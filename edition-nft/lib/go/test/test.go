@@ -52,59 +52,13 @@ func deployNFTContract(t *testing.T, b *emulator.Blockchain) flow.Address {
 	return nftAddress
 }
 
-func AllDayDeployContracts(t *testing.T, b *emulator.Blockchain) Contracts {
-	accountKeys := test.AccountKeyGenerator()
-
-	nftAddress := deployNFTContract(t, b)
-
-	AllDayAccountKey, AllDaySigner := accountKeys.NewWithSigner()
-	AllDayCode := LoadAllDay(nftAddress)
-
-	AllDayAddress, err := b.CreateAccount(
-		[]*flow.AccountKey{AllDayAccountKey},
-		nil,
-	)
-	require.NoError(t, err)
-
-	fundAccount(t, b, AllDayAddress, defaultAccountFunding)
-
-	tx1 := sdktemplates.AddAccountContract(
-		AllDayAddress,
-		sdktemplates.Contract{
-			Name:   "AllDay",
-			Source: string(AllDayCode),
-		},
-	)
-
-	tx1.
-		SetGasLimit(100).
-		SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
-		SetPayer(b.ServiceKey().Address)
-
-	signAndSubmit(
-		t, b, tx1,
-		[]flow.Address{b.ServiceKey().Address, AllDayAddress},
-		[]crypto.Signer{b.ServiceKey().Signer(), AllDaySigner},
-		false,
-	)
-
-	_, err = b.CommitBlock()
-	require.NoError(t, err)
-
-	return Contracts{
-		nftAddress,
-		AllDayAddress,
-		AllDaySigner,
-	}
-}
-
 func AllDaySeasonalDeployContracts(t *testing.T, b *emulator.Blockchain) Contracts {
 	accountKeys := test.AccountKeyGenerator()
 
 	nftAddress := deployNFTContract(t, b)
 
 	AllDayAccountKey, AllDaySigner := accountKeys.NewWithSigner()
-	AllDaySeasonalCode := LoadAllDaySeasonal(nftAddress)
+	AllDaySeasonalCode := allDaySeasonalContract(nftAddress)
 
 	AllDayAddress, err := b.CreateAccount(
 		[]*flow.AccountKey{AllDayAccountKey},
@@ -251,28 +205,6 @@ func createAccount(t *testing.T, b *emulator.Blockchain) (sdk.Address, crypto.Si
 	return address, signer
 }
 
-func setupAllDay(
-	t *testing.T,
-	b *emulator.Blockchain,
-	userAddress sdk.Address,
-	userSigner crypto.Signer,
-	contracts Contracts,
-) {
-	tx := flow.NewTransaction().
-		SetScript(loadAllDaySetupAccountTransaction(contracts)).
-		SetGasLimit(100).
-		SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
-		SetPayer(b.ServiceKey().Address).
-		AddAuthorizer(userAddress)
-
-	signAndSubmit(
-		t, b, tx,
-		[]flow.Address{b.ServiceKey().Address, userAddress},
-		[]crypto.Signer{b.ServiceKey().Signer(), userSigner},
-		false,
-	)
-}
-
 func setupAllDaySeasonal(
 	t *testing.T,
 	b *emulator.Blockchain,
@@ -281,7 +213,7 @@ func setupAllDaySeasonal(
 	contracts Contracts,
 ) {
 	tx := flow.NewTransaction().
-		SetScript(loadAllDaySeasonalSetupAccountTransaction(contracts)).
+		SetScript(setupAccountTransaction(contracts)).
 		SetGasLimit(100).
 		SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
 		SetPayer(b.ServiceKey().Address).

@@ -21,30 +21,9 @@ const (
 	AllDayScriptsRootPath      = "../../../scripts"
 
 	// Accounts
-	AllDaySetupAccountPath           = AllDayTransactionsRootPath + "/user/setup_allday_account.cdc"
-	AllDaySeasonalSetupAccountPath   = AllDayTransactionsRootPath + "/user/setup_allday_seasonal_account.cdc"
-	AllDayAccountIsSetupPath         = AllDayScriptsRootPath + "/user/account_is_setup.cdc"
-	AllDaySeasonalAccountIsSetupPath = AllDayScriptsRootPath + "/user/account_seasonal_is_setup.cdc"
-
-	// Series
-	AllDayCreateSeriesPath       = AllDayTransactionsRootPath + "/admin/series/create_series.cdc"
-	AllDayCloseSeriesPath        = AllDayTransactionsRootPath + "/admin/series/close_series.cdc"
-	AllDayReadAllSeriesPath      = AllDayScriptsRootPath + "/series/read_all_series.cdc"
-	AllDayReadSeriesByIDPath     = AllDayScriptsRootPath + "/series/read_series_by_id.cdc"
-	AllDayReadSeriesByNamePath   = AllDayScriptsRootPath + "/series/read_series_by_name.cdc"
-	AllDayReadAllSeriesNamesPath = AllDayScriptsRootPath + "/series/read_all_series_names.cdc"
-
-	// Sets
-	AllDayCreateSetPath       = AllDayTransactionsRootPath + "/admin/sets/create_set.cdc"
-	AllDayReadAllSetsPath     = AllDayScriptsRootPath + "/sets/read_all_sets.cdc"
-	AllDayReadSetByIDPath     = AllDayScriptsRootPath + "/sets/read_set_by_id.cdc"
-	AllDayReadSetsByNamePath  = AllDayScriptsRootPath + "/sets/read_sets_by_name.cdc"
-	AllDayReadAllSetNamesPath = AllDayScriptsRootPath + "/sets/read_all_set_names.cdc"
-
-	// Plays
-	AllDayCreatePlayPath   = AllDayTransactionsRootPath + "/admin/plays/create_play.cdc"
-	AllDayReadPlayByIDPath = AllDayScriptsRootPath + "/plays/read_play_by_id.cdc"
-	AllDayReadAllPlaysPath = AllDayScriptsRootPath + "/plays/read_all_plays.cdc"
+	AllDaySetupAccountPath         = AllDayTransactionsRootPath + "/user/setup_allday_account.cdc"
+	AllDaySeasonalSetupAccountPath = AllDayTransactionsRootPath + "/user/setup_allday_seasonal_account.cdc"
+	IsAccountSetupScriptPath       = AllDayScriptsRootPath + "/user/is_account_setup.cdc"
 
 	// Editions
 	AllDayCreateEditionPath         = AllDayTransactionsRootPath + "/admin/editions/create_edition.cdc"
@@ -87,16 +66,7 @@ func replaceAddresses(code []byte, contracts Contracts) []byte {
 	return code
 }
 
-func LoadAllDay(nftAddress flow.Address) []byte {
-	code := readFile(AllDayPath)
-
-	nftRe := regexp.MustCompile(nftAddressPlaceholder)
-	code = nftRe.ReplaceAll(code, []byte("0x"+nftAddress.String()))
-
-	return code
-}
-
-func LoadAllDaySeasonal(nftAddress flow.Address) []byte {
+func allDaySeasonalContract(nftAddress flow.Address) []byte {
 	code := readFile(AllDaySeasonalPath)
 
 	nftRe := regexp.MustCompile(nftAddressPlaceholder)
@@ -105,203 +75,51 @@ func LoadAllDaySeasonal(nftAddress flow.Address) []byte {
 	return code
 }
 
-func loadAllDaySetupAccountTransaction(contracts Contracts) []byte {
-	return replaceAddresses(
-		readFile(AllDaySetupAccountPath),
-		contracts,
-	)
-}
-
-func loadAllDaySeasonalSetupAccountTransaction(contracts Contracts) []byte {
+func setupAccountTransaction(contracts Contracts) []byte {
 	return replaceAddresses(
 		readFile(AllDaySeasonalSetupAccountPath),
 		contracts,
 	)
 }
 
-func loadAllDayAccountIsSetupScript(contracts Contracts) []byte {
+func isAccountSetupScript(contracts Contracts) []byte {
 	return replaceAddresses(
-		readFile(AllDayAccountIsSetupPath),
+		readFile(IsAccountSetupScriptPath),
 		contracts,
 	)
 }
 
-func loadAllDaySeasonalAccountIsSetupScript(contracts Contracts) []byte {
-	return replaceAddresses(
-		readFile(AllDaySeasonalAccountIsSetupPath),
-		contracts,
-	)
-}
-
-//------------------------------------------------------------
-// Series
-//------------------------------------------------------------
-func loadAllDayCreateSeriesTransaction(contracts Contracts) []byte {
-	return replaceAddresses(
-		readFile(AllDayCreateSeriesPath),
-		contracts,
-	)
-}
-
-func loadAllDayReadSeriesByIDScript(contracts Contracts) []byte {
-	return replaceAddresses(
-		readFile(AllDayReadSeriesByIDPath),
-		contracts,
-	)
-}
-
-func loadAllDayReadSeriesByNameScript(contracts Contracts) []byte {
-	return replaceAddresses(
-		readFile(AllDayReadSeriesByNamePath),
-		contracts,
-	)
-}
-
-func loadAllDayReadAllSeriesScript(contracts Contracts) []byte {
-	return replaceAddresses(
-		readFile(AllDayReadAllSeriesPath),
-		contracts,
-	)
-}
-
-func loadAllDayReadAllSeriesNamesScript(contracts Contracts) []byte {
-	return replaceAddresses(
-		readFile(AllDayReadAllSeriesNamesPath),
-		contracts,
-	)
-}
-
-func loadAllDayCloseSeriesTransaction(contracts Contracts) []byte {
-	return replaceAddresses(
-		readFile(AllDayCloseSeriesPath),
-		contracts,
-	)
-}
-
-//------------------------------------------------------------
-// Sets
-//------------------------------------------------------------
-func loadAllDayCreateSetTransaction(contracts Contracts) []byte {
-	return replaceAddresses(
-		readFile(AllDayCreateSetPath),
-		contracts,
-	)
-}
-
-func loadAllDayReadSetByIDScript(contracts Contracts) []byte {
-	return replaceAddresses(
-		readFile(AllDayReadSetByIDPath),
-		contracts,
-	)
-}
-
-func loadAllDayReadAllSetsScript(contracts Contracts) []byte {
-	return replaceAddresses(
-		readFile(AllDayReadAllSetsPath),
-		contracts,
-	)
-}
-
-func loadAllDayReadSetsByNameScript(contracts Contracts) []byte {
-	return replaceAddresses(
-		readFile(AllDayReadSetsByNamePath),
-		contracts,
-	)
-}
-
-func loadAllDayReadAllSetNamesScript(contracts Contracts) []byte {
-	return replaceAddresses(
-		readFile(AllDayReadAllSetNamesPath),
-		contracts,
-	)
-}
-
-//------------------------------------------------------------
-// Plays
-//------------------------------------------------------------
-func loadAllDayCreatePlayTransaction(contracts Contracts) []byte {
-	return replaceAddresses(
-		readFile(AllDayCreatePlayPath),
-		contracts,
-	)
-}
-
-func loadAllDayReadPlayByIDScript(contracts Contracts) []byte {
-	return replaceAddresses(
-		readFile(AllDayReadPlayByIDPath),
-		contracts,
-	)
-}
-
-func loadAllDayReadAllPlaysScript(contracts Contracts) []byte {
-	return replaceAddresses(
-		readFile(AllDayReadAllPlaysPath),
-		contracts,
-	)
-}
-
-//------------------------------------------------------------
-// Editions
-//------------------------------------------------------------
-func loadAllDayCreateEditionTransaction(contracts Contracts) []byte {
-	return replaceAddresses(
-		readFile(AllDayCreateEditionPath),
-		contracts,
-	)
-}
-
-func loadAllDaySeasonalCreateEditionTransaction(contracts Contracts) []byte {
+func createEditionTransaction(contracts Contracts) []byte {
 	return replaceAddresses(
 		readFile(AllDaySeasonalCreateEditionPath),
 		contracts,
 	)
 }
 
-func loadAllDayReadEditionByIDScript(contracts Contracts) []byte {
-	return replaceAddresses(
-		readFile(AllDayReadEditionByIDPath),
-		contracts,
-	)
-}
-
-func loadAllDaySeasonalReadEditionByIDScript(contracts Contracts) []byte {
+func readEditionByIDScript(contracts Contracts) []byte {
 	return replaceAddresses(
 		readFile(AllDaySeasonalReadEditionByIDPath),
 		contracts,
 	)
 }
 
-func loadAllDayCloseEditionTransaction(contracts Contracts) []byte {
-	return replaceAddresses(
-		readFile(AllDayCloseEditionPath),
-		contracts,
-	)
-}
-
-func loadAllDaySeasonalCloseEditionTransaction(contracts Contracts) []byte {
+func closeEditionTransaction(contracts Contracts) []byte {
 	return replaceAddresses(
 		readFile(AllDaySeasonalCloseEditionPath),
 		contracts,
 	)
 }
 
-func loadAllDayReadAllEditionsScript(contracts Contracts) []byte {
-	return replaceAddresses(
-		readFile(AllDayReadAllEditionsPath),
-		contracts,
-	)
-}
+//func loadAllDayReadAllEditionsScript(contracts Contracts) []byte {
+//	return replaceAddresses(
+//		readFile(AllDayReadAllEditionsPath),
+//		contracts,
+//	)
+//}
 
 //------------------------------------------------------------
 // Moment NFTs
 //------------------------------------------------------------
-func loadAllDayMintMomentNFTTransaction(contracts Contracts) []byte {
-	return replaceAddresses(
-		readFile(AllDayMintMomentNFTPath),
-		contracts,
-	)
-}
-
 func loadAllDayMintSeasonalNFTTransaction(contracts Contracts) []byte {
 	return replaceAddresses(
 		readFile(AllDayMintMomentNFTPath),
@@ -309,26 +127,26 @@ func loadAllDayMintSeasonalNFTTransaction(contracts Contracts) []byte {
 	)
 }
 
-func loadAllDayMintMomentNFTMultiTransaction(contracts Contracts) []byte {
-	return replaceAddresses(
-		readFile(AllDayMintMomentNFTMultiPath),
-		contracts,
-	)
-}
-
-func loadAllDayReadMomentNFTSupplyScript(contracts Contracts) []byte {
-	return replaceAddresses(
-		readFile(AllDayReadMomentNFTSupplyPath),
-		contracts,
-	)
-}
-
-func loadAllDayReadMomentNFTPropertiesScript(contracts Contracts) []byte {
-	return replaceAddresses(
-		readFile(AllDayReadMomentNFTPropertiesPath),
-		contracts,
-	)
-}
+//func loadAllDayMintMomentNFTMultiTransaction(contracts Contracts) []byte {
+//	return replaceAddresses(
+//		readFile(AllDayMintMomentNFTMultiPath),
+//		contracts,
+//	)
+//}
+//
+//func loadAllDayReadMomentNFTSupplyScript(contracts Contracts) []byte {
+//	return replaceAddresses(
+//		readFile(AllDayReadMomentNFTSupplyPath),
+//		contracts,
+//	)
+//}
+//
+//func loadAllDayReadMomentNFTPropertiesScript(contracts Contracts) []byte {
+//	return replaceAddresses(
+//		readFile(AllDayReadMomentNFTPropertiesPath),
+//		contracts,
+//	)
+//}
 
 func loadAllDayReadSeasonalNFTPropertiesScript(contracts Contracts) []byte {
 	return replaceAddresses(

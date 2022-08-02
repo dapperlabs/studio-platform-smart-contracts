@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	emulator "github.com/onflow/flow-emulator"
+	"github.com/onflow/flow-go-sdk"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -22,13 +23,13 @@ func TestAllDaySeasonalSetupAccount(t *testing.T) {
 	setupAllDaySeasonal(t, b, userAddress, userSigner, contracts)
 
 	t.Run("Account should be set up", func(t *testing.T) {
-		accountIsSetUp := accountSeasonalIsSetup(
+		isAccountSetUp := isAccountSetup(
 			t,
 			b,
 			contracts,
 			userAddress,
 		)
-		assert.Equal(t, true, accountIsSetUp)
+		assert.Equal(t, true, isAccountSetUp)
 	})
 }
 
@@ -83,7 +84,7 @@ func testCreateSeasonalEdition(
 	shouldBeID uint64,
 	shouldRevert bool,
 ) {
-	createSeasonalEdition(
+	createEdition(
 		t,
 		b,
 		contracts,
@@ -92,7 +93,7 @@ func testCreateSeasonalEdition(
 	)
 
 	if !shouldRevert {
-		series := getSeasonalEditionData(t, b, contracts, shouldBeID)
+		series := getEditionData(t, b, contracts, shouldBeID)
 		assert.Equal(t, shouldBeID, series.ID)
 		assert.Equal(t, true, series.Active)
 	}
@@ -105,8 +106,8 @@ func testCloseSeasonalEdition(
 	editionID uint64,
 	shouldRevert bool,
 ) {
-	wasActive := getSeasonalEditionData(t, b, contracts, editionID).Active
-	closeSeasonalEdition(
+	wasActive := getEditionData(t, b, contracts, editionID).Active
+	closeEdition(
 		t,
 		b,
 		contracts,
@@ -114,7 +115,7 @@ func testCloseSeasonalEdition(
 		shouldRevert,
 	)
 
-	edition := getSeasonalEditionData(t, b, contracts, editionID)
+	edition := getEditionData(t, b, contracts, editionID)
 	assert.Equal(t, editionID, edition.ID)
 	if !shouldRevert {
 		assert.Equal(t, false, edition.Active)
@@ -158,7 +159,7 @@ func TestSeasonalNFTs(t *testing.T) {
 		)
 	})
 
-	closeSeasonalEdition(
+	closeEdition(
 		t,
 		b,
 		contracts,
@@ -177,4 +178,43 @@ func TestSeasonalNFTs(t *testing.T) {
 			true,
 		)
 	})
+}
+
+func testMintSeasonalNFT(
+	t *testing.T,
+	b *emulator.Blockchain,
+	contracts Contracts,
+	editionID uint64,
+	userAddress flow.Address,
+	shouldBeID uint64,
+	shouldRevert bool,
+) {
+	// Make sure the total supply of NFTs is tracked correctly
+	previousSupply := getEditionNFTSupply(t, b, contracts)
+
+	mintSeasonalNFT(
+		t,
+		b,
+		contracts,
+		userAddress,
+		editionID,
+		shouldRevert,
+	)
+
+	newSupply := getEditionNFTSupply(t, b, contracts)
+	if !shouldRevert {
+		assert.Equal(t, previousSupply+uint64(1), newSupply)
+
+		nftProperties := getEditionNFTProperties(
+			t,
+			b,
+			contracts,
+			userAddress,
+			shouldBeID,
+		)
+		assert.Equal(t, shouldBeID, nftProperties.ID)
+		assert.Equal(t, editionID, nftProperties.EditionID)
+	} else {
+		assert.Equal(t, previousSupply, newSupply)
+	}
 }

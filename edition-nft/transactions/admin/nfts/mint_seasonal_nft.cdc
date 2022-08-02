@@ -5,7 +5,7 @@ transaction(recipientAddress: Address, editionID: UInt64) {
     
     // local variable for storing the minter reference
     let minter: &{AllDaySeasonal.NFTMinter}
-    let recipient: &{AllDaySeasonal.SeasonalNFTCollectionPublic}
+    let recipient: &{AllDaySeasonal.AllDaySeasonalNFTCollectionPublic}
 
     prepare(signer: AuthAccount) {
         // borrow a reference to the NFTMinter resource in storage
@@ -18,7 +18,7 @@ transaction(recipientAddress: Address, editionID: UInt64) {
 
         // borrow a public reference to the receivers collection
         self.recipient = recipientAccount.getCapability(AllDaySeasonal.CollectionPublicPath)
-            .borrow<&{AllDaySeasonal.SeasonalNFTCollectionPublic}>()
+            .borrow<&{AllDaySeasonal.AllDaySeasonalNFTCollectionPublic}>()
             ?? panic("Could not borrow a reference to the collection receiver")
     }
 

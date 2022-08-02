@@ -133,8 +133,8 @@ pub contract AllDaySeasonal: NonFungibleToken {
                 self.active: "edition closed, cannot mint"
             }
 
-            // Create the Moment NFT, filled out with our information
-            let momentNFT <- create NFT(
+            // Create thek NFT, filled out with our information
+            let nft <- create NFT(
                 id: AllDaySeasonal.totalSupply + 1,
                 editionID: self.id,
                 serialNumber: self.numMinted + 1
@@ -143,7 +143,7 @@ pub contract AllDaySeasonal: NonFungibleToken {
             // Keep a running total (you'll notice we used this as the serial number)
             self.numMinted = self.numMinted + 1 as UInt64
 
-            return <- momentNFT
+            return <- nft
         }
 
         // initializer
@@ -210,12 +210,12 @@ pub contract AllDaySeasonal: NonFungibleToken {
 
     // A public collection interface that allows Moment NFTs to be borrowed
     //
-    pub resource interface SeasonalNFTCollectionPublic {
+    pub resource interface AllDaySeasonalNFTCollectionPublic {
         pub fun deposit(token: @NonFungibleToken.NFT)
         pub fun batchDeposit(tokens: @NonFungibleToken.Collection)
         pub fun getIDs(): [UInt64]
         pub fun borrowNFT(id: UInt64): &NonFungibleToken.NFT
-        pub fun borrowSeasonalNFT(id: UInt64): &AllDaySeasonal.NFT? {
+        pub fun borrowAllDaySeasonalNFT(id: UInt64): &AllDaySeasonal.NFT? {
             // If the result isn't nil, the id of the returned reference
             // should be the same as the argument to the function
             post {
@@ -231,7 +231,7 @@ pub contract AllDaySeasonal: NonFungibleToken {
         NonFungibleToken.Provider,
         NonFungibleToken.Receiver,
         NonFungibleToken.CollectionPublic,
-        SeasonalNFTCollectionPublic
+        AllDaySeasonalNFTCollectionPublic
     {
         // dictionary of NFT conforming tokens
         // NFT is a resource type with an UInt64 ID field
@@ -295,9 +295,9 @@ pub contract AllDaySeasonal: NonFungibleToken {
             return (&self.ownedNFTs[id] as &NonFungibleToken.NFT?)!
         }
 
-        // borrowMomentNFT gets a reference to an NFT in the collection
+        // borrowAllDaySeasonalNFT gets a reference to an NFT in the collection
         //
-        pub fun borrowSeasonalNFT(id: UInt64): &AllDaySeasonal.NFT? {
+        pub fun borrowAllDaySeasonalNFT(id: UInt64): &AllDaySeasonal.NFT? {
             if self.ownedNFTs[id] != nil {
                 if let ref = &self.ownedNFTs[id] as auth &NonFungibleToken.NFT? {
                     return ref! as! &AllDaySeasonal.NFT
