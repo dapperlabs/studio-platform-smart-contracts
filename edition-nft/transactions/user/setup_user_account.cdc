@@ -1,7 +1,7 @@
 import NonFungibleToken from "../../contracts/NonFungibleToken.cdc"
 import EditionNFT from "../../contracts/EditionNFT.cdc"
 
-// This transaction configures an account to hold EditionNFT NFTs.
+// This transaction configures an account to hold EditionNFTs.
 
 transaction {
     prepare(signer: AuthAccount) {
