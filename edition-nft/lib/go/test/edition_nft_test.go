@@ -21,7 +21,7 @@ func TestEditionNFTSetupAccount(t *testing.T) {
 	b := newEmulator()
 	contracts := EditionNFTDeployContracts(t, b)
 	userAddress, userSigner := createAccount(t, b)
-	setupEditionNFT(t, b, userAddress, userSigner, contracts)
+	setupEditionNFTAccount(t, b, userAddress, userSigner, contracts)
 
 	t.Run("Account should be set up", func(t *testing.T) {
 		isAccountSetUp := isAccountSetup(
@@ -37,15 +37,11 @@ func TestEditionNFTSetupAccount(t *testing.T) {
 //------------------------------------------------------------
 // Edition
 //------------------------------------------------------------
-func TestEdition(t *testing.T) {
+func TestCreateEdition(t *testing.T) {
 	b := newEmulator()
 	contracts := EditionNFTDeployContracts(t, b)
-	createTestSeasonalEditions(t, b, contracts)
-}
-
-func createTestSeasonalEditions(t *testing.T, b *emulator.Blockchain, contracts Contracts) {
 	t.Run("Should be able to create a new edition", func(t *testing.T) {
-		testCreateSeasonalEdition(
+		testCreateEdition(
 			t,
 			b,
 			contracts,
@@ -56,7 +52,7 @@ func createTestSeasonalEditions(t *testing.T, b *emulator.Blockchain, contracts 
 	})
 
 	t.Run("Should be able to create a new edition with an incrementing ID from the first", func(t *testing.T) {
-		testCreateSeasonalEdition(
+		testCreateEdition(
 			t,
 			b,
 			contracts,
@@ -65,97 +61,58 @@ func createTestSeasonalEditions(t *testing.T, b *emulator.Blockchain, contracts 
 			false,
 		)
 	})
+}
 
-	t.Run("Should be able to close a edition", func(t *testing.T) {
-		testCloseSeasonalEdition(
+func TestCloseEdition(t *testing.T) {
+	b := newEmulator()
+	contracts := EditionNFTDeployContracts(t, b)
+	t.Run("Should be able to create a new edition", func(t *testing.T) {
+		testCreateEdition(
 			t,
 			b,
 			contracts,
-			2,
+			map[string]string{"test play metadata a": "TEST PLAY METADATA A"},
+			1,
+			false,
+		)
+	})
+
+	t.Run("Should be able to close a edition", func(t *testing.T) {
+		testCloseEdition(
+			t,
+			b,
+			contracts,
+			1,
 			false,
 		)
 	})
 }
 
-func testCreateSeasonalEdition(
-	t *testing.T,
-	b *emulator.Blockchain,
-	contracts Contracts,
-	metadata map[string]string,
-	shouldBeID uint64,
-	shouldRevert bool,
-) {
+// ------------------------------------------------------------
+// NFTs
+// ------------------------------------------------------------
+func TestMintEditionNFTs(t *testing.T) {
+	b := newEmulator()
+	contracts := EditionNFTDeployContracts(t, b)
+	userAddress, userSigner := createAccount(t, b)
+	setupEditionNFTAccount(t, b, userAddress, userSigner, contracts)
+
 	createEdition(
 		t,
 		b,
 		contracts,
-		metadata,
+		map[string]string{"test play metadata a": "TEST PLAY METADATA A"},
 		false,
 	)
 
-	if !shouldRevert {
-		series := getEditionData(t, b, contracts, shouldBeID)
-		assert.Equal(t, shouldBeID, series.ID)
-		assert.Equal(t, true, series.Active)
-	}
-}
-
-func testCloseSeasonalEdition(
-	t *testing.T,
-	b *emulator.Blockchain,
-	contracts Contracts,
-	editionID uint64,
-	shouldRevert bool,
-) {
-	wasActive := getEditionData(t, b, contracts, editionID).Active
-	closeEdition(
-		t,
-		b,
-		contracts,
-		editionID,
-		shouldRevert,
-	)
-
-	edition := getEditionData(t, b, contracts, editionID)
-	assert.Equal(t, editionID, edition.ID)
-	if !shouldRevert {
-		assert.Equal(t, false, edition.Active)
-	} else {
-		assert.Equal(t, wasActive, edition.Active)
-	}
-}
-
-// ------------------------------------------------------------
-// MomentNFTs
-// ------------------------------------------------------------
-func TestSeasonalNFTs(t *testing.T) {
-	b := newEmulator()
-	contracts := EditionNFTDeployContracts(t, b)
-	userAddress, userSigner := createAccount(t, b)
-	setupEditionNFT(t, b, userAddress, userSigner, contracts)
-
-	createTestSeasonalEditions(t, b, contracts)
-
-	t.Run("Should be able to mint a new NFT from an edition that has a maxMintSize", func(t *testing.T) {
-		testMintSeasonalNFT(
+	t.Run("Should be able to mint a new NFT from an active edition", func(t *testing.T) {
+		testMintEditionNFT(
 			t,
 			b,
 			contracts,
 			uint64(1),
 			userAddress,
 			uint64(1),
-			false,
-		)
-	})
-
-	t.Run("Should be able to mint a second new MomentNFT from an edition that has a maxmintSize", func(t *testing.T) {
-		testMintSeasonalNFT(
-			t,
-			b,
-			contracts,
-			uint64(1),
-			userAddress,
-			uint64(2),
 			false,
 		)
 	})
@@ -168,8 +125,8 @@ func TestSeasonalNFTs(t *testing.T) {
 		false,
 	)
 
-	t.Run("Should not be able to mint an edition that is already closed", func(t *testing.T) {
-		testMintSeasonalNFT(
+	t.Run("Should not be able to mint from an edition which is already closed", func(t *testing.T) {
+		testMintEditionNFT(
 			t,
 			b,
 			contracts,
@@ -181,7 +138,7 @@ func TestSeasonalNFTs(t *testing.T) {
 	})
 }
 
-func testMintSeasonalNFT(
+func testMintEditionNFT(
 	t *testing.T,
 	b *emulator.Blockchain,
 	contracts Contracts,
@@ -218,5 +175,53 @@ func testMintSeasonalNFT(
 		assert.Equal(t, editionID, nftProperties.EditionID)
 	} else {
 		assert.Equal(t, previousSupply, newSupply)
+	}
+}
+
+func testCreateEdition(
+	t *testing.T,
+	b *emulator.Blockchain,
+	contracts Contracts,
+	metadata map[string]string,
+	shouldBeID uint64,
+	shouldRevert bool,
+) {
+	createEdition(
+		t,
+		b,
+		contracts,
+		metadata,
+		false,
+	)
+
+	if !shouldRevert {
+		series := getEditionData(t, b, contracts, shouldBeID)
+		assert.Equal(t, shouldBeID, series.ID)
+		assert.Equal(t, true, series.Active)
+	}
+}
+
+func testCloseEdition(
+	t *testing.T,
+	b *emulator.Blockchain,
+	contracts Contracts,
+	editionID uint64,
+	shouldRevert bool,
+) {
+	wasActive := getEditionData(t, b, contracts, editionID).Active
+	closeEdition(
+		t,
+		b,
+		contracts,
+		editionID,
+		shouldRevert,
+	)
+
+	edition := getEditionData(t, b, contracts, editionID)
+	assert.Equal(t, editionID, edition.ID)
+	if !shouldRevert {
+		assert.Equal(t, false, edition.Active)
+	} else {
+		assert.Equal(t, wasActive, edition.Active)
 	}
 }

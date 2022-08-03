@@ -205,7 +205,7 @@ func createAccount(t *testing.T, b *emulator.Blockchain) (sdk.Address, crypto.Si
 	return address, signer
 }
 
-func setupEditionNFT(
+func setupEditionNFTAccount(
 	t *testing.T,
 	b *emulator.Blockchain,
 	userAddress sdk.Address,
