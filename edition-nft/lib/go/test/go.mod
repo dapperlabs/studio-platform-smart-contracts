@@ -1,4 +1,4 @@
-module github.com/dapperlabs/nfl-smart-contracts/lib/go/test
+module github.com/dapperlabs/studio-platform-smart-contracts/lib/go/test
 
 go 1.16
 

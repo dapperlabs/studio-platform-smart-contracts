@@ -1,23 +1,23 @@
 import NonFungibleToken from "../../contracts/NonFungibleToken.cdc"
-import AllDaySeasonal from "../../contracts/AllDaySeasonal.cdc"
+import EditionNFT from "../../contracts/EditionNFT.cdc"
 
 // This transaction configures an account to hold AllDay NFTs.
 
 transaction {
     prepare(signer: AuthAccount) {
         // if the account doesn't already have a collection
-        if signer.borrow<&AllDaySeasonal.Collection>(from: AllDaySeasonal.CollectionStoragePath) == nil {
+        if signer.borrow<&EditionNFT.Collection>(from: EditionNFT.CollectionStoragePath) == nil {
 
             // create a new empty collection
-            let collection <- AllDaySeasonal.createEmptyCollection()
+            let collection <- EditionNFT.createEmptyCollection()
             
             // save it to the account
-            signer.save(<-collection, to: AllDaySeasonal.CollectionStoragePath)
+            signer.save(<-collection, to: EditionNFT.CollectionStoragePath)
 
             // create a public capability for the collection
-            signer.link<&AllDaySeasonal.Collection{NonFungibleToken.CollectionPublic, AllDaySeasonal.AllDaySeasonalNFTCollectionPublic}>(
-                AllDaySeasonal.CollectionPublicPath,
-                target: AllDaySeasonal.CollectionStoragePath
+            signer.link<&EditionNFT.Collection{NonFungibleToken.CollectionPublic, EditionNFT.EditionNFTCollectionPublic}>(
+                EditionNFT.CollectionPublicPath,
+                target: EditionNFT.CollectionStoragePath
             )
         }
     }

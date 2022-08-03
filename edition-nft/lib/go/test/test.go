@@ -52,13 +52,13 @@ func deployNFTContract(t *testing.T, b *emulator.Blockchain) flow.Address {
 	return nftAddress
 }
 
-func AllDaySeasonalDeployContracts(t *testing.T, b *emulator.Blockchain) Contracts {
+func EditionNFTDeployContracts(t *testing.T, b *emulator.Blockchain) Contracts {
 	accountKeys := test.AccountKeyGenerator()
 
 	nftAddress := deployNFTContract(t, b)
 
 	AllDayAccountKey, AllDaySigner := accountKeys.NewWithSigner()
-	AllDaySeasonalCode := allDaySeasonalContract(nftAddress)
+	EditionNFTCode := allDaySeasonalContract(nftAddress)
 
 	AllDayAddress, err := b.CreateAccount(
 		[]*flow.AccountKey{AllDayAccountKey},
@@ -71,8 +71,8 @@ func AllDaySeasonalDeployContracts(t *testing.T, b *emulator.Blockchain) Contrac
 	tx1 := sdktemplates.AddAccountContract(
 		AllDayAddress,
 		sdktemplates.Contract{
-			Name:   "AllDaySeasonal",
-			Source: string(AllDaySeasonalCode),
+			Name:   "EditionNFT",
+			Source: string(EditionNFTCode),
 		},
 	)
 
@@ -205,7 +205,7 @@ func createAccount(t *testing.T, b *emulator.Blockchain) (sdk.Address, crypto.Si
 	return address, signer
 }
 
-func setupAllDaySeasonal(
+func setupEditionNFT(
 	t *testing.T,
 	b *emulator.Blockchain,
 	userAddress sdk.Address,

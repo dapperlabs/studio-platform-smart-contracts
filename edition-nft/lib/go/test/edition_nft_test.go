@@ -12,16 +12,16 @@ import (
 //------------------------------------------------------------
 // Setup
 //------------------------------------------------------------
-func TestAllDaySeasonalDeployContracts(t *testing.T) {
+func TestEditionNFTDeployContracts(t *testing.T) {
 	b := newEmulator()
-	AllDaySeasonalDeployContracts(t, b)
+	EditionNFTDeployContracts(t, b)
 }
 
-func TestAllDaySeasonalSetupAccount(t *testing.T) {
+func TestEditionNFTSetupAccount(t *testing.T) {
 	b := newEmulator()
-	contracts := AllDaySeasonalDeployContracts(t, b)
+	contracts := EditionNFTDeployContracts(t, b)
 	userAddress, userSigner := createAccount(t, b)
-	setupAllDaySeasonal(t, b, userAddress, userSigner, contracts)
+	setupEditionNFT(t, b, userAddress, userSigner, contracts)
 
 	t.Run("Account should be set up", func(t *testing.T) {
 		isAccountSetUp := isAccountSetup(
@@ -39,7 +39,7 @@ func TestAllDaySeasonalSetupAccount(t *testing.T) {
 //------------------------------------------------------------
 func TestEdition(t *testing.T) {
 	b := newEmulator()
-	contracts := AllDaySeasonalDeployContracts(t, b)
+	contracts := EditionNFTDeployContracts(t, b)
 	createTestSeasonalEditions(t, b, contracts)
 }
 
@@ -130,9 +130,9 @@ func testCloseSeasonalEdition(
 // ------------------------------------------------------------
 func TestSeasonalNFTs(t *testing.T) {
 	b := newEmulator()
-	contracts := AllDaySeasonalDeployContracts(t, b)
+	contracts := EditionNFTDeployContracts(t, b)
 	userAddress, userSigner := createAccount(t, b)
-	setupAllDaySeasonal(t, b, userAddress, userSigner, contracts)
+	setupEditionNFT(t, b, userAddress, userSigner, contracts)
 
 	createTestSeasonalEditions(t, b, contracts)
 

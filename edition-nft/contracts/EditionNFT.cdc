@@ -6,16 +6,16 @@
 import NonFungibleToken from "./NonFungibleToken.cdc"
 
 /*
-    There are 5 levels of entity:
-    1. Editions
-    2. Seasonal NFTs
+    There are 2 levels of entity:
+    1. Edition
+    2. NFT
     
-    An Edition is created with metadata. Seasonal NFTs are minted out of Editions.
+    An Edition is created with metadata. NFTs are minted out of Editions.
  */
 
-// The AllDay NFTs and metadata contract
+// The EditionNFT contract
 //
-pub contract AllDaySeasonal: NonFungibleToken {
+pub contract EditionNFT: NonFungibleToken {
     //------------------------------------------------------------
     // Events
     //------------------------------------------------------------
@@ -93,7 +93,7 @@ pub contract AllDaySeasonal: NonFungibleToken {
         // initializer
         //
         init (id: UInt64) {
-            if let edition = &AllDaySeasonal.editionByID[id] as &AllDaySeasonal.Edition? {
+            if let edition = &EditionNFT.editionByID[id] as &EditionNFT.Edition? {
             self.id = id
             self.metadata = edition.metadata
             self.numMinted = edition.numMinted
@@ -128,18 +128,18 @@ pub contract AllDaySeasonal: NonFungibleToken {
         // Mint a Seasonal NFT in this edition, with the given minting mintingDate.
         // Note that this will panic if the max mint size has already been reached.
         //
-        pub fun mint(): @AllDaySeasonal.NFT {
+        pub fun mint(): @EditionNFT.NFT {
             pre {
                 self.active: "edition closed, cannot mint"
             }
 
             // Create thek NFT, filled out with our information
             let nft <- create NFT(
-                id: AllDaySeasonal.totalSupply + 1,
+                id: EditionNFT.totalSupply + 1,
                 editionID: self.id,
                 serialNumber: self.numMinted + 1
             )
-            AllDaySeasonal.totalSupply = AllDaySeasonal.totalSupply + 1
+            EditionNFT.totalSupply = EditionNFT.totalSupply + 1
             // Keep a running total (you'll notice we used this as the serial number)
             self.numMinted = self.numMinted + 1 as UInt64
 
@@ -149,24 +149,24 @@ pub contract AllDaySeasonal: NonFungibleToken {
         // initializer
         //
         init (metadata: {String: String}) {
-            self.id = AllDaySeasonal.nextEditionID
+            self.id = EditionNFT.nextEditionID
             self.metadata = metadata
             self.numMinted = 0 as UInt64
             self.active = true
 
-            AllDaySeasonal.nextEditionID = self.id + 1 as UInt64
+            EditionNFT.nextEditionID = self.id + 1 as UInt64
             emit EditionCreated(id: self.id, metadata: self.metadata)
         }
     }
 
     // Get the publicly available data for a Edition
     //
-    pub fun getEditionData(id: UInt64): AllDaySeasonal.EditionData {
+    pub fun getEditionData(id: UInt64): EditionNFT.EditionData {
         pre {
-            AllDaySeasonal.editionByID[id] != nil: "Cannot borrow edition, no such id"
+            EditionNFT.editionByID[id] != nil: "Cannot borrow edition, no such id"
         }
 
-        return AllDaySeasonal.EditionData(id: id)
+        return EditionNFT.EditionData(id: id)
     }
 
     //------------------------------------------------------------
@@ -193,7 +193,7 @@ pub contract AllDaySeasonal: NonFungibleToken {
             serialNumber: UInt64
         ) {
             pre {
-                AllDaySeasonal.editionByID[editionID] != nil: "no such editionID"
+                EditionNFT.editionByID[editionID] != nil: "no such editionID"
                 EditionData(id: editionID).active == true: "edition already closed"
             }
 
@@ -210,12 +210,12 @@ pub contract AllDaySeasonal: NonFungibleToken {
 
     // A public collection interface that allows Moment NFTs to be borrowed
     //
-    pub resource interface AllDaySeasonalNFTCollectionPublic {
+    pub resource interface EditionNFTCollectionPublic {
         pub fun deposit(token: @NonFungibleToken.NFT)
         pub fun batchDeposit(tokens: @NonFungibleToken.Collection)
         pub fun getIDs(): [UInt64]
         pub fun borrowNFT(id: UInt64): &NonFungibleToken.NFT
-        pub fun borrowAllDaySeasonalNFT(id: UInt64): &AllDaySeasonal.NFT? {
+        pub fun borrowEditionNFT(id: UInt64): &EditionNFT.NFT? {
             // If the result isn't nil, the id of the returned reference
             // should be the same as the argument to the function
             post {
@@ -231,7 +231,7 @@ pub contract AllDaySeasonal: NonFungibleToken {
         NonFungibleToken.Provider,
         NonFungibleToken.Receiver,
         NonFungibleToken.CollectionPublic,
-        AllDaySeasonalNFTCollectionPublic
+        EditionNFTCollectionPublic
     {
         // dictionary of NFT conforming tokens
         // NFT is a resource type with an UInt64 ID field
@@ -252,7 +252,7 @@ pub contract AllDaySeasonal: NonFungibleToken {
         // and adds the ID to the id array
         //
         pub fun deposit(token: @NonFungibleToken.NFT) {
-            let token <- token as! @AllDaySeasonal.NFT
+            let token <- token as! @EditionNFT.NFT
             let id: UInt64 = token.id
 
             // add the new token to the dictionary which removes the old one
@@ -295,12 +295,12 @@ pub contract AllDaySeasonal: NonFungibleToken {
             return (&self.ownedNFTs[id] as &NonFungibleToken.NFT?)!
         }
 
-        // borrowAllDaySeasonalNFT gets a reference to an NFT in the collection
+        // borrowEditionNFT gets a reference to an EditionNFT in the collection
         //
-        pub fun borrowAllDaySeasonalNFT(id: UInt64): &AllDaySeasonal.NFT? {
+        pub fun borrowEditionNFT(id: UInt64): &EditionNFT.NFT? {
             if self.ownedNFTs[id] != nil {
                 if let ref = &self.ownedNFTs[id] as auth &NonFungibleToken.NFT? {
-                    return ref! as! &AllDaySeasonal.NFT
+                    return ref! as! &EditionNFT.NFT
                 }
                 return nil
             } else {
@@ -337,7 +337,7 @@ pub contract AllDaySeasonal: NonFungibleToken {
         // Mint a single NFT
         // The Edition for the given ID must already exist
         //
-        pub fun mintNFT(editionID: UInt64): @AllDaySeasonal.NFT
+        pub fun mintNFT(editionID: UInt64): @EditionNFT.NFT
     }
 
     // A resource that allows managing metadata and minting NFTs
@@ -346,23 +346,23 @@ pub contract AllDaySeasonal: NonFungibleToken {
 
         // Borrow an Edition
         //
-        pub fun borrowEdition(id: UInt64): &AllDaySeasonal.Edition {
+        pub fun borrowEdition(id: UInt64): &EditionNFT.Edition {
             pre {
-                AllDaySeasonal.editionByID[id] != nil: "Cannot borrow edition, no such id"
+                EditionNFT.editionByID[id] != nil: "Cannot borrow edition, no such id"
             }
 
-            return (&AllDaySeasonal.editionByID[id] as &AllDaySeasonal.Edition?)!
+            return (&EditionNFT.editionByID[id] as &EditionNFT.Edition?)!
         }
 
         // Create a Edition 
         //
         pub fun createEdition(metadata: {String: String}): UInt64 {
             // Create and store the new edition
-            let edition <- create AllDaySeasonal.Edition(
+            let edition <- create EditionNFT.Edition(
                 metadata: metadata,
             )
             let editionID = edition.id
-            AllDaySeasonal.editionByID[edition.id] <-! edition
+            EditionNFT.editionByID[edition.id] <-! edition
 
             // Return the new ID for convenience
             return editionID
@@ -372,7 +372,7 @@ pub contract AllDaySeasonal: NonFungibleToken {
         // Close an Edition
         //
         pub fun closeEdition(id: UInt64): UInt64 {
-            if let edition = &AllDaySeasonal.editionByID[id] as &AllDaySeasonal.Edition? {
+            if let edition = &EditionNFT.editionByID[id] as &EditionNFT.Edition? {
                 edition.close()
                 return edition.id
             }
@@ -382,10 +382,10 @@ pub contract AllDaySeasonal: NonFungibleToken {
         // Mint a single NFT
         // The Edition for the given ID must already exist
         //
-        pub fun mintNFT(editionID: UInt64): @AllDaySeasonal.NFT {
+        pub fun mintNFT(editionID: UInt64): @EditionNFT.NFT {
             pre {
                 // Make sure the edition we are creating this NFT in exists
-                AllDaySeasonal.editionByID.containsKey(editionID): "No such EditionID"
+                EditionNFT.editionByID.containsKey(editionID): "No such EditionID"
             }
             return <- self.borrowEdition(id: editionID).mint()
         }
@@ -395,14 +395,14 @@ pub contract AllDaySeasonal: NonFungibleToken {
     // Contract lifecycle
     //------------------------------------------------------------
 
-    // AllDay contract initializer
+    // EditionNFT contract initializer
     //
     init() {
         // Set the named paths
-        self.CollectionStoragePath = /storage/AllDayNFTCollection
-        self.CollectionPublicPath = /public/AllDayNFTCollection
-        self.AdminStoragePath = /storage/AllDayAdmin
-        self.MinterPrivatePath = /private/AllDayMinter
+        self.CollectionStoragePath = /storage/EditionNFTCollection
+        self.CollectionPublicPath = /public/EditionNFTCollection
+        self.AdminStoragePath = /storage/EditionNFTAdmin
+        self.MinterPrivatePath = /private/EditionNFTMinter
 
         // Initialize the entity counts        
         self.totalSupply = 0
@@ -417,7 +417,7 @@ pub contract AllDaySeasonal: NonFungibleToken {
         self.account.save(<-admin, to: self.AdminStoragePath)
         // Link capabilites to the admin constrained to the Minter
         // and Metadata interfaces
-        self.account.link<&AllDaySeasonal.Admin{AllDaySeasonal.NFTMinter}>(
+        self.account.link<&EditionNFT.Admin{EditionNFT.NFTMinter}>(
             self.MinterPrivatePath,
             target: self.AdminStoragePath
         )

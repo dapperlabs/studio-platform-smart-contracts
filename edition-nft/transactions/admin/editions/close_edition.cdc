@@ -1,12 +1,12 @@
-import AllDaySeasonal from "../../../contracts/AllDaySeasonal.cdc"
+import EditionNFT from "../../../contracts/EditionNFT.cdc"
 
 transaction(editionID: UInt64) {
     // local variable for the admin reference
-    let admin: &AllDaySeasonal.Admin
+    let admin: &EditionNFT.Admin
 
     prepare(signer: AuthAccount) {
         // borrow a reference to the Admin resource
-        self.admin = signer.borrow<&AllDaySeasonal.Admin>(from: AllDaySeasonal.AdminStoragePath)
+        self.admin = signer.borrow<&EditionNFT.Admin>(from: EditionNFT.AdminStoragePath)
             ?? panic("Could not borrow a reference to the AllDay Admin capability")
     }
 

@@ -9,12 +9,12 @@ import (
 // Handle relative paths by making these regular expressions
 
 const (
-	nftAddressPlaceholder            = "\"[^\"]*NonFungibleToken.cdc\""
-	AllDaySeasonalAddressPlaceholder = "\"[^\"]*AllDaySeasonal.cdc\""
+	nftAddressPlaceholder        = "\"[^\"]*NonFungibleToken.cdc\""
+	EditionNFTAddressPlaceholder = "\"[^\"]*EditionNFT.cdc\""
 )
 
 const (
-	AllDaySeasonalPath   = "../../../contracts/AllDaySeasonal.cdc"
+	EditionNFTPath       = "../../../contracts/EditionNFT.cdc"
 	TransactionsRootPath = "../../../transactions"
 	ScriptsRootPath      = "../../../scripts"
 
@@ -41,14 +41,14 @@ func replaceAddresses(code []byte, contracts Contracts) []byte {
 	nftRe := regexp.MustCompile(nftAddressPlaceholder)
 	code = nftRe.ReplaceAll(code, []byte("0x"+contracts.NFTAddress.String()))
 
-	AllDaySeasonalRe := regexp.MustCompile(AllDaySeasonalAddressPlaceholder)
-	code = AllDaySeasonalRe.ReplaceAll(code, []byte("0x"+contracts.AllDayAddress.String()))
+	EditionNFTRe := regexp.MustCompile(EditionNFTAddressPlaceholder)
+	code = EditionNFTRe.ReplaceAll(code, []byte("0x"+contracts.AllDayAddress.String()))
 
 	return code
 }
 
 func allDaySeasonalContract(nftAddress flow.Address) []byte {
-	code := readFile(AllDaySeasonalPath)
+	code := readFile(EditionNFTPath)
 
 	nftRe := regexp.MustCompile(nftAddressPlaceholder)
 	code = nftRe.ReplaceAll(code, []byte("0x"+nftAddress.String()))
