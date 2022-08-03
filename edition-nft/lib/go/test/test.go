@@ -29,9 +29,9 @@ var (
 )
 
 type Contracts struct {
-	NFTAddress    flow.Address
-	AllDayAddress flow.Address
-	AllDaySigner  crypto.Signer
+	NFTAddress        flow.Address
+	EditionNFTAddress flow.Address
+	EditionNFTSigner  crypto.Signer
 }
 
 func deployNFTContract(t *testing.T, b *emulator.Blockchain) flow.Address {
@@ -57,19 +57,19 @@ func EditionNFTDeployContracts(t *testing.T, b *emulator.Blockchain) Contracts {
 
 	nftAddress := deployNFTContract(t, b)
 
-	AllDayAccountKey, AllDaySigner := accountKeys.NewWithSigner()
+	EditionNFTAccountKey, EditionNFTSigner := accountKeys.NewWithSigner()
 	EditionNFTCode := allDaySeasonalContract(nftAddress)
 
-	AllDayAddress, err := b.CreateAccount(
-		[]*flow.AccountKey{AllDayAccountKey},
+	EditionNFTAddress, err := b.CreateAccount(
+		[]*flow.AccountKey{EditionNFTAccountKey},
 		nil,
 	)
 	require.NoError(t, err)
 
-	fundAccount(t, b, AllDayAddress, defaultAccountFunding)
+	fundAccount(t, b, EditionNFTAddress, defaultAccountFunding)
 
 	tx1 := sdktemplates.AddAccountContract(
-		AllDayAddress,
+		EditionNFTAddress,
 		sdktemplates.Contract{
 			Name:   "EditionNFT",
 			Source: string(EditionNFTCode),
@@ -83,8 +83,8 @@ func EditionNFTDeployContracts(t *testing.T, b *emulator.Blockchain) Contracts {
 
 	signAndSubmit(
 		t, b, tx1,
-		[]flow.Address{b.ServiceKey().Address, AllDayAddress},
-		[]crypto.Signer{b.ServiceKey().Signer(), AllDaySigner},
+		[]flow.Address{b.ServiceKey().Address, EditionNFTAddress},
+		[]crypto.Signer{b.ServiceKey().Signer(), EditionNFTSigner},
 		false,
 	)
 
@@ -93,8 +93,8 @@ func EditionNFTDeployContracts(t *testing.T, b *emulator.Blockchain) Contracts {
 
 	return Contracts{
 		nftAddress,
-		AllDayAddress,
-		AllDaySigner,
+		EditionNFTAddress,
+		EditionNFTSigner,
 	}
 }
 

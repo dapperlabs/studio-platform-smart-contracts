@@ -7,7 +7,7 @@ transaction(editionID: UInt64) {
     prepare(signer: AuthAccount) {
         // borrow a reference to the Admin resource
         self.admin = signer.borrow<&EditionNFT.Admin>(from: EditionNFT.AdminStoragePath)
-            ?? panic("Could not borrow a reference to the AllDay Admin capability")
+            ?? panic("Could not borrow a reference to the EditionNFT Admin capability")
     }
 
     execute {

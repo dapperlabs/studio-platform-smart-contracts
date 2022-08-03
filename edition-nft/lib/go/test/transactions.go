@@ -55,13 +55,13 @@ func createEdition(
 		SetGasLimit(100).
 		SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
 		SetPayer(b.ServiceKey().Address).
-		AddAuthorizer(contracts.AllDayAddress)
+		AddAuthorizer(contracts.EditionNFTAddress)
 	tx.AddArgument(metadataDict(metadata))
 
 	signAndSubmit(
 		t, b, tx,
-		[]flow.Address{b.ServiceKey().Address, contracts.AllDayAddress},
-		[]crypto.Signer{b.ServiceKey().Signer(), contracts.AllDaySigner},
+		[]flow.Address{b.ServiceKey().Address, contracts.EditionNFTAddress},
+		[]crypto.Signer{b.ServiceKey().Signer(), contracts.EditionNFTSigner},
 		shouldRevert,
 	)
 }
@@ -78,13 +78,13 @@ func closeEdition(
 		SetGasLimit(100).
 		SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
 		SetPayer(b.ServiceKey().Address).
-		AddAuthorizer(contracts.AllDayAddress)
+		AddAuthorizer(contracts.EditionNFTAddress)
 	tx.AddArgument(cadence.NewUInt64(editionID))
 
 	signAndSubmit(
 		t, b, tx,
-		[]flow.Address{b.ServiceKey().Address, contracts.AllDayAddress},
-		[]crypto.Signer{b.ServiceKey().Signer(), contracts.AllDaySigner},
+		[]flow.Address{b.ServiceKey().Address, contracts.EditionNFTAddress},
+		[]crypto.Signer{b.ServiceKey().Signer(), contracts.EditionNFTSigner},
 		shouldRevert,
 	)
 }
@@ -102,14 +102,14 @@ func mintSeasonalNFT(
 		SetGasLimit(100).
 		SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
 		SetPayer(b.ServiceKey().Address).
-		AddAuthorizer(contracts.AllDayAddress)
+		AddAuthorizer(contracts.EditionNFTAddress)
 	tx.AddArgument(cadence.BytesToAddress(recipientAddress.Bytes()))
 	tx.AddArgument(cadence.NewUInt64(editionID))
 
 	signAndSubmit(
 		t, b, tx,
-		[]flow.Address{b.ServiceKey().Address, contracts.AllDayAddress},
-		[]crypto.Signer{b.ServiceKey().Signer(), contracts.AllDaySigner},
+		[]flow.Address{b.ServiceKey().Address, contracts.EditionNFTAddress},
+		[]crypto.Signer{b.ServiceKey().Signer(), contracts.EditionNFTSigner},
 		shouldRevert,
 	)
 }
@@ -125,7 +125,7 @@ func transferMomentNFT(
 	shouldRevert bool,
 ) {
 	tx := flow.NewTransaction().
-		SetScript(loadAllDayTransferNFTTransaction(contracts)).
+		SetScript(loadEditionNFTTransferNFTTransaction(contracts)).
 		SetGasLimit(100).
 		SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
 		SetPayer(b.ServiceKey().Address).

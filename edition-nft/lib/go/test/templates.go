@@ -28,10 +28,10 @@ const (
 	ReadEditionByIDScriptPath = ScriptsRootPath + "/editions/read_edition_by_id.cdc"
 
 	// NFTs
-	MintNFTTxPath           = TransactionsRootPath + "/admin/nfts/mint_nft.cdc"
-	AllDayTransferNFTPath   = TransactionsRootPath + "/user/transfer_moment_nft.cdc"
-	ReadNftSupplyScriptPath = ScriptsRootPath + "/nfts/read_nft_supply.cdc"
-	ReadNftPropertiesTxPath = ScriptsRootPath + "/nfts/read_nft_properties.cdc"
+	MintNFTTxPath             = TransactionsRootPath + "/admin/nfts/mint_nft.cdc"
+	EditionNFTTransferNFTPath = TransactionsRootPath + "/user/transfer_moment_nft.cdc"
+	ReadNftSupplyScriptPath   = ScriptsRootPath + "/nfts/read_nft_supply.cdc"
+	ReadNftPropertiesTxPath   = ScriptsRootPath + "/nfts/read_nft_properties.cdc"
 )
 
 //------------------------------------------------------------
@@ -42,7 +42,7 @@ func replaceAddresses(code []byte, contracts Contracts) []byte {
 	code = nftRe.ReplaceAll(code, []byte("0x"+contracts.NFTAddress.String()))
 
 	EditionNFTRe := regexp.MustCompile(EditionNFTAddressPlaceholder)
-	code = EditionNFTRe.ReplaceAll(code, []byte("0x"+contracts.AllDayAddress.String()))
+	code = EditionNFTRe.ReplaceAll(code, []byte("0x"+contracts.EditionNFTAddress.String()))
 
 	return code
 }
@@ -115,9 +115,9 @@ func getEditionNFTPropertiesScript(contracts Contracts) []byte {
 	)
 }
 
-func loadAllDayTransferNFTTransaction(contracts Contracts) []byte {
+func loadEditionNFTTransferNFTTransaction(contracts Contracts) []byte {
 	return replaceAddresses(
-		readFile(AllDayTransferNFTPath),
+		readFile(EditionNFTTransferNFTPath),
 		contracts,
 	)
 }

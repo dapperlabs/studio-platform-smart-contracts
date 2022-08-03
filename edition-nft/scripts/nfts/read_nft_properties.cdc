@@ -1,7 +1,7 @@
 import NonFungibleToken from "../../contracts/NonFungibleToken.cdc"
 import EditionNFT from "../../contracts/EditionNFT.cdc"
 
-// This script returns the size of an account's AllDay collection.
+// This script returns the size of an account's EditionNFT collection.
 
 pub fun main(address: Address, id: UInt64): [AnyStruct] {
     let account = getAccount(address)
