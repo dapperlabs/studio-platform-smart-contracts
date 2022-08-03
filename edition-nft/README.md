@@ -1,10 +1,10 @@
 # Edition Nft Smart Contracts
 
 ## AllDay Seasonal Contract Addresses
-| Network   | Address |              |
-| ----------|:-------:| -------------|
-| Testnet   |  0x4dbd1602c43aae03   | [Flow View Source](https://flow-view-source.com/mainnet/account/0x4dbd1602c43aae03) |
-| Mainnet   |  XXXX   | [Flow View Source](https://flow-view-source.com/testnet/account/0xe4cf4bdc1751c65d) |
+| Network   | Address |                                                                                     |
+| ----------|:-------:|-------------------------------------------------------------------------------------|
+| Testnet   |  0x4dbd1602c43aae03   | [Flow View Source](https://flow-view-source.com/testnet/account/0x4dbd1602c43aae03) |
+| Mainnet   |  XXXX   | [Flow View Source](https://flow-view-source.com/mainnet/account/0xe4cf4bdc1751c65d) |
 
 ## Entities
 
