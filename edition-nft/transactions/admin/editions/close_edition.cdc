@@ -1,12 +1,12 @@
-import AllDay from "../../../contracts/AllDay.cdc"
+import AllDaySeasonal from "../../../contracts/AllDaySeasonal.cdc"
 
 transaction(editionID: UInt64) {
     // local variable for the admin reference
-    let admin: &AllDay.Admin
+    let admin: &AllDaySeasonal.Admin
 
     prepare(signer: AuthAccount) {
         // borrow a reference to the Admin resource
-        self.admin = signer.borrow<&AllDay.Admin>(from: AllDay.AdminStoragePath)
+        self.admin = signer.borrow<&AllDaySeasonal.Admin>(from: AllDaySeasonal.AdminStoragePath)
             ?? panic("Could not borrow a reference to the AllDay Admin capability")
     }
 

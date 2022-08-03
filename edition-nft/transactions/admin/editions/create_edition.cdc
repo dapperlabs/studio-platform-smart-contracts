@@ -1,33 +1,25 @@
-import AllDay from "../../../contracts/AllDay.cdc"
+import AllDaySeasonal from "../../../contracts/AllDaySeasonal.cdc"
 
 transaction(
-    seriesID: UInt64,
-    setID: UInt64,
-    playID: UInt64,
-    tier: String,
-    maxMintSize: UInt64?,
+    metadata: {String: String}
    ) {
     // local variable for the admin reference
-    let admin: &AllDay.Admin
+    let admin: &AllDaySeasonal.Admin
 
     prepare(signer: AuthAccount) {
         // borrow a reference to the Admin resource
-        self.admin = signer.borrow<&AllDay.Admin>(from: AllDay.AdminStoragePath)
+        self.admin = signer.borrow<&AllDaySeasonal.Admin>(from: AllDaySeasonal.AdminStoragePath)
             ?? panic("Could not borrow a reference to the AllDay Admin capability")
     }
 
     execute {
         let id = self.admin.createEdition(
-            seriesID: seriesID,
-            setID: setID,
-            playID: playID,
-            maxMintSize: maxMintSize,
-            tier: tier,
+            metadata: metadata
         )
 
         log("====================================")
         log("New Edition:")
-        log("EditionID: ".concat(id.toString()))
+        log("EdiionID: ".concat(id.toString()))
         log("====================================")
     }
 }

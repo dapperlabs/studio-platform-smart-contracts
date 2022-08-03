@@ -19,19 +19,19 @@ const (
 	ScriptsRootPath      = "../../../scripts"
 
 	// Accounts
-	SetupAccountTxPath       = TransactionsRootPath + "/user/setup_allday_seasonal_account.cdc"
+	SetupAccountTxPath       = TransactionsRootPath + "/user/setup_user_account.cdc"
 	IsAccountSetupScriptPath = ScriptsRootPath + "/user/is_account_setup.cdc"
 
 	// Editions
-	CreateEditionTxPath       = TransactionsRootPath + "/admin/editions/create_seasonal_edition.cdc"
-	CloseEditionTxPath        = TransactionsRootPath + "/admin/editions/close_seasonal_edition.cdc"
-	ReadEditionByIDScriptPath = ScriptsRootPath + "/editions/read_seasonal_edition_by_id.cdc"
+	CreateEditionTxPath       = TransactionsRootPath + "/admin/editions/create_edition.cdc"
+	CloseEditionTxPath        = TransactionsRootPath + "/admin/editions/close_edition.cdc"
+	ReadEditionByIDScriptPath = ScriptsRootPath + "/editions/read_edition_by_id.cdc"
 
 	// NFTs
-	MintNFTTxPath           = TransactionsRootPath + "/admin/nfts/mint_seasonal_nft.cdc"
+	MintNFTTxPath           = TransactionsRootPath + "/admin/nfts/mint_nft.cdc"
 	AllDayTransferNFTPath   = TransactionsRootPath + "/user/transfer_moment_nft.cdc"
-	ReadNftSupplyScriptPath = ScriptsRootPath + "/nfts/read_seasonal_nft_supply.cdc"
-	ReadNftPropertiesTxPath = ScriptsRootPath + "/nfts/read_seasonal_nft_properties.cdc"
+	ReadNftSupplyScriptPath = ScriptsRootPath + "/nfts/read_nft_supply.cdc"
+	ReadNftPropertiesTxPath = ScriptsRootPath + "/nfts/read_nft_properties.cdc"
 )
 
 //------------------------------------------------------------
