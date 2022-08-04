@@ -144,7 +144,7 @@ pub contract EditionNFT: NonFungibleToken {
 
             // Create thek NFT, filled out with our information
             let nft <- create NFT(
-                id: EditionNFT.totalSupply + 1,
+                id: EditionNFT.totalMinted + 1,
                 editionID: self.id,
                 serialNumber: self.numMinted + 1
             )
