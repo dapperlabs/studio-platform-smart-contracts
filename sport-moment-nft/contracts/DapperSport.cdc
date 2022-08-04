@@ -102,6 +102,7 @@ pub contract DapperSport: NonFungibleToken {
 
     /// Entity Counts
     ///
+    pub var totalMinted:        UInt64
     pub var totalSupply:        UInt64
     pub var nextSeriesID:       UInt64
     pub var nextSetID:          UInt64
@@ -459,7 +460,9 @@ pub contract DapperSport: NonFungibleToken {
                 editionID: self.id,
                 serialNumber: self.numMinted + 1
             )
+            DapperSport.totalMinted = DapperSport.totalMinted + 1
             DapperSport.totalSupply = DapperSport.totalSupply + 1
+
             // Keep a running total (you'll notice we used this as the serial number)
             self.numMinted = self.numMinted + 1 as UInt64
 
@@ -539,6 +542,7 @@ pub contract DapperSport: NonFungibleToken {
         /// Destructor
         ///
         destroy() {
+            DapperSport.totalSupply = DapperSport.totalSupply - 1
             emit MomentNFTBurned(id: self.id, editionID: self.editionID, serialNumber: self.serialNumber)
         }
 
@@ -953,6 +957,7 @@ pub contract DapperSport: NonFungibleToken {
         self.MinterPrivatePath = /private/DapperSportMinter
 
         // Initialize the entity counts
+        self.totalMinted = 0
         self.totalSupply = 0
         self.nextSeriesID = 1
         self.nextSetID = 1
