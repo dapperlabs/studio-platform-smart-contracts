@@ -417,6 +417,7 @@ pub contract EditionNFT: NonFungibleToken {
         self.MinterPrivatePath = /private/EditionNFTMinter
 
         // Initialize the entity counts        
+        self.totalMinted = 0
         self.totalSupply = 0
         self.totalEditions = 0
         self.nextEditionID = 1
