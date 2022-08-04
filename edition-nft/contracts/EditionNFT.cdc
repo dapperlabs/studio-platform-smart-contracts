@@ -33,12 +33,12 @@ pub contract EditionNFT: NonFungibleToken {
 
     // Edition Events
     //
-    // Emitted when a new edition has been created by an admin
+    // Emitted when a new edition has been created by an admin.
     pub event EditionCreated(
         id: UInt64, 
         metadata: {String: String}
     )
-    // Emitted when an edition is either closed by an admin, or the max amount of moments have been minted
+    // Emitted when an edition is closed by an admin.
     pub event EditionClosed(id: UInt64)
 
     //------------------------------------------------------------
@@ -57,15 +57,24 @@ pub contract EditionNFT: NonFungibleToken {
     //------------------------------------------------------------
 
     // totalSupply
-    // The total number of {{ contractName }} NFTs that have been minted.
+    // The total number of NFTs that in circulation.
     //
     pub var totalSupply:        UInt64
 
+
+    // totalMinted
+    // The total number of NFTs that have been minted.
+    //
+    pub var totalMinted:        UInt64
+
     // totalEditions
-    // The total number of {{ contractName }} editions that have been created.
+    // The total number of editions that have been created.
     //
     pub var totalEditions: UInt64
 
+    // nextEditionID
+    // The editionID will be assigned to the next edition.
+    //
     pub var nextEditionID:      UInt64
 
 
@@ -75,7 +84,7 @@ pub contract EditionNFT: NonFungibleToken {
 
     // Metadata Dictionaries
     //
-    // This is so we can find Series by their names (via seriesByID)
+    // This is so we can find Edition via ID.
     access(self) let editionByID:       @{UInt64: Edition}
 
     //------------------------------------------------------------
@@ -118,7 +127,7 @@ pub contract EditionNFT: NonFungibleToken {
         //
         pub fun close() {
             pre {
-                self.active == true: "edtion is already closed"
+                self.active: "edtion is already closed"
             }
 
             self.active = false
@@ -130,7 +139,7 @@ pub contract EditionNFT: NonFungibleToken {
         //
         pub fun mint(): @EditionNFT.NFT {
             pre {
-                self.active: "edition closed, cannot mint"
+                self.active: "edition is already closed. minting is not allowed"
             }
 
             // Create thek NFT, filled out with our information
@@ -140,6 +149,8 @@ pub contract EditionNFT: NonFungibleToken {
                 serialNumber: self.numMinted + 1
             )
             EditionNFT.totalSupply = EditionNFT.totalSupply + 1
+            EditionNFT.totalMinted = EditionNFT.totalMinted + 1
+
             // Keep a running total (you'll notice we used this as the serial number)
             self.numMinted = self.numMinted + 1 as UInt64
 
@@ -182,6 +193,7 @@ pub contract EditionNFT: NonFungibleToken {
         // Destructor
         //
         destroy() {
+            EditionNFT.totalSupply = EditionNFT.totalSupply - 1
             emit Burned(id: self.id)
         }
 
