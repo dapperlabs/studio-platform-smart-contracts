@@ -138,6 +138,9 @@ func TestMintEditionNFTs(t *testing.T) {
 	})
 }
 
+// ------------------------------------------------------------
+// NFTs
+// ------------------------------------------------------------
 func testMintEditionNFT(
 	t *testing.T,
 	b *emulator.Blockchain,
@@ -151,7 +154,7 @@ func testMintEditionNFT(
 	previousSupply := getEditionNFTSupply(t, b, contracts)
 	fmt.Printf("sss %d \n", previousSupply)
 
-	mintSeasonalNFT(
+	mintEditionNFT(
 		t,
 		b,
 		contracts,

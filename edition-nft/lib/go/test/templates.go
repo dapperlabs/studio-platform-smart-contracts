@@ -28,10 +28,9 @@ const (
 	ReadEditionByIDScriptPath = ScriptsRootPath + "/editions/read_edition_by_id.cdc"
 
 	// NFTs
-	MintNFTTxPath             = TransactionsRootPath + "/admin/nfts/mint_nft.cdc"
-	EditionNFTTransferNFTPath = TransactionsRootPath + "/user/transfer_moment_nft.cdc"
-	ReadNftSupplyScriptPath   = ScriptsRootPath + "/nfts/read_nft_supply.cdc"
-	ReadNftPropertiesTxPath   = ScriptsRootPath + "/nfts/read_nft_properties.cdc"
+	MintNFTTxPath           = TransactionsRootPath + "/admin/nfts/mint_nft.cdc"
+	ReadNftSupplyScriptPath = ScriptsRootPath + "/nfts/read_nft_supply.cdc"
+	ReadNftPropertiesTxPath = ScriptsRootPath + "/nfts/read_nft_properties.cdc"
 )
 
 //------------------------------------------------------------
@@ -111,13 +110,6 @@ func getEditionNFTSupplyScript(contracts Contracts) []byte {
 func getEditionNFTPropertiesScript(contracts Contracts) []byte {
 	return replaceAddresses(
 		readFile(ReadNftPropertiesTxPath),
-		contracts,
-	)
-}
-
-func loadEditionNFTTransferNFTTransaction(contracts Contracts) []byte {
-	return replaceAddresses(
-		readFile(EditionNFTTransferNFTPath),
 		contracts,
 	)
 }

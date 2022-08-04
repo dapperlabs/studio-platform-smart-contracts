@@ -89,7 +89,7 @@ func closeEdition(
 	)
 }
 
-func mintSeasonalNFT(
+func mintEditionNFT(
 	t *testing.T,
 	b *emulator.Blockchain,
 	contracts Contracts,
@@ -110,33 +110,6 @@ func mintSeasonalNFT(
 		t, b, tx,
 		[]flow.Address{b.ServiceKey().Address, contracts.EditionNFTAddress},
 		[]crypto.Signer{b.ServiceKey().Signer(), contracts.EditionNFTSigner},
-		shouldRevert,
-	)
-}
-
-func transferMomentNFT(
-	t *testing.T,
-	b *emulator.Blockchain,
-	contracts Contracts,
-	senderAddress flow.Address,
-	senderSigner crypto.Signer,
-	nftID uint64,
-	recipientAddress flow.Address,
-	shouldRevert bool,
-) {
-	tx := flow.NewTransaction().
-		SetScript(loadEditionNFTTransferNFTTransaction(contracts)).
-		SetGasLimit(100).
-		SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
-		SetPayer(b.ServiceKey().Address).
-		AddAuthorizer(senderAddress)
-	tx.AddArgument(cadence.BytesToAddress(recipientAddress.Bytes()))
-	tx.AddArgument(cadence.NewUInt64(nftID))
-
-	signAndSubmit(
-		t, b, tx,
-		[]flow.Address{b.ServiceKey().Address, senderAddress},
-		[]crypto.Signer{b.ServiceKey().Signer(), senderSigner},
 		shouldRevert,
 	)
 }
