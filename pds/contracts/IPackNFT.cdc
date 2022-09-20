@@ -30,10 +30,14 @@ pub contract interface IPackNFT{
     ///
     /// Emitted when a new PackNFT has been minted
     pub event Minted(id: UInt64, hash: [UInt8], distId: UInt64 )
+    /// Burned
+    ///
+    /// Emitted when a PackNFT has been burned
+    pub event Burned(id: UInt64 )
     /// Revealed
-    /// 
+    ///
     /// Emitted when a packNFT has been revealed
-    pub event Revealed(id: UInt64, salt: String, nfts: String)
+    pub event Revealed(id: UInt64, salt: [UInt8], nfts: String)
     /// Opened
     ///
     /// Emitted when a packNFT has been opened
@@ -49,30 +53,30 @@ pub contract interface IPackNFT{
         pub let address: Address
         pub let contractName: String
         pub let id: UInt64
-        pub fun hashString(): String 
+        pub fun hashString(): String
         init(address: Address, contractName: String, id: UInt64)
     }
 
     pub resource interface IPack {
         pub let hash: [UInt8]
         pub let issuer: Address
-        pub var status: Status 
-        pub var salt: String?
+        pub var status: Status
+        pub var salt: [UInt8]?
 
-        pub fun verify(nftString: String): Bool 
+        pub fun verify(nftString: String): Bool
 
-        access(contract) fun reveal(id: UInt64, nfts: [{IPackNFT.Collectible}], salt: String) 
-        access(contract) fun open(id: UInt64, nfts: [{IPackNFT.Collectible}]) 
-        init(hash: [UInt8], issuer: Address)
+        access(contract) fun reveal(id: UInt64, nfts: [{IPackNFT.Collectible}], salt: String)
+        access(contract) fun open(id: UInt64, nfts: [{IPackNFT.Collectible}])
+        init(commitHash: String, issuer: Address)
     }
-    
+
     pub resource interface IOperator {
-        pub fun mint(distId: UInt64, hash: [UInt8], issuer: Address): @NFT
+        pub fun mint(distId: UInt64, commitHash: String, issuer: Address): @NFT
         pub fun reveal(id: UInt64, nfts: [{Collectible}], salt: String)
-        pub fun open(id: UInt64, nfts: [{IPackNFT.Collectible}]) 
+        pub fun open(id: UInt64, nfts: [{IPackNFT.Collectible}])
     }
     pub resource PackNFTOperator: IOperator {
-        pub fun mint(distId: UInt64, hash: [UInt8], issuer: Address): @NFT
+        pub fun mint(distId: UInt64, commitHash: String, issuer: Address): @NFT
         pub fun reveal(id: UInt64, nfts: [{Collectible}], salt: String)
         pub fun open(id: UInt64, nfts: [{IPackNFT.Collectible}]) 
     }

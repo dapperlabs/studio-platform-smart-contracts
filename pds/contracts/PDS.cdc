@@ -87,17 +87,17 @@ pub contract PDS{
             return <- c.withdraw(withdrawID: withdrawID)
         }
         
-        pub fun mintPackNFT(distId: UInt64, hashes: [[UInt8]], issuer: Address, recvCap: &{NonFungibleToken.CollectionPublic} ){
+        pub fun mintPackNFT(distId: UInt64, commitHashes: [String], issuer: Address, recvCap: &{NonFungibleToken.CollectionPublic} ){
             var i = 0
             let c = self.operatorCap.borrow() ?? panic("no such cap")
-            while i < hashes.length{
-                let nft <- c.mint(distId: distId, hash: hashes[i], issuer: issuer)
+            while i < commitHashes.length{
+                let nft <- c.mint(distId: distId, commitHash: commitHashes[i], issuer: issuer)
                 i = i + 1
                 let n <- nft as! @NonFungibleToken.NFT
                 recvCap.deposit(token: <- n)
             }
         }
-        
+
         pub fun revealPackNFT(packId: UInt64, nfts: [{IPackNFT.Collectible}], salt: String) {
             let c = self.operatorCap.borrow() ?? panic("no such cap")
             c.reveal(id: packId, nfts: nfts, salt: salt)
@@ -114,7 +114,7 @@ pub contract PDS{
             c.open(id: packId, nfts: nfts)
             PDS.releaseEscrow(nftIds: toReleaseNFTs, recvCap: recvCap , collectionProviderPath: collectionProviderPath)
         }
-        
+
 
         init(
             withdrawCap: Capability<&{NonFungibleToken.Provider}>,
@@ -128,17 +128,17 @@ pub contract PDS{
 
 
     pub resource interface PackIssuerCapReciever {
-        pub fun setDistCap(cap: Capability<&DistributionCreator{IDistCreator}>) 
+        pub fun setDistCap(cap: Capability<&DistributionCreator{IDistCreator}>)
     }
-    
+
     pub resource PackIssuer: PackIssuerCapReciever {
         access(self) var cap:  Capability<&DistributionCreator{IDistCreator}>?
-        
+
         pub fun setDistCap(cap: Capability<&DistributionCreator{IDistCreator}>) {
             pre {
                 cap.borrow() != nil: "Invalid capability"
             }
-            self.cap = cap 
+            self.cap = cap
         }
 
         pub fun create(sharedCap: @SharedCapabilities, title: String, metadata: {String: String}) {
@@ -153,7 +153,7 @@ pub contract PDS{
 
     // DistCap to be shared
     pub resource interface  IDistCreator {
-        pub fun createNewDist(sharedCap: @SharedCapabilities, title: String, metadata: {String: String}) 
+        pub fun createNewDist(sharedCap: @SharedCapabilities, title: String, metadata: {String: String})
     }
 
     pub resource DistributionCreator: IDistCreator {
@@ -161,11 +161,11 @@ pub contract PDS{
             let currentId = PDS.nextDistId
             PDS.DistSharedCap[currentId] <-! sharedCap
             PDS.Distributions[currentId] = DistInfo(title: title, metadata: metadata)
-            PDS.nextDistId = currentId + 1 
+            PDS.nextDistId = currentId + 1
             emit DistributionCreated(DistId: currentId, title: title, metadata: metadata, state: 0)
         }
     }
-    
+
     pub resource DistributionManager {
         pub fun updateDistState(distId: UInt64, state: PDS.DistState) {
             let d = PDS.Distributions.remove(key: distId) ?? panic ("No such distribution")
@@ -183,14 +183,14 @@ pub contract PDS{
                 let nft <- d.withdrawFromIssuer(withdrawID: nftIDs[i])
                 pdsCollection.deposit(token:<-nft)
                 i = i + 1
-            } 
+            }
             PDS.DistSharedCap[distId] <-! d
         }
-        
-        pub fun mintPackNFT(distId: UInt64, hashes: [[UInt8]], issuer: Address, recvCap: &{NonFungibleToken.CollectionPublic}){
+
+        pub fun mintPackNFT(distId: UInt64, commitHashes: [String], issuer: Address, recvCap: &{NonFungibleToken.CollectionPublic}){
             assert(PDS.DistSharedCap.containsKey(distId), message: "No such distribution")
             let d <- PDS.DistSharedCap.remove(key: distId)!
-            d.mintPackNFT(distId: distId, hashes: hashes, issuer: issuer, recvCap: recvCap)
+            d.mintPackNFT(distId: distId, commitHashes: commitHashes, issuer: issuer, recvCap: recvCap)
             PDS.DistSharedCap[distId] <-! d
         }
         

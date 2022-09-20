@@ -17,7 +17,7 @@ pub contract PackNFT: NonFungibleToken, IPackNFT {
 
     pub event RevealRequest(id: UInt64, openRequest: Bool)
     pub event OpenRequest(id: UInt64)
-    pub event Revealed(id: UInt64, salt: String, nfts: String)
+    pub event Revealed(id: UInt64, salt: [UInt8], nfts: String)
     pub event Opened(id: UInt64)
     pub event Minted(id: UInt64, hash: [UInt8], distId: UInt64)
     pub event Burned(id: UInt64)
@@ -33,13 +33,13 @@ pub contract PackNFT: NonFungibleToken, IPackNFT {
 
     pub resource PackNFTOperator: IPackNFT.IOperator {
 
-         pub fun mint(distId: UInt64, hash: [UInt8], issuer: Address): @NFT{
+         pub fun mint(distId: UInt64, commitHash: String, issuer: Address): @NFT{
             let id = PackNFT.totalSupply + 1
-            let nft <- create NFT(initID: id, hash: hash, issuer: issuer)
+            let nft <- create NFT(initID: id, commitHash: commitHash, issuer: issuer)
             PackNFT.totalSupply = PackNFT.totalSupply + 1
-            let p  <-create Pack(hash: hash, issuer: issuer)
+            let p  <-create Pack(commitHash: commitHash, issuer: issuer)
             PackNFT.packs[id] <-! p
-            emit Minted(id: id, hash: hash, distId: distId)
+            emit Minted(id: id, hash: commitHash.decodeHex(), distId: distId)
             return <- nft
          }
 
@@ -62,18 +62,18 @@ pub contract PackNFT: NonFungibleToken, IPackNFT {
         pub let hash: [UInt8]
         pub let issuer: Address
         pub var status: PackNFT.Status
-        pub var salt: String?
+        pub var salt: [UInt8]?
 
         pub fun verify(nftString: String): Bool {
             assert(self.status != PackNFT.Status.Sealed, message: "Pack not revealed yet")
-            var hashString = self.salt!
+            var hashString = String.encodeHex(self.salt!)
             hashString = hashString.concat(",").concat(nftString)
             let hash = HashAlgorithm.SHA2_256.hash(hashString.utf8)
-            assert(String.encodeHex(self.hash) == String.encodeHex(hash), message: "Hash was not verified")
+            assert(String.encodeHex(self.hash) == String.encodeHex(hash), message: "CommitHash was not verified")
             return true
         }
 
-        access(self) fun _verify(nfts: [{IPackNFT.Collectible}], salt: String, hash: [UInt8]): String {
+        access(self) fun _verify(nfts: [{IPackNFT.Collectible}], salt: String, commitHash: String): String {
             var hashString = salt
             var nftString = nfts[0].hashString()
             var i = 1
@@ -84,27 +84,27 @@ pub contract PackNFT: NonFungibleToken, IPackNFT {
             }
             hashString = hashString.concat(",").concat(nftString)
             let hash = HashAlgorithm.SHA2_256.hash(hashString.utf8)
-            assert(String.encodeHex(self.hash) == String.encodeHex(hash), message: "Hash was not verified")
+            assert(String.encodeHex(self.hash) == String.encodeHex(hash), message: "CommitHash was not verified")
             return nftString
         }
 
         access(contract) fun reveal(id: UInt64, nfts: [{IPackNFT.Collectible}], salt: String) {
             assert(self.status == PackNFT.Status.Sealed, message: "Pack status is not Sealed")
-            let v = self._verify(nfts: nfts, salt: salt, hash: self.hash)
-            self.salt = salt
+            let v = self._verify(nfts: nfts, salt: salt, commitHash: String.encodeHex(self.hash))
+            self.salt = salt.decodeHex()
             self.status = PackNFT.Status.Revealed
-            emit Revealed(id: id, salt: salt, nfts: v)
+            emit Revealed(id: id, salt: salt.decodeHex(), nfts: v)
         }
 
         access(contract) fun open(id: UInt64, nfts: [{IPackNFT.Collectible}]) {
             assert(self.status == PackNFT.Status.Revealed, message: "Pack status is not Revealed")
-            self._verify(nfts: nfts, salt: self.salt!, hash: self.hash)
+            self._verify(nfts: nfts, salt: String.encodeHex(self.salt!), commitHash: String.encodeHex(self.hash))
             self.status = PackNFT.Status.Opened
             emit Opened(id: id)
         }
 
-        init(hash: [UInt8], issuer: Address) {
-            self.hash = hash
+        init(commitHash: String, issuer: Address) {
+            self.hash = commitHash.decodeHex()
             self.issuer = issuer
             self.status = PackNFT.Status.Sealed
             self.salt = nil
@@ -132,9 +132,9 @@ pub contract PackNFT: NonFungibleToken, IPackNFT {
             destroy p
         }
 
-        init(initID: UInt64, hash: [UInt8], issuer: Address ) {
+        init(initID: UInt64, commitHash: String, issuer: Address ) {
             self.id = initID
-            self.hash = hash
+            self.hash = commitHash.decodeHex()
             self.issuer = issuer
         }
 
