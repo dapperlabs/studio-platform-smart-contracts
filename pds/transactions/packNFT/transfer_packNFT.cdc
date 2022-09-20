@@ -1,5 +1,5 @@
-import NonFungibleToken from 0x{{.NonFungibleToken}}
-import PackNFT from 0x{{.PackNFT}}
+import NonFungibleToken from "../../contracts/NonFungibleToken.cdc"
+import PackNFT from "../../contracts/PackNFT.cdc"
 
 transaction(recipient: Address, withdrawID: UInt64) {
     prepare(signer: AuthAccount) {

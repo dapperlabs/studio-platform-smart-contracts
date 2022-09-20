@@ -1,7 +1,7 @@
-import PDS from 0x{{.PDS}}
+import PDS from "../../contracts/PDS.cdc"
 import {{.PackNFTName}} from 0x{{.PackNFTAddress}}
-import IPackNFT from 0x{{.IPackNFT}}
-import NonFungibleToken from 0x{{.NonFungibleToken}}
+import IPackNFT from "../../contracts/IPackNFT.cdc"
+import NonFungibleToken from "../../contracts/NonFungibleToken.cdc"
 
 transaction(NFTProviderPath: PrivatePath, title: String, metadata: {String: String}) {
     prepare (issuer: AuthAccount) {

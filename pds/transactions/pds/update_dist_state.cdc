@@ -1,5 +1,5 @@
-import PDS from 0x{{.PDS}}
-import NonFungibleToken from 0x{{.NonFungibleToken}}
+import PDS from "../../contracts/PDS.cdc"
+import NonFungibleToken from "../../contracts/NonFungibleToken.cdc"
 
 transaction (distId: UInt64, state: UInt8) {
     // state is an enum

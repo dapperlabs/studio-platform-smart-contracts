@@ -1,4 +1,4 @@
-import PDS from 0x{{.PDS}}
+import PDS from "../../contracts/PDS.cdc"
 
 transaction() {
     prepare (issuer: AuthAccount) {

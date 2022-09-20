@@ -1,7 +1,7 @@
-import PDS from 0x{{.PDS}}
+import PDS from "../../contracts/PDS.cdc"
 import {{.PackNFTName}} from 0x{{.PackNFTAddress}}
 import {{.CollectibleNFTName}} from 0x{{.CollectibleNFTAddress}}
-import NonFungibleToken from 0x{{.NonFungibleToken}}
+import NonFungibleToken from "../../contracts/NonFungibleToken.cdc"
 
 transaction (
     distId: UInt64,

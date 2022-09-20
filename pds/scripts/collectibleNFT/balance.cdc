@@ -1,4 +1,4 @@
-import NonFungibleToken from 0x{{.NonFungibleToken}}
+import NonFungibleToken from "../../contracts/NonFungibleToken.cdc"
 import {{.CollectibleNFTName}} from 0x{{.CollectibleNFTAddress}}
 
 pub fun main(account: Address): Int {

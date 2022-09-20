@@ -1,5 +1,5 @@
-import PackNFT from 0x{{.PackNFT}}
-import IPackNFT from 0x{{.IPackNFT}}
+import PackNFT from "../../contracts/PackNFT.cdc"
+import IPackNFT from "../../contracts/IPackNFT.cdc"
 
 transaction(revealID: UInt64, openRequest: Bool) {
     prepare(owner: AuthAccount) {

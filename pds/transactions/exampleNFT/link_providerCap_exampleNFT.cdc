@@ -1,5 +1,5 @@
-import NonFungibleToken from 0x{{.NonFungibleToken}}
-import ExampleNFT from 0x{{.ExampleNFT}}
+import NonFungibleToken from "../../contracts/NonFungibleToken.cdc"
+import ExampleNFT from "../../contracts/ExampleNFT.cdc"
 
 transaction(NFTProviderPath: PrivatePath) {
 
