@@ -591,11 +591,11 @@ pub contract DapperSport: NonFungibleToken {
         ///
         pub fun thumbnail(): MetadataViews.HTTPFile {
             let editionData = DapperSport.getEditionData(id: self.editionID)!
-            // TODO: change to image for DapperSport
-            switch editionData.tier {
-            default:
+            let playDataID: String = DapperSport.PlayData(id: editionData.playID).metadata["PlayDataID"] ?? ""
+            if playDataID == "" {
                 return MetadataViews.HTTPFile(url:"https://ipfs.dapperlabs.com/ipfs/QmPvr5zTwji1UGpun57cbj719MUBsB5syjgikbwCMPmruQ")
             }
+            return MetadataViews.HTTPFile(url:"https://assets.laligagolazos.com/editions/".concat(playDataID).concat("/play_").concat(playDataID).concat("__capture_Hero_Black_2880_2880_default.png")
         }
 
         /// get the metadata view types available for this nft
