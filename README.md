@@ -1,10 +1,10 @@
-# LaLiga Smart Contracts
+# Studio Platform Smart Contracts
 
-## LaLiga Contract Addresses
+## Golazos Contract Addresses
 | Network   | Address     |              |
 | ----------|:-----------:| -------------|
-| Testnet   |  0x44477dcb6fb36f14   | [Flow View Source](https://flow-view-source.com/testnet/account/0x44477dcb6fb36f14) |
-| Mainnet   |  xxx   | [Flow View Source](https://flow-view-source.com/mainnet/account/0xxxx) |
+| Testnet   |  0x1271da8a94edb0ff   | [Flow View Source](https://flow-view-source.com/testnet/account/0x1271da8a94edb0ff) |
+| Mainnet   |  0x87ca73a41bb50ad5   | [Flow View Source](https://flow-view-source.com/mainnet/account/0x87ca73a41bb50ad5) |
 
 ## Entities
 
@@ -42,14 +42,14 @@ This will contain Player, Team, and Game metadata some of which may be blank dep
 - Classification (Name TBC: example, PLAYER_GAME, TEAM_GAME, PLAYER_MELT, TEAM_MELT)
 - Metadata (stored as a string map. This can technically be anything, but the agreeed upon fields are as follows)
   - PlayType
-  - GameID
-  - GameDate
-  - GameMatchday
-  - GameSeason
-  - GameHighlightedTeam
-  - GameTime
-  - GameScore
-  - GameHalf
+  - MatchID
+  - MatchDate
+  - MatchMatchday
+  - MatchSeason
+  - MatchHighlightedTeam
+  - MatchTime
+  - MatchScore
+  - MatchHalf
   - PlayerFirstName
   - PlayerLastName
   - PlayerJerseyName
