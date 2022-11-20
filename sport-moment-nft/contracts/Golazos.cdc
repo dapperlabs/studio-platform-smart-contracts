@@ -1,25 +1,25 @@
 /*
-    Adapted from: EditionNFT.cdc
+    Adapted from: AllDay.cdc
     Author: Innocent Abdullahi innocent.abdullahi@dapperlabs.com
 */
 
 
-import NonFungibleToken from "./NonFungibleToken.cdc"
-import MetadataViews from 0xMETADATAVIEWSADDRESS
+import NonFungibleToken from 0x{{.NonFungibleTokenAddress}}
+import MetadataViews from 0x{{.MetadataViewsAddress}}
 
 /*
-    Golazos is structured similarly to EditionNFT.
+    Golazos is structured similarly to AllDay.
     Unlike TopShot, we use resources for all entities and manage access to their data
     by copying it to structs (this simplifies access control, in particular write access).
     We also encapsulate resource creation for the admin in member functions on the parent type.
-    
+
     There are 5 levels of entity:
     1. Series
     2. Sets
     3. Plays
     4. Editions
     4. Moment NFT (an NFT)
-    
+
     An Edition is created with a combination of a Series, Set, and Play
     Moment NFTs are minted out of Editions.
 
@@ -68,10 +68,10 @@ pub contract Golazos: NonFungibleToken {
     //
     /// Emitted when a new edition has been created by an admin
     pub event EditionCreated(
-        id: UInt64, 
-        seriesID: UInt64, 
-        setID: UInt64, 
-        playID: UInt64, 
+        id: UInt64,
+        seriesID: UInt64,
+        setID: UInt64,
+        playID: UInt64,
         maxMintSize: UInt64?,
         tier: String,
     )
@@ -170,7 +170,7 @@ pub contract Golazos: NonFungibleToken {
             }
             self.id = Golazos.nextSeriesID
             self.name = name
-            self.active = true   
+            self.active = true
 
             // Cache the new series's name => ID
             Golazos.seriesIDByName[name] = self.id
@@ -254,12 +254,12 @@ pub contract Golazos: NonFungibleToken {
         access(self) var setPlaysInEditions: {UInt64: Bool}
 
         // Indicates if the Set is currently locked.
-        // When a Set is created, it is unlocked 
+        // When a Set is created, it is unlocked
         // and Editions can be created with it.
         // When a Set is locked, new Editions cannot be created with the Set.
         // A Set can never be changed from locked to unlocked,
         // the decision to lock a Set is final.
-        // If a Set is locked, Moments can still be minted from the 
+        // If a Set is locked, Moments can still be minted from the
         // Editions already created from the Set.
         pub var locked: Bool
 
@@ -308,7 +308,7 @@ pub contract Golazos: NonFungibleToken {
     ///
     pub fun getSetData(id: UInt64): Golazos.SetData? {
         if Golazos.setByID[id] == nil {
-            return nil 
+            return nil
         }
         return Golazos.SetData(id: id!)
     }
@@ -317,9 +317,9 @@ pub contract Golazos: NonFungibleToken {
     ///
     pub fun getSetDataByName(name: String): Golazos.SetData? {
         let id = Golazos.setIDByName[name]
-        
+
         if id == nil {
-            return nil 
+            return nil
         }
         return Golazos.SetData(id: id!)
     }
@@ -404,7 +404,7 @@ pub contract Golazos: NonFungibleToken {
 
        /// member function to check if max edition size has been reached
        pub fun maxEditionMintSizeReached(): Bool {
-            return self.numMinted == self.maxMintSize 
+            return self.numMinted == self.maxMintSize
         }
 
         /// initializer
@@ -561,6 +561,20 @@ pub contract Golazos: NonFungibleToken {
             emit MomentNFTMinted(id: self.id, editionID: self.editionID, serialNumber: self.serialNumber)
         }
 
+        pub fun assetPath(): String {
+            let editionData = Golazos.getEditionData(id: self.editionID)!
+            let playDataID: String = Golazos.PlayData(id: editionData.playID).metadata["PlayDataID"] ?? ""
+            return "https://assets.laligagolazos.com/editions/".concat(playDataID).concat("/play_").concat(playDataID)
+        }
+
+        pub fun getImage(imageType: String, language: String): String {
+            return self.assetPath().concat("__").concat(imageType).concat("_2880_2880_").concat(language).concat(".png")
+        }
+
+        pub fun getVideo(videoType: String, language: String): String {
+            return self.assetPath().concat("__").concat(videoType).concat("_1080_1080_").concat(language).concat(".mp4")
+        }
+
         /// get the name of an nft
         ///
         pub fun name(): String {
@@ -595,7 +609,7 @@ pub contract Golazos: NonFungibleToken {
             if playDataID == "" {
                 return MetadataViews.HTTPFile(url:"https://ipfs.dapperlabs.com/ipfs/QmPvr5zTwji1UGpun57cbj719MUBsB5syjgikbwCMPmruQ")
             }
-            return MetadataViews.HTTPFile(url:"https://assets.laligagolazos.com/editions/".concat(playDataID).concat("/play_").concat(playDataID).concat("__capture_Hero_Black_2880_2880_default.png")
+            return MetadataViews.HTTPFile(url: self.getImage(imageType: "capture_Hero_Black", language: "default"))
         }
 
         /// get the metadata view types available for this nft
@@ -606,7 +620,10 @@ pub contract Golazos: NonFungibleToken {
                 Type<MetadataViews.Editions>(),
                 Type<MetadataViews.Serial>(),
                 Type<MetadataViews.NFTCollectionData>(),
-                Type<MetadataViews.Traits>()
+                Type<MetadataViews.Traits>(),
+                Type<MetadataViews.ExternalURL>(),
+                Type<MetadataViews.Medias>(),
+                Type<MetadataViews.NFTCollectionDisplay>()
             ]
         }
 
@@ -652,10 +669,93 @@ pub contract Golazos: NonFungibleToken {
                     let editiondata = Golazos.getEditionData(id: self.editionID)!
                     let playdata = Golazos.getPlayData(id: editiondata.playID)!
                     return MetadataViews.dictToTraits(dict: playdata.metadata, excludedNames: nil)
+
+                case Type<MetadataViews.ExternalURL>():
+                    return MetadataViews.ExternalURL("https://laligagolazos.com/moments/".concat(self.id.toString()))
+
+                case Type<MetadataViews.Medias>():
+                    return MetadataViews.Medias(
+                        items: [
+                            MetadataViews.Media(
+                                file: MetadataViews.HTTPFile(url: self.getImage(imageType: "capture_Hero_Black", language: "default")),
+                                mediaType: "image/png"
+                            ),
+                            MetadataViews.Media(
+                                file: MetadataViews.HTTPFile(url: self.getImage(imageType: "capture_Hero_Black", language: "es")),
+                                mediaType: "image/png"
+                            ),
+                            MetadataViews.Media(
+                                file: MetadataViews.HTTPFile(url: self.getImage(imageType: "capture_Front_Black", language: "default")),
+                                mediaType: "image/png"
+                            ),
+                            MetadataViews.Media(
+                                file: MetadataViews.HTTPFile(url: self.getImage(imageType: "capture_Front_Black", language: "es")),
+                                mediaType: "image/png"
+                            ),
+                            MetadataViews.Media(
+                                file: MetadataViews.HTTPFile(url: self.getImage(imageType: "capture_Legal_Black", language: "default")),
+                                mediaType: "image/png"
+                            ),
+                            MetadataViews.Media(
+                                file: MetadataViews.HTTPFile(url: self.getImage(imageType: "capture_Legal_Black", language: "es")),
+                                mediaType: "image/png"
+                            ),
+                            MetadataViews.Media(
+                                file: MetadataViews.HTTPFile(url: self.getImage(imageType: "capture_Details_Black", language: "default")),
+                                mediaType: "image/png"
+                            ),
+                            MetadataViews.Media(
+                                file: MetadataViews.HTTPFile(url: self.getImage(imageType: "capture_Details_Black", language: "es")),
+                                mediaType: "image/png"
+                            ),
+                            MetadataViews.Media(
+                                file: MetadataViews.HTTPFile(url: self.getVideo(videoType: "capture_Animated_Video_Popout_Black", language: "default")),
+                                mediaType: "video/mp4"
+                            ),
+                            MetadataViews.Media(
+                                file: MetadataViews.HTTPFile(url: self.getVideo(videoType: "capture_Animated_Video_Popout_Black", language: "es")),
+                                mediaType: "video/mp4"
+                            ),
+                             MetadataViews.Media(
+                                file: MetadataViews.HTTPFile(url: self.getVideo(videoType: "capture_Animated_Video_Idle_Black", language: "default")),
+                                mediaType: "video/mp4"
+                            ),
+                            MetadataViews.Media(
+                                file: MetadataViews.HTTPFile(url: self.getVideo(videoType: "capture_Animated_Video_Idle_Black", language: "es")),
+                                mediaType: "video/mp4"
+                            )
+                        ]
+                    )
+                case Type<MetadataViews.NFTCollectionDisplay>():
+                    let bannerImage = MetadataViews.Media(
+                        file: MetadataViews.HTTPFile(
+                            url: "https://assets.laligagolazos.com/static/golazos-logos/Golazos_Logo_Horizontal_B.png"
+                        ),
+                        mediaType: "image/png"
+                    )
+                    let squareImage = MetadataViews.Media(
+                        file: MetadataViews.HTTPFile(
+                            url: "https://assets.laligagolazos.com/static/golazos-logos/Golazos_Logo_Primary_B.png"
+                        ),
+                        mediaType: "image/png"
+                    )
+                    return MetadataViews.NFTCollectionDisplay(
+                        name: "Laliga Golazos",
+                        description: "Collect LaLiga's biggest Moments and get closer to the game than ever before",
+                        externalURL: MetadataViews.ExternalURL("https://laligagolazos.com/"),
+                        squareImage: squareImage,
+                        bannerImage: bannerImage,
+                        socials: {
+                            "instagram": MetadataViews.ExternalURL(" https://instagram.com/laligaonflow"),
+                            "twitter": MetadataViews.ExternalURL("https://twitter.com/LaLigaGolazos"),
+                            "discord": MetadataViews.ExternalURL("https://discord.gg/LaLigaGolazos"),
+                            "facebook": MetadataViews.ExternalURL("https://www.facebook.com/LaLigaGolazos/")
+                        }
+                    )
             }
 
             return nil
-        }  
+        }
     }
 
     //------------------------------------------------------------
@@ -673,7 +773,7 @@ pub contract Golazos: NonFungibleToken {
             // If the result isn't nil, the id of the returned reference
             // should be the same as the argument to the function
             post {
-                (result == nil) || (result?.id == id): 
+                (result == nil) || (result?.id == id):
                     "Cannot borrow Moment NFT reference: The ID of the returned reference is incorrect"
             }
         }
@@ -851,7 +951,7 @@ pub contract Golazos: NonFungibleToken {
             // Return the new ID for convenience
             return seriesID
         }
-        
+
         /// Close a Series
         ///
         pub fun closeSeries(id: UInt64): UInt64 {
@@ -899,7 +999,7 @@ pub contract Golazos: NonFungibleToken {
 
         /// Create an Edition
         ///
-        pub fun createEdition(            
+        pub fun createEdition(
             seriesID: UInt64,
             setID: UInt64,
             playID: UInt64,
