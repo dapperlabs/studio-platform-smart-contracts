@@ -4,6 +4,7 @@
 */
 
 
+import FungibleToken from 0x{{.FungibleTokenAddress}}
 import NonFungibleToken from 0x{{.NonFungibleTokenAddress}}
 import MetadataViews from 0x{{.MetadataViewsAddress}}
 
@@ -35,7 +36,7 @@ pub contract Golazos: NonFungibleToken {
     // Golazos deployment variables
     // -----------------------------------------------------------------------
 
-    pub fun RoyaltyAddress() : Address { return 0xGOLAZOSADDRESS }
+    pub fun RoyaltyAddress() : Address { return 0x{{.DapperSportAddress}} }
     //------------------------------------------------------------
     // Events
     //------------------------------------------------------------
