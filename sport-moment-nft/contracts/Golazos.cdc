@@ -31,6 +31,11 @@ import MetadataViews from 0x{{.MetadataViewsAddress}}
 /// The Golazos NFTs and metadata contract
 //
 pub contract Golazos: NonFungibleToken {
+    // -----------------------------------------------------------------------
+    // Golazos deployment variables
+    // -----------------------------------------------------------------------
+
+    pub fun RoyaltyAddress() : Address { return 0xGOLAZOSADDRESS }
     //------------------------------------------------------------
     // Events
     //------------------------------------------------------------
@@ -623,7 +628,8 @@ pub contract Golazos: NonFungibleToken {
                 Type<MetadataViews.Traits>(),
                 Type<MetadataViews.ExternalURL>(),
                 Type<MetadataViews.Medias>(),
-                Type<MetadataViews.NFTCollectionDisplay>()
+                Type<MetadataViews.NFTCollectionDisplay>(),
+                Type<MetadataViews.Royalties>()
             ]
         }
 
@@ -751,6 +757,18 @@ pub contract Golazos: NonFungibleToken {
                             "discord": MetadataViews.ExternalURL("https://discord.gg/LaLigaGolazos"),
                             "facebook": MetadataViews.ExternalURL("https://www.facebook.com/LaLigaGolazos/")
                         }
+                    )
+                case Type<MetadataViews.Royalties>():
+                    let royaltyReceiver: Capability<&{FungibleToken.Receiver}> =
+                        getAccount(Golazos.RoyaltyAddress()).getCapability<&AnyResource{FungibleToken.Receiver}>(MetadataViews.getRoyaltyReceiverPublicPath())
+                    return MetadataViews.Royalties(
+                        royalties: [
+                            MetadataViews.Royalty(
+                                receiver: royaltyReceiver,
+                                cut: 0.05,
+                                description: "Laliga Golazos marketplace royalty"
+                            )
+                        ]
                     )
             }
 
