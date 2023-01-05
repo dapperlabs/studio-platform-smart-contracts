@@ -51,7 +51,7 @@ pub contract DSSCollection: NonFungibleToken {
     // Entity Counts
     //
     pub var totalSupply:        UInt64
-    pub var nextGroupID:       UInt64
+    pub var nextCollectionGroupID:       UInt64
 
 
     // Metadata Dictionaries
@@ -91,11 +91,12 @@ pub contract DSSCollection: NonFungibleToken {
         pub let id: UInt64
         pub let name: String
         pub let product: String
-        pub let active: Bool
+        pub var active: Bool
+        pub var numMinted: UInt64
 
         // Close this collection group
         //
-        pub fun close() {
+        access(contract) fun close() {
             pre {
                 self.active == true: "not active"
             }
@@ -105,16 +106,33 @@ pub contract DSSCollection: NonFungibleToken {
             emit CollectionGroupClosed(id: self.id)
         }
 
-        // initializer
+        // Mint a Completion NFT in this group
         //
+        pub fun mint(completedBy: String): @DSSCollection.NFT {
+
+            // Create the Completion NFT, filled out with our information
+            let completionNFT <- create NFT(
+                id: DSSCollection.totalSupply + 1,
+                collectionGroupID: self.id,
+                serialNumber: self.numMinted + 1,
+                completedBy: completedBy
+            )
+            DSSCollection.totalSupply = DSSCollection.totalSupply + 1
+            // Keep a running total (you'll notice we used this as the serial number)
+            self.numMinted = self.numMinted + 1 as UInt64
+
+            return <- completionNFT
+        }
+
         init (name: String, product: String) {
-            self.id = DSSCollection.nextGroupID
+            self.id = DSSCollection.nextCollectionGroupID
             self.name = name
             self.product = product
             self.active = true
+            self.numMinted = 0 as UInt64
 
-            // Increment for the nextGroupID
-            DSSCollection.nextGroupID = self.id + 1 as UInt64
+            // Increment for the nextCollectionGroupID
+            DSSCollection.nextCollectionGroupID = self.id + 1 as UInt64
 
             emit CollectionGroupCreated(id: self.id, name: self.name, product: self.product)
         }
@@ -219,7 +237,7 @@ pub contract DSSCollection: NonFungibleToken {
         // and adds the ID to the id array
         //
         pub fun deposit(token: @NonFungibleToken.NFT) {
-            let token <- token as! @AllDay.NFT
+            let token <- token as! @DSSCollection.NFT
             let id: UInt64 = token.id
 
             // add the new token to the dictionary which removes the old one
@@ -264,10 +282,10 @@ pub contract DSSCollection: NonFungibleToken {
 
         // borrowCompletionNFT gets a reference to an NFT in the collection
         //
-        pub fun borrowCompletionNFT(id: UInt64): &AllDay.NFT? {
+        pub fun borrowCompletionNFT(id: UInt64): &DSSCollection.NFT? {
             if self.ownedNFTs[id] != nil {
                 if let ref = &self.ownedNFTs[id] as auth &NonFungibleToken.NFT? {
-                    return ref! as! &AllDay.NFT
+                    return ref! as! &DSSCollection.NFT
                 }
                 return nil
             } else {
@@ -302,15 +320,15 @@ pub contract DSSCollection: NonFungibleToken {
     //
     pub resource interface NFTMinter {
         // Mint a single NFT
-        // The Edition for the given ID must already exist
+        // The collectionGroupID for the given ID must already exist
         //
-        pub fun mintNFT(editionID: UInt64): @DSSCollection.NFT
+        pub fun mintNFT(collectionGroupID: UInt64, completedBy: String): @DSSCollection.NFT
     }
 
     // A resource that allows managing metadata and minting NFTs
     //
     pub resource Admin: NFTMinter {
-        
+
         // Borrow a Series
         //
         pub fun borrowCollectionGroup(id: UInt64): &DSSCollection.CollectionGroup {
@@ -350,12 +368,12 @@ pub contract DSSCollection: NonFungibleToken {
         // Mint a single NFT
         // The CollectionGroup for the given ID must already exist
         //
-        pub fun mintNFT(collectionGroupID: UInt64): @DSSCollection.NFT {
+        pub fun mintNFT(collectionGroupID: UInt64, completedBy: String): @DSSCollection.NFT {
             pre {
                 // Make sure the edition we are creating this NFT in exists
                 DSSCollection.collectionGroupByID.containsKey(collectionGroupID): "No such CollectionGroupID"
             }
-            return <- self.borrowCollectionGroup(id: collectionGroupID).mint()
+            return <- self.borrowCollectionGroup(id: collectionGroupID).mint(completedBy: completedBy)
         }
     }
 
