@@ -33,8 +33,8 @@ pub contract DSSCollection: NonFungibleToken {
 
     // NFT Events
     //
-    pub event CompletionNFTMinted(id: UInt64, collectionGroupID: UInt64, serialNumber: UInt64, completedBy: String, completionDate: UFix64)
-    pub event CompletionNFTBurned(id: UInt64)
+    pub event DSSCollectionNFTMinted(id: UInt64, collectionGroupID: UInt64, serialNumber: UInt64, completedBy: String, completionDate: UFix64)
+    pub event DSSCollectionNFTBurned(id: UInt64)
 
 
     // Named Paths
@@ -106,12 +106,12 @@ pub contract DSSCollection: NonFungibleToken {
             emit CollectionGroupClosed(id: self.id)
         }
 
-        // Mint a Completion NFT in this group
+        // Mint a DSSCollection NFT in this group
         //
         pub fun mint(completedBy: String): @DSSCollection.NFT {
 
-            // Create the Completion NFT, filled out with our information
-            let completionNFT <- create NFT(
+            // Create the DSSCollection NFT, filled out with our information
+            let dssCollectionNFT <- create NFT(
                 id: DSSCollection.totalSupply + 1,
                 collectionGroupID: self.id,
                 serialNumber: self.numMinted + 1,
@@ -121,7 +121,7 @@ pub contract DSSCollection: NonFungibleToken {
             // Keep a running total (you'll notice we used this as the serial number)
             self.numMinted = self.numMinted + 1 as UInt64
 
-            return <- completionNFT
+            return <- dssCollectionNFT
         }
 
         init (name: String, product: String) {
@@ -152,7 +152,7 @@ pub contract DSSCollection: NonFungibleToken {
     // NFT
     //------------------------------------------------------------
 
-    // A Completion NFT
+    // A DSSCollection NFT
     //
     pub resource NFT: NonFungibleToken.INFT {
         pub let id: UInt64
@@ -164,7 +164,7 @@ pub contract DSSCollection: NonFungibleToken {
         // Destructor
         //
         destroy() {
-            emit CompletionNFTBurned(id: self.id)
+            emit DSSCollectionNFTBurned(id: self.id)
         }
 
         // NFT initializer
@@ -185,7 +185,7 @@ pub contract DSSCollection: NonFungibleToken {
             self.completionDate = getCurrentBlock().timestamp
             self.completedBy = completedBy
 
-            emit CompletionNFTMinted(id: self.id, collectionGroupID: self.collectionGroupID, serialNumber: self.serialNumber, completedBy: self.completedBy, completionDate: self.completionDate)
+            emit DSSCollectionNFTMinted(id: self.id, collectionGroupID: self.collectionGroupID, serialNumber: self.serialNumber, completedBy: self.completedBy, completionDate: self.completionDate)
         }
     }
 
@@ -193,14 +193,14 @@ pub contract DSSCollection: NonFungibleToken {
     // Collection
     //------------------------------------------------------------
 
-    // A public collection interface that allows Completion NFTs to be borrowed
+    // A public collection interface that allows DSSCollection NFTs to be borrowed
     //
-    pub resource interface CompletionNFTCollectionPublic {
+    pub resource interface DSSCollectionNFTCollectionPublic {
         pub fun deposit(token: @NonFungibleToken.NFT)
         pub fun batchDeposit(tokens: @NonFungibleToken.Collection)
         pub fun getIDs(): [UInt64]
         pub fun borrowNFT(id: UInt64): &NonFungibleToken.NFT
-        pub fun borrowCompletionNFT(id: UInt64): &DSSCollection.NFT? {
+        pub fun borrowDSSCollectionNFT(id: UInt64): &DSSCollection.NFT? {
             // If the result isn't nil, the id of the returned reference
             // should be the same as the argument to the function
             post {
@@ -216,7 +216,7 @@ pub contract DSSCollection: NonFungibleToken {
         NonFungibleToken.Provider,
         NonFungibleToken.Receiver,
         NonFungibleToken.CollectionPublic,
-        CompletionNFTCollectionPublic
+        DSSCollectionNFTCollectionPublic
     {
         // dictionary of NFT conforming tokens
         // NFT is a resource type with an UInt64 ID field
@@ -280,9 +280,9 @@ pub contract DSSCollection: NonFungibleToken {
             return (&self.ownedNFTs[id] as &NonFungibleToken.NFT?)!
         }
 
-        // borrowCompletionNFT gets a reference to an NFT in the collection
+        // borrowDSSCollectionNFT gets a reference to an NFT in the collection
         //
-        pub fun borrowCompletionNFT(id: UInt64): &DSSCollection.NFT? {
+        pub fun borrowDSSCollectionNFT(id: UInt64): &DSSCollection.NFT? {
             if self.ownedNFTs[id] != nil {
                 if let ref = &self.ownedNFTs[id] as auth &NonFungibleToken.NFT? {
                     return ref! as! &DSSCollection.NFT
@@ -385,8 +385,8 @@ pub contract DSSCollection: NonFungibleToken {
     //
     init() {
         // Set the named paths
-        self.CollectionStoragePath = /storage/CompletionNFTCollection
-        self.CollectionPublicPath = /public/CompletionNFTCollection
+        self.CollectionStoragePath = /storage/DSSCollectionNFTCollection
+        self.CollectionPublicPath = /public/DSSCollectionNFTCollection
         self.AdminStoragePath = /storage/CollectionGroupAdmin
         self.MinterPrivatePath = /private/CollectionGroupMinter
 
