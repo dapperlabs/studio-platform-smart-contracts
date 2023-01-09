@@ -17,6 +17,8 @@ You will need to create a flow.json file to hold accounts and contracts. This fi
 ```
 flow emulator
 
+flow keys generate
+
 flow accounts create --key 2488befee0c3873d2a0dcd291ad27d0cd061a750dc5137af3f3ffee7ff70f528a229ed1039ce1de23986d4506d4671df096881e5d60c18e93c8df321a180adac
 
 flow project deploy --network=emulator --update
@@ -34,14 +36,22 @@ flow transactions send ./transactions/setup_collection.cdc --signer emulator-acc
 flow transactions send ./transactions/admin/create_collection_group.cdc "collection name" "product-name" --signer emulator-account
 
 // mint
-flow transactions send ./transactions/admin/mint_nft.cdc 0xf8d6e0586b0a20c7 1 "jer.ahrens"  --signer emulator-account
+flow transactions send ./transactions/admin/mint_nft.cdc 0xf8d6e0586b0a20c7 1 "houseofhufflepuff"  --signer emulator-account
+
+// close collection group
+flow transactions send ./transactions/admin/close_collection_group.cdc 1 --signer emulator-account
+
+// add nft to collection group
+flow transactions send ./transactions/admin/add_nft_to_collection_group.cdc 1 1 --signer emulator-account
 
 ```
 
 
 ### Scripts
 ```
-flow scripts execute scripts/totalSupply.cdc
+flow scripts execute scripts/total_supply.cdc
+
+flow scripts execute scripts/get_collection_group.cdc 1
 ```
 
 

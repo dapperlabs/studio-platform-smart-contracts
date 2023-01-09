@@ -7,7 +7,8 @@
 import NonFungibleToken from 0xf8d6e0586b0a20c7
 
 /*
-    DSSCollection contains collection group & completion functionality. It is designed for use from all Dapper Sports.
+    DSSCollection contains collection group & completion functionality. 
+    It is designed for use from all Dapper Sports.
 */
 
 // The DSSCollection contract
@@ -30,6 +31,7 @@ pub contract DSSCollection: NonFungibleToken {
     //
     pub event CollectionGroupCreated(id: UInt64, name: String, product: String)
     pub event CollectionGroupClosed(id: UInt64)
+    pub event NFTAddedToCollectionGroup(nftID: UInt64, collectionGroupID: UInt64)
 
     // NFT Events
     //
@@ -69,16 +71,20 @@ pub contract DSSCollection: NonFungibleToken {
         pub let id: UInt64
         pub let name: String
         pub let product: String
-        pub let active: Bool
+        pub let open: Bool
+        pub var nftIDInCollectionGroup: {UInt64: Bool}
 
-        // initializer
-        //
+        pub fun nftIDExistsInCollectionGroup(collectionGroupID: UInt64): Bool {
+           return self.nftIDInCollectionGroup.containsKey(collectionGroupID)
+        }
+
         init (id: UInt64) {
             if let collectionGroup = &DSSCollection.collectionGroupByID[id] as &DSSCollection.CollectionGroup? {
                 self.id = collectionGroup.id
                 self.name = collectionGroup.name
                 self.product = collectionGroup.product
-                self.active = collectionGroup.active
+                self.open = collectionGroup.open
+                self.nftIDInCollectionGroup = collectionGroup.nftIDInCollectionGroup
             } else {
                 panic("collectionGroup does not exist")
             }
@@ -91,24 +97,46 @@ pub contract DSSCollection: NonFungibleToken {
         pub let id: UInt64
         pub let name: String
         pub let product: String
-        pub var active: Bool
+        pub var open: Bool
         pub var numMinted: UInt64
+        pub var nftIDInCollectionGroup: {UInt64: Bool}
 
         // Close this collection group
         //
         access(contract) fun close() {
             pre {
-                self.active == true: "not active"
+                self.open == true: "not open"
             }
 
-            self.active = false
+            self.open = false
 
             emit CollectionGroupClosed(id: self.id)
         }
 
+        // Add nftID to collection group
+        //
+        access(contract) fun addNFTToCollectionGroup(nftID: UInt64) {
+            pre {
+                self.open == true: "not open"
+            }
+
+            self.nftIDInCollectionGroup[nftID] = true
+
+            emit NFTAddedToCollectionGroup(nftID: nftID, collectionGroupID: self.id)
+        }
+
+        // Get all NFT in collection group
+        //
+        // pub fun getAllNFTInCollectionGroup(): [UInt64] {
+        //     return self.nftIDInCollectionGroup.keys
+        // }
+
         // Mint a DSSCollection NFT in this group
         //
         pub fun mint(completedBy: String): @DSSCollection.NFT {
+            pre {
+                self.open != true: "cannot mint an open collection group"
+            }
 
             // Create the DSSCollection NFT, filled out with our information
             let dssCollectionNFT <- create NFT(
@@ -118,7 +146,8 @@ pub contract DSSCollection: NonFungibleToken {
                 completedBy: completedBy
             )
             DSSCollection.totalSupply = DSSCollection.totalSupply + 1
-            // Keep a running total (you'll notice we used this as the serial number)
+            
+            // increment serial number
             self.numMinted = self.numMinted + 1 as UInt64
 
             return <- dssCollectionNFT
@@ -128,8 +157,9 @@ pub contract DSSCollection: NonFungibleToken {
             self.id = DSSCollection.nextCollectionGroupID
             self.name = name
             self.product = product
-            self.active = true
+            self.open = true
             self.numMinted = 0 as UInt64
+            self.nftIDInCollectionGroup = {}
 
             // Increment for the nextCollectionGroupID
             DSSCollection.nextCollectionGroupID = self.id + 1 as UInt64
@@ -161,14 +191,10 @@ pub contract DSSCollection: NonFungibleToken {
         pub let completionDate: UFix64
         pub let completedBy: String
 
-        // Destructor
-        //
         destroy() {
             emit DSSCollectionNFTBurned(id: self.id)
         }
 
-        // NFT initializer
-        //
         init(
             id: UInt64,
             collectionGroupID: UInt64,
@@ -293,14 +319,10 @@ pub contract DSSCollection: NonFungibleToken {
             }
         }
 
-        // Collection destructor
-        //
         destroy() {
             destroy self.ownedNFTs
         }
 
-        // Collection initializer
-        //
         init() {
             self.ownedNFTs <- {}
         }
@@ -329,7 +351,7 @@ pub contract DSSCollection: NonFungibleToken {
     //
     pub resource Admin: NFTMinter {
 
-        // Borrow a Series
+        // Borrow a Collection Group
         //
         pub fun borrowCollectionGroup(id: UInt64): &DSSCollection.CollectionGroup {
             pre {
@@ -364,13 +386,23 @@ pub contract DSSCollection: NonFungibleToken {
             panic("collection group does not exist")
         }
 
+        // Add NFT to Collection Group
+        //
+        pub fun addNFTToCollectionGroup(nftID: UInt64, collectionGroupID: UInt64) {
+            if let collectionGroup = &DSSCollection.collectionGroupByID[collectionGroupID] as &DSSCollection.CollectionGroup? {
+                collectionGroup.addNFTToCollectionGroup(nftID: nftID)
+                return
+            }
+            panic("collection group does not exist")
+        }
+
 
         // Mint a single NFT
         // The CollectionGroup for the given ID must already exist
         //
         pub fun mintNFT(collectionGroupID: UInt64, completedBy: String): @DSSCollection.NFT {
             pre {
-                // Make sure the edition we are creating this NFT in exists
+                // Make sure the collection group exists
                 DSSCollection.collectionGroupByID.containsKey(collectionGroupID): "No such CollectionGroupID"
             }
             return <- self.borrowCollectionGroup(id: collectionGroupID).mint(completedBy: completedBy)
