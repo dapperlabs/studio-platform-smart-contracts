@@ -29,7 +29,7 @@ pub contract DSSCollection: NonFungibleToken {
 
     // CollectionGroup Events
     //
-    pub event CollectionGroupCreated(id: UInt64, name: String, product: String)
+    pub event CollectionGroupCreated(id: UInt64, name: String, productPublicPath: PublicPath, startTime: UFix64?, endTime: UFix64?, timeBound: Bool)
     pub event CollectionGroupClosed(id: UInt64)
     pub event NFTAddedToCollectionGroup(nftID: UInt64, collectionGroupID: UInt64)
 
@@ -70,8 +70,11 @@ pub contract DSSCollection: NonFungibleToken {
     pub struct CollectionGroupData {
         pub let id: UInt64
         pub let name: String
-        pub let product: String
+        pub let productPublicPath: PublicPath
         pub let open: Bool
+        pub let startTime: UFix64?
+        pub let endTime: UFix64?
+        pub let timeBound: Bool
         pub var nftIDInCollectionGroup: {UInt64: Bool}
 
         pub fun nftIDExistsInCollectionGroup(collectionGroupID: UInt64): Bool {
@@ -82,8 +85,11 @@ pub contract DSSCollection: NonFungibleToken {
             if let collectionGroup = &DSSCollection.collectionGroupByID[id] as &DSSCollection.CollectionGroup? {
                 self.id = collectionGroup.id
                 self.name = collectionGroup.name
-                self.product = collectionGroup.product
+                self.productPublicPath = collectionGroup.productPublicPath
                 self.open = collectionGroup.open
+                self.startTime = collectionGroup.startTime
+                self.endTime = collectionGroup.endTime
+                self.timeBound = collectionGroup.timeBound
                 self.nftIDInCollectionGroup = collectionGroup.nftIDInCollectionGroup
             } else {
                 panic("collectionGroup does not exist")
@@ -96,8 +102,11 @@ pub contract DSSCollection: NonFungibleToken {
     pub resource CollectionGroup {
         pub let id: UInt64
         pub let name: String
-        pub let product: String
+        pub let productPublicPath: PublicPath
         pub var open: Bool
+        pub let startTime: UFix64?
+        pub let endTime: UFix64?
+        pub let timeBound: Bool
         pub var numMinted: UInt64
         pub var nftIDInCollectionGroup: {UInt64: Bool}
 
@@ -125,17 +134,12 @@ pub contract DSSCollection: NonFungibleToken {
             emit NFTAddedToCollectionGroup(nftID: nftID, collectionGroupID: self.id)
         }
 
-        // Get all NFT in collection group
-        //
-        // pub fun getAllNFTInCollectionGroup(): [UInt64] {
-        //     return self.nftIDInCollectionGroup.keys
-        // }
-
         // Mint a DSSCollection NFT in this group
         //
         pub fun mint(completedBy: String): @DSSCollection.NFT {
             pre {
                 self.open != true: "cannot mint an open collection group"
+                DSSCollection.validateTimeRange(timeBound: self.timeBound, startTime: self.startTime, endTime: self.endTime) == true : "cannot mint a collection group outside of time bounds"
             }
 
             // Create the DSSCollection NFT, filled out with our information
@@ -153,18 +157,27 @@ pub contract DSSCollection: NonFungibleToken {
             return <- dssCollectionNFT
         }
 
-        init (name: String, product: String) {
+        init (
+            name: String, 
+            productPublicPath: PublicPath, 
+            startTime: UFix64?, 
+            endTime: UFix64?, 
+            timeBound: Bool
+        ) {
             self.id = DSSCollection.nextCollectionGroupID
             self.name = name
-            self.product = product
+            self.productPublicPath = productPublicPath
             self.open = true
+            self.startTime = startTime
+            self.endTime = endTime
+            self.timeBound = timeBound
             self.numMinted = 0 as UInt64
             self.nftIDInCollectionGroup = {}
 
             // Increment for the nextCollectionGroupID
             DSSCollection.nextCollectionGroupID = self.id + 1 as UInt64
 
-            emit CollectionGroupCreated(id: self.id, name: self.name, product: self.product)
+            emit CollectionGroupCreated(id: self.id, name: self.name, productPublicPath: self.productPublicPath, startTime: self.startTime, endTime: self.endTime, timeBound: self.timeBound)
         }
     }
 
@@ -176,6 +189,20 @@ pub contract DSSCollection: NonFungibleToken {
         }
 
         return DSSCollection.CollectionGroupData(id: id)
+    }
+
+    // Get the publicly available data for a CollectionGroup by id
+    //
+    pub fun validateTimeRange(timeBound: Bool, startTime: UFix64?, endTime: UFix64?): Bool {
+        if timeBound {
+            return true
+        }
+
+        if startTime! <= getCurrentBlock().timestamp && endTime! >= getCurrentBlock().timestamp {
+            return true
+        } else {
+            return false
+        }
     }
 
     //------------------------------------------------------------
@@ -363,11 +390,14 @@ pub contract DSSCollection: NonFungibleToken {
 
         // Create a Collection Group
         //
-        pub fun createCollectionGroup(name: String, product: String): UInt64 {
+        pub fun createCollectionGroup(name: String, productPublicPath: PublicPath, startTime: UFix64?, endTime: UFix64?, timeBound: Bool): UInt64 {
             // Create and store the new collection group
             let collectionGroup <- create DSSCollection.CollectionGroup(
                 name: name,
-                product: product,
+                productPublicPath: productPublicPath,
+                startTime: startTime,
+                endTime: endTime,
+                timBound: timeBound
             )
             let collectionGroupID = collectionGroup.id
             DSSCollection.collectionGroupByID[collectionGroup.id] <-! collectionGroup

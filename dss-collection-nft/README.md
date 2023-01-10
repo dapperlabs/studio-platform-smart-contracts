@@ -33,7 +33,10 @@ flow transactions send ./transactions/setup_collection.cdc --signer emulator-acc
 ### Admin
 ```
 // create collection group
-flow transactions send ./transactions/admin/create_collection_group.cdc "collection name" "product-name" --signer emulator-account
+flow transactions send ./transactions/admin/create_collection_group.cdc "collection name" /public/AllDayNFTCollection --signer emulator-account
+
+// create collection group with time range
+flow transactions send ./transactions/admin/create_collection_group_time_range.cdc "collection name" /public/AllDayNFTCollection 1673299041.0 1674681434.0 --signer emulator-account
 
 // mint
 flow transactions send ./transactions/admin/mint_nft.cdc 0xf8d6e0586b0a20c7 1 "houseofhufflepuff"  --signer emulator-account

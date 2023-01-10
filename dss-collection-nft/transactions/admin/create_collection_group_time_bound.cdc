@@ -1,12 +1,10 @@
 import DSSCollection from 0xf8d6e0586b0a20c7
 import NonFungibleToken from 0xf8d6e0586b0a20c7
 
-transaction(name: String, productPublicPath: PublicPath) {
-    // local variable for the admin reference
+transaction(name: String, productPublicPath: PublicPath, startTime: UFix64?, endTime: UFix64?) {
     let admin: &DSSCollection.Admin
 
     prepare(signer: AuthAccount) {
-        // borrow a reference to the Admin resource
         self.admin = signer.borrow<&DSSCollection.Admin>(from: DSSCollection.AdminStoragePath)
             ?? panic("Could not borrow a reference to the DSSCollection Admin capability")
     }
@@ -15,9 +13,9 @@ transaction(name: String, productPublicPath: PublicPath) {
         let id = self.admin.createCollectionGroup(
             name: name,
             productPublicPath: productPublicPath,
-            startTime: nil,
-            endTime: nil,
-            timeBound: false
+            startTime: startTime,
+            endTime: endTime,
+            timeBound: true
         )
 
         log("====================================")
