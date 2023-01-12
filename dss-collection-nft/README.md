@@ -1,9 +1,16 @@
 # DSSCollection Smart Contract
 
+## NonFungibleToken Contract Addresses
+| Network   | Address |
+| ----------|:-------:|
+| Emulator   |  0xf8d6e0586b0a20c7  |
+| Testnet   |  0x631e88ae7f1d7c20  |
+| Mainnet   |  0x1d7e57aa55817448   |
+
 ## DSSCollection Contract Addresses
 | Network   | Address |                                                                                     |
 | ----------|:-------:|-------------------------------------------------------------------------------------|
-| Testnet   |  XXXX   | [Flow View Source](https://flow-view-source.com/testnet/) |
+| Testnet   |  0x9dae79d85e17d382   | [Flow View Source](https://flow-view-source.com/testnet/) |
 | Mainnet   |  XXXX   | [Flow View Source](https://flow-view-source.com/mainnet/) |
 
 

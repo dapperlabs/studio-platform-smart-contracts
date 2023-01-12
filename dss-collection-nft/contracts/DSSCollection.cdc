@@ -3,8 +3,7 @@
     Author: Jeremy Ahrens jer.ahrens@dapperlabs.com
 */
 
-
-import NonFungibleToken from 0xf8d6e0586b0a20c7
+import NonFungibleToken from 0x631e88ae7f1d7c20
 
 /*
     DSSCollection contains collection group & completion functionality. 
@@ -56,9 +55,6 @@ pub contract DSSCollection: NonFungibleToken {
     pub var nextCollectionGroupID:       UInt64
 
 
-    // Metadata Dictionaries
-    //
-    // This is so we can find CollectionGroup by their names (via collectionGroupByID)
     access(self) let collectionGroupByID:        @{UInt64: CollectionGroup}
 
     //------------------------------------------------------------
