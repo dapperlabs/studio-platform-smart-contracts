@@ -51,11 +51,11 @@ pub contract DSSCollection: NonFungibleToken {
 
     // Entity Counts
     //
-    pub var totalSupply:        UInt64
+    pub var totalSupply:                 UInt64
     pub var nextCollectionGroupID:       UInt64
 
 
-    access(self) let collectionGroupByID:        @{UInt64: CollectionGroup}
+    access(self) let collectionGroupByID: @{UInt64: CollectionGroup}
 
     //------------------------------------------------------------
     // CollectionGroup
