@@ -258,7 +258,13 @@ pub contract DSSCollection: NonFungibleToken {
             self.completionDate = getCurrentBlock().timestamp
             self.completedBy = completedBy
 
-            emit DSSCollectionNFTMinted(id: self.id, collectionGroupID: self.collectionGroupID, serialNumber: self.serialNumber, completedBy: self.completedBy, completionDate: self.completionDate)
+            emit DSSCollectionNFTMinted(
+                id: self.id,
+                collectionGroupID: self.collectionGroupID,
+                serialNumber: self.serialNumber,
+                completedBy: self.completedBy,
+                completionDate: self.completionDate
+            )
         }
     }
 
@@ -410,7 +416,13 @@ pub contract DSSCollection: NonFungibleToken {
 
         // Create a Collection Group
         //
-        pub fun createCollectionGroup(name: String, productPublicPath: PublicPath, startTime: UFix64?, endTime: UFix64?, timeBound: Bool): UInt64 {
+        pub fun createCollectionGroup(
+            name: String,
+            productPublicPath: PublicPath,
+            startTime: UFix64?,
+            endTime: UFix64?,
+            timeBound: Bool
+        ): UInt64 {
             // Create and store the new collection group
             let collectionGroup <- create DSSCollection.CollectionGroup(
                 name: name,
