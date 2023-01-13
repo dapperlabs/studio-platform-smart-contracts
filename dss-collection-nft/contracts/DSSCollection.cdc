@@ -28,13 +28,26 @@ pub contract DSSCollection: NonFungibleToken {
 
     // CollectionGroup Events
     //
-    pub event CollectionGroupCreated(id: UInt64, name: String, productPublicPath: PublicPath, startTime: UFix64?, endTime: UFix64?, timeBound: Bool)
+    pub event CollectionGroupCreated(
+        id: UInt64,
+        name: String,
+        productPublicPath: PublicPath,
+        startTime: UFix64?,
+        endTime: UFix64?,
+        timeBound: Bool
+    )
     pub event CollectionGroupClosed(id: UInt64)
     pub event NFTAddedToCollectionGroup(nftID: UInt64, collectionGroupID: UInt64)
 
     // NFT Events
     //
-    pub event DSSCollectionNFTMinted(id: UInt64, collectionGroupID: UInt64, serialNumber: UInt64, completedBy: String, completionDate: UFix64)
+    pub event DSSCollectionNFTMinted(
+        id: UInt64,
+        collectionGroupID: UInt64,
+        serialNumber: UInt64,
+        completedBy: String,
+        completionDate: UFix64
+    )
     pub event DSSCollectionNFTBurned(id: UInt64)
 
 
@@ -135,7 +148,11 @@ pub contract DSSCollection: NonFungibleToken {
         pub fun mint(completedBy: String): @DSSCollection.NFT {
             pre {
                 self.open != true: "cannot mint an open collection group"
-                DSSCollection.validateTimeRange(timeBound: self.timeBound, startTime: self.startTime, endTime: self.endTime) == true : "cannot mint a collection group outside of time bounds"
+                DSSCollection.validateTimeRange(
+                    timeBound: self.timeBound,
+                    startTime: self.startTime,
+                    endTime: self.endTime
+                ) == true : "cannot mint a collection group outside of time bounds"
             }
 
             // Create the DSSCollection NFT, filled out with our information
@@ -173,7 +190,14 @@ pub contract DSSCollection: NonFungibleToken {
             // Increment for the nextCollectionGroupID
             DSSCollection.nextCollectionGroupID = self.id + 1 as UInt64
 
-            emit CollectionGroupCreated(id: self.id, name: self.name, productPublicPath: self.productPublicPath, startTime: self.startTime, endTime: self.endTime, timeBound: self.timeBound)
+            emit CollectionGroupCreated(
+                id: self.id,
+                name: self.name,
+                productPublicPath: self.productPublicPath,
+                startTime: self.startTime,
+                endTime: self.endTime,
+                timeBound: self.timeBound
+            )
         }
     }
 
