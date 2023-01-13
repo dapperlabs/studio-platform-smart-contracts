@@ -3,7 +3,7 @@
     Author: Jeremy Ahrens jer.ahrens@dapperlabs.com
 */
 
-import NonFungibleToken from 0x631e88ae7f1d7c20
+import NonFungibleToken from "./NonFungibleToken.cdc"
 
 /*
     DSSCollection contains collection group & completion functionality. 
@@ -73,8 +73,8 @@ pub contract DSSCollection: NonFungibleToken {
         pub let timeBound: Bool
         pub var nftIDInCollectionGroup: {UInt64: Bool}
 
-        pub fun nftIDExistsInCollectionGroup(collectionGroupID: UInt64): Bool {
-           return self.nftIDInCollectionGroup.containsKey(collectionGroupID)
+        pub fun nftIDExistsInCollectionGroup(nftID: UInt64): Bool {
+           return self.nftIDInCollectionGroup.containsKey(nftID)
         }
 
         init (id: UInt64) {
