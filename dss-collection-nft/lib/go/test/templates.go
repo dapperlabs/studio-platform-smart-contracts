@@ -24,6 +24,7 @@ const (
 
 	// Collection Groups
 	CreateCollectionGroupTxPath      = TransactionsRootPath + "/admin/create_collection_group.cdc"
+	CloseCollectionGroupTxPath       = TransactionsRootPath + "/admin/close_collection_group.cdc"
 	GetCollectionGroupByIDScriptPath = ScriptsRootPath + "/get_collection_group.cdc"
 
 	// NFTs
@@ -78,6 +79,13 @@ func createCollectionGroupTransaction(contracts Contracts) []byte {
 func readCollectionGroupByIDScript(contracts Contracts) []byte {
 	return replaceAddresses(
 		readFile(GetCollectionGroupByIDScriptPath),
+		contracts,
+	)
+}
+
+func closeCollectionGroupTransaction(contracts Contracts) []byte {
+	return replaceAddresses(
+		readFile(CloseCollectionGroupTxPath),
 		contracts,
 	)
 }

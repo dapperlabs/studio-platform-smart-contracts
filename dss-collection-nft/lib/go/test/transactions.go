@@ -71,3 +71,26 @@ func createCollectionGroup(
 		shouldRevert,
 	)
 }
+
+func closeCollectionGroup(
+	t *testing.T,
+	b *emulator.Blockchain,
+	contracts Contracts,
+	shouldRevert bool,
+	id uint64,
+) {
+	tx := flow.NewTransaction().
+		SetScript(closeCollectionGroupTransaction(contracts)).
+		SetGasLimit(100).
+		SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
+		SetPayer(b.ServiceKey().Address).
+		AddAuthorizer(contracts.DSSCollectionAddress)
+	tx.AddArgument(cadence.UInt64(id))
+
+	signAndSubmit(
+		t, b, tx,
+		[]flow.Address{b.ServiceKey().Address, contracts.DSSCollectionAddress},
+		[]crypto.Signer{b.ServiceKey().Signer(), contracts.DSSCollectionSigner},
+		shouldRevert,
+	)
+}

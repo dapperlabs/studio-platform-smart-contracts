@@ -7,7 +7,7 @@ import NonFungibleToken from "./NonFungibleToken.cdc"
 
 /*
     DSSCollection contains collection group & completion functionality. 
-    It is designed for use from all Dapper Sports.
+    It is designed for use by all Dapper Sports.
 */
 
 // The DSSCollection contract
@@ -67,7 +67,8 @@ pub contract DSSCollection: NonFungibleToken {
     pub var totalSupply:                 UInt64
     pub var nextCollectionGroupID:       UInt64
 
-
+    // List of collection groups
+    //
     access(self) let collectionGroupByID: @{UInt64: CollectionGroup}
 
     //------------------------------------------------------------
@@ -302,10 +303,10 @@ pub contract DSSCollection: NonFungibleToken {
         //
         pub var ownedNFTs: @{UInt64: NonFungibleToken.NFT}
 
-        // withdraw of soul bound token throws a panic
+        // withdraw of soul-bound token throws a panic
         //
         pub fun withdraw(withdrawID: UInt64): @NonFungibleToken.NFT {
-            panic("cannot withdraw a soul bound token")
+            panic("cannot withdraw a soul-bound token")
         }
 
         // deposit takes a NFT and adds it to the collections dictionary

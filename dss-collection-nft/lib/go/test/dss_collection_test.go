@@ -78,3 +78,52 @@ func testCreateCollectionGroup(
 		assert.Equal(t, false, collectionGroup.TimeBound)
 	}
 }
+
+func TestCloseCollectionGroup(t *testing.T) {
+	b := newEmulator()
+	contracts := DSSCollectionDeployContracts(t, b)
+	t.Run("Should be able to close a collection group", func(t *testing.T) {
+		testCreateCollectionGroup(
+			t,
+			b,
+			contracts,
+			false,
+			"Top Shot All Stars",
+			"public",
+			"tscollection",
+		)
+	})
+}
+
+func testCloseCollectionGroup(
+	t *testing.T,
+	b *emulator.Blockchain,
+	contracts Contracts,
+	shouldRevert bool,
+	ID uint64,
+) {
+
+	createCollectionGroup(
+		t,
+		b,
+		contracts,
+		false,
+		"Top Shot All Stars",
+		"public",
+		"tscollection",
+	)
+
+	closeCollectionGroup(
+		t,
+		b,
+		contracts,
+		false,
+		ID,
+	)
+
+	if !shouldRevert {
+		collectionGroup := getCollectionGroupData(t, b, contracts, ID)
+		assert.Equal(t, uint64(1), collectionGroup.ID)
+		assert.Equal(t, false, collectionGroup.Open)
+	}
+}

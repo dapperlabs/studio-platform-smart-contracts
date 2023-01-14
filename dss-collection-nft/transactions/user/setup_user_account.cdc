@@ -1,8 +1,7 @@
 import NonFungibleToken from "../../contracts/NonFungibleToken.cdc"
 import DSSCollection from "../../contracts/DSSCollection.cdc"
 
-// This transaction configures an account to hold DSSCollectionNFTs.
-
+// This transaction configures a wallet to hold DSSCollectionNFTs.
 transaction {
     prepare(signer: AuthAccount) {
         // if the account doesn't already have a collection
