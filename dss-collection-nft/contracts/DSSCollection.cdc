@@ -302,14 +302,10 @@ pub contract DSSCollection: NonFungibleToken {
         //
         pub var ownedNFTs: @{UInt64: NonFungibleToken.NFT}
 
-        // withdraw removes an NFT from the collection and moves it to the caller
+        // withdraw of soul bound token throws a panic
         //
         pub fun withdraw(withdrawID: UInt64): @NonFungibleToken.NFT {
-            let token <- self.ownedNFTs.remove(key: withdrawID) ?? panic("missing NFT")
-
-            emit Withdraw(id: token.id, from: self.owner?.address)
-
-            return <-token
+            panic("cannot withdraw a soul bound token")
         }
 
         // deposit takes a NFT and adds it to the collections dictionary
@@ -505,3 +501,4 @@ pub contract DSSCollection: NonFungibleToken {
         emit ContractInitialized()
     }
 }
+ 
