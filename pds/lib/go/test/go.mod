@@ -7,6 +7,6 @@ require (
 	github.com/onflow/flow-emulator v0.33.0
 	github.com/onflow/flow-ft/lib/go/templates v0.2.0
 	github.com/onflow/flow-go-sdk v0.26.0
-	github.com/onflow/flow-nft/lib/go/contracts v0.0.0-20210915191154-12ee8c507a0e
+	github.com/onflow/flow-nft/lib/go/contracts v0.0.0-20220727161549-d59b1e547ac4
 	github.com/stretchr/testify v1.7.1
 )

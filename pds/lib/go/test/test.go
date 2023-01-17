@@ -1,7 +1,8 @@
 package test
 
 import (
-	"encoding/hex"
+	"fmt"
+	jsoncdc "github.com/onflow/cadence/encoding/json"
 	"io/ioutil"
 	"testing"
 
@@ -11,11 +12,8 @@ import (
 	"github.com/onflow/flow-go-sdk/crypto"
 	sdktemplates "github.com/onflow/flow-go-sdk/templates"
 	"github.com/onflow/flow-go-sdk/test"
-	nftcontracts "github.com/onflow/flow-nft/lib/go/contracts"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-
-	sdk "github.com/onflow/flow-go-sdk"
 )
 
 const (
@@ -41,178 +39,98 @@ type PdsContracts struct {
 	PdsSigner  crypto.Signer
 }
 
-func deployNFTContract(t *testing.T, b *emulator.Blockchain) flow.Address {
-	nftCode := nftcontracts.NonFungibleToken()
-	nftAddress, err := b.CreateAccount(nil,
-		[]sdktemplates.Contract{
-			{
-				Name:   nonFungibleTokenName,
-				Source: string(nftCode),
+const (
+	emulatorFTAddress = "ee82856bf20e2aa6"
+)
+
+// Sets up testing and emulator objects and initialize the emulator default addresses
+//
+func newTestSetup(t *testing.T) (*emulator.Blockchain, *test.AccountKeys) {
+	// Set for parallel processing
+	t.Parallel()
+
+	// Create a new emulator instance
+	b := newBlockchain()
+
+	// Create a new account key generator object to generate keys
+	// for test accounts
+	accountKeys := test.AccountKeyGenerator()
+
+	return b, accountKeys
+}
+
+// newBlockchain returns an emulator blockchain for testing.
+func newBlockchain(opts ...emulator.Option) *emulator.Blockchain {
+	b, err := emulator.NewBlockchain(
+		append(
+			[]emulator.Option{
+				emulator.WithStorageLimitEnabled(false),
 			},
-		},
+			opts...,
+		)...,
 	)
-	require.NoError(t, err)
-
-	_, err = b.CommitBlock()
-	require.NoError(t, err)
-
-	return nftAddress
-}
-
-func PackNftDeployContracts(t *testing.T, b *emulator.Blockchain) PackNftContracts {
-	accountKeys := test.AccountKeyGenerator()
-
-	nftAddress := deployNFTContract(t, b)
-	iPackCode := LoadIPackNFT(nftAddress)
-	iPackAddress, err := b.CreateAccount(nil, []sdktemplates.Contract{
-		{
-			Name:   "IPackNFT",
-			Source: string(iPackCode),
-		},
-	})
-	if !assert.NoError(t, err) {
-		t.Log(err.Error())
-	}
-	_, err = b.CommitBlock()
-	assert.NoError(t, err)
-
-	// set up PackNFT account
-	PackNftAccountKey, PackNftSigner := accountKeys.NewWithSigner()
-	PackNftAddress, _ := b.CreateAccount([]*flow.AccountKey{PackNftAccountKey}, nil)
-	PackNftCode := LoadPackNFT(nftAddress, iPackAddress)
-	fundAccount(t, b, PackNftAddress, defaultAccountFunding)
-	require.NoError(t, err)
-
-	packNFTencodedStr := hex.EncodeToString(PackNftCode)
-	txBytes, _ := LoadPackNFTDeployScript()
-	latestBlock, _ := b.GetLatestBlock()
-	blockId := latestBlock.ID()
-
-	tx1 := flow.NewTransaction().
-		SetScript(txBytes).SetGasLimit(100).
-		SetProposalKey(PackNftAddress, PackNftAccountKey.Index, PackNftAccountKey.SequenceNumber).
-		SetReferenceBlockID(sdk.Identifier(blockId)).
-		SetPayer(PackNftAddress).
-		AddAuthorizer(PackNftAddress)
-
-	tx1.
-		SetGasLimit(100).
-		SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
-		SetPayer(b.ServiceKey().Address)
-
-	_ = tx1.AddArgument(cadence.String("PackNFT"))
-	_ = tx1.AddArgument(cadence.String(packNFTencodedStr))
-	_ = tx1.AddArgument(cadence.Path{Domain: "storage", Identifier: "PackNFTCollection"})
-	_ = tx1.AddArgument(cadence.Path{Domain: "public", Identifier: "PackNFTCollectionPub"})
-	_ = tx1.AddArgument(cadence.Path{Domain: "public", Identifier: "PackNFTIPackNFTCollectionPub"})
-	_ = tx1.AddArgument(cadence.Path{Domain: "storage", Identifier: "PackNFTOperator"})
-	_ = tx1.AddArgument(cadence.Path{Domain: "private", Identifier: "PackNFTOperatorPriv"})
-	_ = tx1.AddArgument(cadence.String("0.1.0"))
-
-	signer, err := b.ServiceKey().Signer()
-	assert.NoError(t, err)
-
-	signAndSubmit(
-		t, b, tx1,
-		[]flow.Address{b.ServiceKey().Address, PackNftAddress},
-		[]crypto.Signer{signer, PackNftSigner},
-		false,
-	)
-
-	_, err = b.CommitBlock()
-	require.NoError(t, err)
-
-	return PackNftContracts{
-		nftAddress,
-		PackNftAddress,
-		PackNftSigner,
-	}
-}
-
-func PDSDeployContracts(t *testing.T, b *emulator.Blockchain) PdsContracts {
-	accountKeys := test.AccountKeyGenerator()
-
-	nftAddress := deployNFTContract(t, b)
-	iPackCode := LoadIPackNFT(nftAddress)
-	iPackAddress, err := b.CreateAccount(nil, []sdktemplates.Contract{
-		{
-			Name:   "IPackNFT",
-			Source: string(iPackCode),
-		},
-	})
-	if !assert.NoError(t, err) {
-		t.Log(err.Error())
-	}
-	_, err = b.CommitBlock()
-	assert.NoError(t, err)
-
-	// set up PackNFT account
-	PDSAccountKey, PDSSigner := accountKeys.NewWithSigner()
-	PDSAddress, _ := b.CreateAccount([]*flow.AccountKey{PDSAccountKey}, nil)
-	PDSCode := LoadPDS(nftAddress, iPackAddress)
-	fundAccount(t, b, PDSAddress, defaultAccountFunding)
-	require.NoError(t, err)
-
-	PDSEncodedStr := hex.EncodeToString(PDSCode)
-	txBytes, _ := LoadPDSDeployScript()
-	latestBlock, _ := b.GetLatestBlock()
-	blockId := latestBlock.ID()
-
-	tx1 := flow.NewTransaction().
-		SetScript(txBytes).SetGasLimit(100).
-		SetProposalKey(PDSAddress, PDSAccountKey.Index, PDSAccountKey.SequenceNumber).
-		SetReferenceBlockID(sdk.Identifier(blockId)).
-		SetPayer(PDSAddress).
-		AddAuthorizer(PDSAddress)
-
-	tx1.
-		SetGasLimit(100).
-		SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
-		SetPayer(b.ServiceKey().Address)
-
-	_ = tx1.AddArgument(cadence.String("PDS"))
-	_ = tx1.AddArgument(cadence.String(PDSEncodedStr))
-	_ = tx1.AddArgument(cadence.Path{Domain: "storage", Identifier: "PDSPackIssuer"})
-	_ = tx1.AddArgument(cadence.Path{Domain: "public", Identifier: "PDSPackIssuerCapRecv"})
-	_ = tx1.AddArgument(cadence.Path{Domain: "storage", Identifier: "PDSDistCreator"})
-	_ = tx1.AddArgument(cadence.Path{Domain: "private", Identifier: "PDSDistCap"})
-	_ = tx1.AddArgument(cadence.Path{Domain: "storage", Identifier: "PDSDistManager"})
-	_ = tx1.AddArgument(cadence.String("0.1.0"))
-
-	signer, err := b.ServiceKey().Signer()
-	assert.NoError(t, err)
-
-	signAndSubmit(
-		t, b, tx1,
-		[]flow.Address{b.ServiceKey().Address, PDSAddress},
-		[]crypto.Signer{signer, PDSSigner},
-		false,
-	)
-
-	_, err = b.CommitBlock()
-	require.NoError(t, err)
-
-	return PdsContracts{
-		nftAddress,
-		PDSAddress,
-		PDSSigner,
-	}
-}
-
-// newEmulator returns a emulator object for testing
-func newEmulator() *emulator.Blockchain {
-	b, err := emulator.NewBlockchain()
 	if err != nil {
 		panic(err)
 	}
 	return b
 }
 
+// Create a new, empty account for testing
+// and return the address, public keys, and signer objects
+func newAccountWithAddress(b *emulator.Blockchain, accountKeys *test.AccountKeys) (flow.Address, *flow.AccountKey, crypto.Signer) {
+	newAccountKey, newSigner := accountKeys.NewWithSigner()
+	newAddress, _ := b.CreateAccount([]*flow.AccountKey{newAccountKey}, nil)
+
+	return newAddress, newAccountKey, newSigner
+}
+
+// Deploy a contract to a new account with the specified name, code, and keys
+func deploy(
+	t *testing.T,
+	b *emulator.Blockchain,
+	name string,
+	code []byte,
+	keys ...*flow.AccountKey,
+) flow.Address {
+	address, err := b.CreateAccount(
+		keys,
+		[]sdktemplates.Contract{
+			{
+				Name:   name,
+				Source: string(code),
+			},
+		},
+	)
+	assert.NoError(t, err)
+
+	return address
+}
+
+// Create a transaction object with the specified address as the authorizer
+func createTxWithTemplateAndAuthorizer(
+	b *emulator.Blockchain,
+	script []byte,
+	authorizerAddress flow.Address,
+) *flow.Transaction {
+
+	tx := flow.NewTransaction().
+		SetScript(script).
+		SetGasLimit(9999).
+		SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
+		SetPayer(b.ServiceKey().Address).
+		AddAuthorizer(authorizerAddress)
+
+	return tx
+}
+
 // signAndSubmit signs a transaction with an array of signers and adds their signatures to the transaction
-// Then submits the transaction to the emulator. If the private keys don't match up with the addresses,
-// the transaction will not succeed.
-// shouldRevert parameter indicates whether the transaction should fail or not
-// This function asserts the correct result and commits the block if it passed
+// before submitting it to the emulator.
+//
+// If the private keys do not match up with the addresses, the transaction will not succeed.
+//
+// The shouldRevert parameter indicates whether the transaction should fail or not.
+//
+// This function asserts the correct result and commits the block if it passed.
 func signAndSubmit(
 	t *testing.T,
 	b *emulator.Blockchain,
@@ -235,12 +153,11 @@ func signAndSubmit(
 		}
 	}
 
-	submit(t, b, tx, shouldRevert)
+	Submit(t, b, tx, shouldRevert)
 }
 
-// submit submits a transaction and checks
-// if it fails or not
-func submit(
+// Submit submits a transaction and checks if it fails or not.
+func Submit(
 	t *testing.T,
 	b *emulator.Blockchain,
 	tx *flow.Transaction,
@@ -265,8 +182,19 @@ func submit(
 	assert.NoError(t, err)
 }
 
-// readFile reads a file from the file system
-// and returns its contents
+// executeScriptAndCheck executes a script and checks to make sure that it succeeded.
+func executeScriptAndCheck(t *testing.T, b *emulator.Blockchain, script []byte, arguments [][]byte) cadence.Value {
+	result, err := b.ExecuteScript(script, arguments)
+	require.NoError(t, err)
+
+	if !assert.True(t, result.Succeeded()) {
+		t.Log(result.Error.Error())
+	}
+
+	return result.Value
+}
+
+// Read a file from the specified path
 func readFile(path string) []byte {
 	contents, err := ioutil.ReadFile(path)
 	if err != nil {
@@ -275,12 +203,53 @@ func readFile(path string) []byte {
 	return contents
 }
 
-// cadenceUFix64 returns a UFix64 value
-func cadenceUFix64(value string) cadence.Value {
+// CadenceUFix64 returns a UFix64 value
+func CadenceUFix64(value string) cadence.Value {
 	newValue, err := cadence.NewUFix64(value)
+
 	if err != nil {
 		panic(err)
 	}
 
 	return newValue
+}
+
+func bytesToCadenceArray(b []byte) cadence.Array {
+	values := make([]cadence.Value, len(b))
+
+	for i, v := range b {
+		values[i] = cadence.NewUInt8(v)
+	}
+
+	return cadence.NewArray(values)
+}
+
+// assertEqual asserts that two objects are equal.
+//
+//    assertEqual(t, 123, 123)
+//
+// Pointer variable equality is determined based on the equality of the
+// referenced values (as opposed to the memory addresses). Function equality
+// cannot be determined and will always fail.
+//
+func assertEqual(t *testing.T, expected, actual interface{}) bool {
+
+	if assert.ObjectsAreEqual(expected, actual) {
+		return true
+	}
+
+	message := fmt.Sprintf(
+		"Not equal: \nexpected: %s\nactual  : %s",
+		expected,
+		actual,
+	)
+
+	return assert.Fail(t, message)
+}
+
+func toJson(t *testing.T, target cadence.Value) string {
+	actualJSONBytes, err := jsoncdc.Encode(target)
+	require.NoError(t, err)
+	actualJSON := string(actualJSONBytes)
+	return actualJSON
 }
