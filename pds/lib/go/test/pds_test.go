@@ -9,10 +9,32 @@ import (
 	"testing"
 )
 
+func TestPDSDeployment(t *testing.T) {
+	b, accountKeys := newTestSetup(t)
+
+	// Create new keys for the NFT contract account
+	// and deploy all the NFT contracts
+	exampleNFTAccountKey, _ := accountKeys.NewWithSigner()
+	nftAddress, _, exampleNFTAddress := deployNFTContracts(t, b, exampleNFTAccountKey)
+
+	t.Run("Should have properly initialized fields after deployment", func(t *testing.T) {
+
+		script := templates.GenerateGetTotalSupplyScript(nftAddress, exampleNFTAddress)
+		supply := executeScriptAndCheck(t, b, script, nil)
+		assert.Equal(t, cadence.NewUInt64(0), supply)
+
+		assertCollectionLength(t, b, nftAddress, exampleNFTAddress,
+			exampleNFTAddress,
+			0,
+		)
+	})
+}
+
 //------------------------------------------------------------
 // This tests if PDS can support to mint multiple packs
 //------------------------------------------------------------
 func TestMultiplePackNFTs(t *testing.T) {
+
 	b := newEmulator()
 	contracts := PackNftDeployContracts(t, b)
 	contracts = PDSDeployContracts(t, b)

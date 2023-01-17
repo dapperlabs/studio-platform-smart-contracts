@@ -19,7 +19,6 @@ const (
 	PDSPath      = "../../../contracts/PDS.cdc"
 	IPackNftPath = "../../../contracts/IPackNFT.cdc"
 
-	// Deploy scripts path
 	DeployPackNftPath = "../../../transactions/deploy/deploy-packNFT-with-auth.cdc"
 	DeployPDSPath     = "../../../transactions/deploy/deploy-pds-with-auth.cdc"
 )

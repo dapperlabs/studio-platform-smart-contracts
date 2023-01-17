@@ -1,4 +1,4 @@
-module github.com/dapperlabs/studio-platform-smart-contracts/lib/go/test
+module github.com/dapperlabs/studio-platform-smart-contracts/lib/go
 
 go 1.16
 
