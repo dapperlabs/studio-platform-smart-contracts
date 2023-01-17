@@ -9,75 +9,10 @@ import (
 	sdktemplates "github.com/onflow/flow-go-sdk/templates"
 	"github.com/onflow/flow-go-sdk/test"
 	"github.com/onflow/flow-nft/lib/go/contracts"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"testing"
 )
-
-// Mints a single NFT from the ExampleNFT contract
-// with standard metadata fields and royalty cuts
-func mintExampleNFT(
-	t *testing.T,
-	b *emulator.Blockchain,
-	accountKeys *test.AccountKeys,
-	nftAddress, metadataAddress, exampleNFTAddress flow.Address,
-	exampleNFTAccountKey *flow.AccountKey,
-	exampleNFTSigner crypto.Signer,
-) {
-
-	// Create two new accounts to act as beneficiaries for royalties
-	beneficiaryAddress1, _, beneficiarySigner1 := newAccountWithAddress(b, accountKeys)
-	setupRoyaltyReceiver(t, b,
-		metadataAddress,
-		beneficiaryAddress1,
-		beneficiarySigner1,
-	)
-	beneficiaryAddress2, _, beneficiarySigner2 := newAccountWithAddress(b, accountKeys)
-	setupRoyaltyReceiver(t, b,
-		metadataAddress,
-		beneficiaryAddress2,
-		beneficiarySigner2,
-	)
-
-	// Generate the script that mints a new NFT and deposits it into the recipient's account
-	// whose address is the first argument to the transaction
-	script := templates.GenerateMintNFTScript(nftAddress, exampleNFTAddress, metadataAddress, flow.HexToAddress(emulatorFTAddress))
-
-	// Create the transaction object with the generated script and authorizer
-	tx := createTxWithTemplateAndAuthorizer(b, script, exampleNFTAddress)
-
-	// Assemble the cut information for royalties
-	cut1 := CadenceUFix64("0.25")
-	cut2 := CadenceUFix64("0.40")
-	cuts := []cadence.Value{cut1, cut2}
-
-	// Assemble the royalty description and beneficiary addresses to get their receivers
-	royaltyDescriptions := []cadence.Value{cadence.String("Minter royalty"), cadence.String("Creator royalty")}
-	royaltyBeneficiaries := []cadence.Value{cadence.NewAddress(beneficiaryAddress1), cadence.NewAddress(beneficiaryAddress2)}
-
-	// First argument is the recipient of the newly minted NFT
-	tx.AddArgument(cadence.NewAddress(exampleNFTAddress))
-	tx.AddArgument(cadence.String("Example NFT 0"))
-	tx.AddArgument(cadence.String("This is an example NFT"))
-	tx.AddArgument(cadence.String("example.jpeg"))
-	tx.AddArgument(cadence.NewArray(cuts))
-	tx.AddArgument(cadence.NewArray(royaltyDescriptions))
-	tx.AddArgument(cadence.NewArray(royaltyBeneficiaries))
-
-	serviceSigner, _ := b.ServiceKey().Signer()
-
-	signAndSubmit(
-		t, b, tx,
-		[]flow.Address{
-			b.ServiceKey().Address,
-			exampleNFTAddress,
-		},
-		[]crypto.Signer{
-			serviceSigner,
-			exampleNFTSigner,
-		},
-		false,
-	)
-}
 
 // Deploys the NonFungibleToken, MetadataViews, and ExampleNFT contracts to new accounts
 // and returns their addresses
@@ -126,21 +61,8 @@ func deployPackNftContracts(t *testing.T, b *emulator.Blockchain) PackNftContrac
 
 	packNFTencodedStr := hex.EncodeToString(PackNftCode)
 	txBytes, _ := LoadPackNFTDeployScript()
-	latestBlock, _ := b.GetLatestBlock()
-	blockId := latestBlock.ID()
 
-	tx1 := flow.NewTransaction().
-		SetScript(txBytes).SetGasLimit(100).
-		SetProposalKey(PackNftAddress, PackNftAccountKey.Index, PackNftAccountKey.SequenceNumber).
-		SetReferenceBlockID(sdk.Identifier(blockId)).
-		SetPayer(PackNftAddress).
-		AddAuthorizer(PackNftAddress)
-
-	tx1.
-		SetGasLimit(100).
-		SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
-		SetPayer(b.ServiceKey().Address)
-
+	tx1 := createTxWithTemplateAndAuthorizer(b, txBytes, PackNftAddress)
 	_ = tx1.AddArgument(cadence.String("PackNFT"))
 	_ = tx1.AddArgument(cadence.String(packNFTencodedStr))
 	_ = tx1.AddArgument(cadence.Path{Domain: "storage", Identifier: "PackNFTCollection"})
@@ -195,16 +117,8 @@ func deployPDSContracts(t *testing.T, b *emulator.Blockchain) PdsContracts {
 	require.NoError(t, err)
 
 	PDSEncodedStr := hex.EncodeToString(PDSCode)
-	txBytes, _ := LoadPDSDeployScript()
-	latestBlock, _ := b.GetLatestBlock()
-	blockId := latestBlock.ID()
-
-	tx1 := flow.NewTransaction().
-		SetScript(txBytes).SetGasLimit(100).
-		SetProposalKey(PDSAddress, PDSAccountKey.Index, PDSAccountKey.SequenceNumber).
-		SetReferenceBlockID(sdk.Identifier(blockId)).
-		SetPayer(PDSAddress).
-		AddAuthorizer(PDSAddress)
+	script, _ := LoadPDSDeployScript()
+	tx1 := createTxWithTemplateAndAuthorizer(b, script, PDSAddress)
 
 	tx1.
 		SetGasLimit(100).

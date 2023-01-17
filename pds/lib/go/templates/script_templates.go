@@ -3,7 +3,7 @@ package templates
 import (
 	"github.com/onflow/flow-go-sdk"
 
-	"github.com/onflow/flow-nft/lib/go/templates/internal/assets"
+	"github.com/dapperlabs/studio-platform-smart-contracts/lib/go/templates/internal/assets"
 )
 
 const (
