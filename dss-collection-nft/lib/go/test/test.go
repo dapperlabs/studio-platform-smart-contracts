@@ -72,7 +72,7 @@ func DSSCollectionDeployContracts(t *testing.T, b *emulator.Blockchain) Contract
 	assert.NoError(t, err)
 
 	DSSCollectionAccountKey, DSSCollectionSigner := accountKeys.NewWithSigner()
-	DSSCollectionCode := dssCollectionContract(nftAddress)
+	DSSCollectionCode := LoadDSSCollectionContract(nftAddress, metadataViewsAddr)
 
 	DSSCollectionAddress, err := b.CreateAccount(
 		[]*flow.AccountKey{DSSCollectionAccountKey},

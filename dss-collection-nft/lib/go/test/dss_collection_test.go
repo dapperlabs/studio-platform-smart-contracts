@@ -2,9 +2,8 @@ package test
 
 import (
 	emulator "github.com/onflow/flow-emulator"
-	"testing"
-
 	"github.com/stretchr/testify/assert"
+	"testing"
 )
 
 // ------------------------------------------------------------

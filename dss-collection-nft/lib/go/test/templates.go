@@ -48,7 +48,7 @@ const (
 // ------------------------------------------------------------
 // Accounts
 // ------------------------------------------------------------
-func replaceAddresses(code []byte, contracts Contracts) []byte {
+func rX(code []byte, contracts Contracts) []byte {
 	nftRe := regexp.MustCompile(nftAddressPlaceholder)
 	code = nftRe.ReplaceAll(code, []byte("0x"+contracts.NFTAddress.String()))
 
@@ -60,11 +60,24 @@ func replaceAddresses(code []byte, contracts Contracts) []byte {
 	return code
 }
 
-func dssCollectionContract(nftAddress flow.Address) []byte {
+func replaceAddresses(code []byte, contracts Contracts) []byte {
+	nftRe := regexp.MustCompile(nftAddressPlaceholder)
+	code = nftRe.ReplaceAll(code, []byte("0x"+contracts.NFTAddress.String()))
+
+	DapperSportRe := regexp.MustCompile(DSSCollectionAddressPlaceholder)
+	code = DapperSportRe.ReplaceAll(code, []byte("0x"+contracts.DSSCollectionAddress.String()))
+
+	code = []byte(strings.ReplaceAll(string(code), metadataViewsAddressPlaceholder, "0x"+contracts.MetadataViewsAddress.String()))
+
+	return code
+}
+
+func LoadDSSCollectionContract(nftAddress flow.Address, metadataViewsAddress flow.Address) []byte {
 	code := readFile(DSSCollectionPath)
 
 	nftRe := regexp.MustCompile(nftAddressPlaceholder)
 	code = nftRe.ReplaceAll(code, []byte("0x"+nftAddress.String()))
+	code = []byte(strings.ReplaceAll(string(code), metadataViewsAddressPlaceholder, "0x"+metadataViewsAddress.String()))
 
 	return code
 }
