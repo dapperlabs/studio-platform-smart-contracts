@@ -34,7 +34,7 @@ func fundAccount(
 		AddAuthorizer(b.ServiceKey().Address)
 
 	tx.AddArgument(cadence.NewAddress(receiverAddress))
-	tx.AddArgument(cadenceUFix64(amount))
+	tx.AddArgument(CadenceUFix64(amount))
 
 	signer, err := b.ServiceKey().Signer()
 	require.NoError(t, err)
