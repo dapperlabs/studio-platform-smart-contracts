@@ -1,6 +1,6 @@
 import Crypto
-import NonFungibleToken from "./NonFungibleToken.cdc"
-import IPackNFT from "IPackNFT.cdc"
+import NonFungibleToken from 0x{{.NonFungibleToken}}
+import IPackNFT from 0x{{.IPackNFT}}
 
 pub contract PackNFT: NonFungibleToken, IPackNFT {
 
@@ -34,12 +34,11 @@ pub contract PackNFT: NonFungibleToken, IPackNFT {
     pub resource PackNFTOperator: IPackNFT.IOperator {
 
          pub fun mint(distId: UInt64, commitHash: String, issuer: Address): @NFT{
-            let id = PackNFT.totalSupply + 1
-            let nft <- create NFT(initID: id, commitHash: commitHash, issuer: issuer)
+            let nft <- create NFT(commitHash: commitHash, issuer: issuer)
             PackNFT.totalSupply = PackNFT.totalSupply + 1
             let p  <-create Pack(commitHash: commitHash, issuer: issuer)
-            PackNFT.packs[id] <-! p
-            emit Minted(id: id, hash: commitHash.decodeHex(), distId: distId)
+            PackNFT.packs[nft.id] <-! p
+            emit Minted(id: nft.id, hash: commitHash.decodeHex(), distId: distId)
             return <- nft
          }
 
@@ -132,8 +131,8 @@ pub contract PackNFT: NonFungibleToken, IPackNFT {
             destroy p
         }
 
-        init(initID: UInt64, commitHash: String, issuer: Address ) {
-            self.id = initID
+        init(commitHash: String, issuer: Address ) {
+            self.id = self.uuid
             self.hash = commitHash.decodeHex()
             self.issuer = issuer
         }
@@ -187,7 +186,7 @@ pub contract PackNFT: NonFungibleToken, IPackNFT {
         }
 
         pub fun borrowPackNFT(id: UInt64): &IPackNFT.NFT? {
-            let nft<- self.ownedNFTs.remove(key: id) ?? panic("missing NFT")
+            let nft <- self.ownedNFTs.remove(key: id) ?? panic("missing NFT")
             let token <- nft as! @PackNFT.NFT
             let ref = &token as &IPackNFT.NFT
             self.ownedNFTs[id] <-! token as! @PackNFT.NFT
@@ -254,4 +253,3 @@ pub contract PackNFT: NonFungibleToken, IPackNFT {
     }
 
 }
-

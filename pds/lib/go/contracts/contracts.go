@@ -3,17 +3,18 @@ package contracts
 //go:generate go-bindata -prefix ../../../contracts -o internal/assets/assets.go -pkg assets -nometadata -nomemcopy ../../../contracts
 
 import (
-	"regexp"
+	//"regexp"
 
 	_ "github.com/kevinburke/go-bindata"
+	"regexp"
 
 	"github.com/dapperlabs/studio-platform-smart-contracts/lib/go/contracts/internal/assets"
 	"github.com/onflow/flow-go-sdk"
 )
 
 var (
-	placeholderNonFungibleToken = regexp.MustCompile(`"[^"\s].*/NonFungibleToken.cdc"`)
-	placeholderIPackNFT         = regexp.MustCompile(`"[^"\s].*/IPackNFT.cdc"`)
+	placeholderNonFungibleToken = regexp.MustCompile(`{{.NonFungibleToken}}`)
+	placeholderIPackNFT         = regexp.MustCompile(`{{.IPackNFT}}`)
 )
 
 const (
@@ -28,7 +29,7 @@ const (
 func IPackNFT(nftAddress flow.Address) []byte {
 	code := assets.MustAssetString(filenameIPackNFT)
 
-	code = placeholderNonFungibleToken.ReplaceAllString(code, "0x"+nftAddress.String())
+	code = placeholderNonFungibleToken.ReplaceAllString(code, nftAddress.String())
 
 	return []byte(code)
 }
@@ -39,8 +40,8 @@ func IPackNFT(nftAddress flow.Address) []byte {
 func PackNFT(nftAddress, iPackNFTAddress flow.Address) []byte {
 	code := assets.MustAssetString(filenamePackNFT)
 
-	code = placeholderNonFungibleToken.ReplaceAllString(code, "0x"+nftAddress.String())
-	code = placeholderIPackNFT.ReplaceAllString(code, "0x"+iPackNFTAddress.String())
+	code = placeholderNonFungibleToken.ReplaceAllString(code, nftAddress.String())
+	code = placeholderIPackNFT.ReplaceAllString(code, iPackNFTAddress.String())
 
 	return []byte(code)
 }
@@ -51,8 +52,8 @@ func PackNFT(nftAddress, iPackNFTAddress flow.Address) []byte {
 func PDS(nftAddress, iPackNFTAddress flow.Address) []byte {
 	code := assets.MustAssetString(filenamePDS)
 
-	code = placeholderNonFungibleToken.ReplaceAllString(code, "0x"+nftAddress.String())
-	code = placeholderIPackNFT.ReplaceAllString(code, "0x"+iPackNFTAddress.String())
+	code = placeholderNonFungibleToken.ReplaceAllString(code, nftAddress.String())
+	code = placeholderIPackNFT.ReplaceAllString(code, iPackNFTAddress.String())
 
 	return []byte(code)
 }

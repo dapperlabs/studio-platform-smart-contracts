@@ -1,14 +1,14 @@
 import Crypto
-import NonFungibleToken from "./NonFungibleToken.cdc"
+import NonFungibleToken from 0x{{.NonFungibleToken}}
 
 
 pub contract interface IPackNFT{
     /// StoragePath for Collection Resource
-    /// 
-    pub let CollectionStoragePath: StoragePath 
+    ///
+    pub let CollectionStoragePath: StoragePath
     /// PublicPath expected for deposit
-    /// 
-    pub let CollectionPublicPath: PublicPath 
+    ///
+    pub let CollectionPublicPath: PublicPath
     /// PublicPath for receiving PackNFT
     ///
     pub let CollectionIPackNFTPublicPath: PublicPath
@@ -16,7 +16,7 @@ pub contract interface IPackNFT{
     ///
     pub let OperatorStoragePath: StoragePath
     /// PrivatePath to share IOperator interfaces with Operator (typically with PDS account)
-    /// 
+    ///
     pub let OperatorPrivPath: PrivatePath
     /// Request for Reveal
     ///
@@ -25,7 +25,7 @@ pub contract interface IPackNFT{
     ///
     /// This is emitted when owner of a PackNFT request for the entitled NFT to be
     /// deposited to its account
-    pub event OpenRequest(id: UInt64) 
+    pub event OpenRequest(id: UInt64)
     /// New Pack NFT
     ///
     /// Emitted when a new PackNFT has been minted

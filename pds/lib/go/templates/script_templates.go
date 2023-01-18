@@ -42,10 +42,10 @@ func GenerateGetCollectionLengthScript(nftAddress, exampleNFTAddress flow.Addres
 	return replaceAddresses(code, nftAddress, exampleNFTAddress, flow.EmptyAddress, flow.EmptyAddress, flow.EmptyAddress)
 }
 
-// GenerateGetTotalSupplyScript creates a script that reads
-// the total supply of tokens in existence
-// and makes assertions about the number
-func GenerateGetTotalSupplyScript(nftAddress, exampleNFTAddress flow.Address) []byte {
-	code := assets.MustAssetString(filenameGetTotalSupply)
-	return replaceAddresses(code, nftAddress, exampleNFTAddress, flow.EmptyAddress, flow.EmptyAddress, flow.EmptyAddress)
-}
+//// GenerateGetTotalSupplyScript creates a script that reads
+//// the total supply of tokens in existence
+//// and makes assertions about the number
+//func GenerateGetTotalSupplyScript(nftAddress, exampleNFTAddress flow.Address) []byte {
+//	code := assets.MustAssetString(filenameGetTotalSupply)
+//	return replaceAddresses(code, nftAddress, exampleNFTAddress, flow.EmptyAddress, flow.EmptyAddress, flow.EmptyAddress)
+//}

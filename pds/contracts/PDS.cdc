@@ -1,12 +1,12 @@
-import NonFungibleToken from "./NonFungibleToken.cdc"
-import IPackNFT from "./IPackNFT.cdc"
+import NonFungibleToken from 0x{{.NonFungibleToken}}
+import IPackNFT from 0x{{.IPackNFT}}
 
 pub contract PDS{
     /// The collection to hold all escrowed NFT
     /// Original collection created from PackNFT
     pub var version: String
-    pub let PackIssuerStoragePath: StoragePath 
-    pub let PackIssuerCapRecv: PublicPath 
+    pub let PackIssuerStoragePath: StoragePath
+    pub let PackIssuerCapRecv: PublicPath
     pub let DistCreatorStoragePath: StoragePath
     pub let DistCreatorPrivPath: PrivatePath
     pub let DistManagerStoragePath: StoragePath
@@ -15,34 +15,34 @@ pub contract PDS{
     access(contract) let Distributions: {UInt64: DistInfo}
     access(contract) let DistSharedCap: @{UInt64: SharedCapabilities}
 
-    /// Issuer has created a distribution 
+    /// Issuer has created a distribution
     pub event DistributionCreated(DistId: UInt64, title: String, metadata: {String: String}, state: UInt8)
-    
+
     /// Distribution manager has updated a distribution state
     pub event DistributionStateUpdated(DistId: UInt64, state: UInt8)
 
     pub enum DistState: UInt8 {
         pub case Initialized
-        pub case Invalid 
+        pub case Invalid
         pub case Complete
     }
 
     pub struct DistInfo {
         pub let title: String
         pub let metadata: {String: String}
-        pub var state: PDS.DistState 
-        
+        pub var state: PDS.DistState
+
         pub fun setState(newState: PDS.DistState) {
             self.state = newState
         }
-        
+
         init(title: String, metadata: {String: String}) {
             self.title = title
             self.metadata = metadata
-            self.state = PDS.DistState.Initialized 
+            self.state = PDS.DistState.Initialized
         }
     }
-    
+
 
     pub struct Collectible: IPackNFT.Collectible {
         pub let address: Address
@@ -70,7 +70,7 @@ pub contract PDS{
             }
             var str = c.concat(a).concat(".").concat(self.contractName).concat(".").concat(self.id.toString())
             return str
-        } 
+        }
         init(address: Address, contractName: String, id: UInt64) {
             self.address = address
             self.contractName = contractName
@@ -86,7 +86,7 @@ pub contract PDS{
             let c = self.withdrawCap.borrow() ?? panic("no such cap")
             return <- c.withdraw(withdrawID: withdrawID)
         }
-        
+
         pub fun mintPackNFT(distId: UInt64, commitHashes: [String], issuer: Address, recvCap: &{NonFungibleToken.CollectionPublic} ){
             var i = 0
             let c = self.operatorCap.borrow() ?? panic("no such cap")
