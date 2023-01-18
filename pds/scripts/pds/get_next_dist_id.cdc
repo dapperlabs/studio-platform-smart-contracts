@@ -1,4 +1,4 @@
-import PDS from "../../contracts/PDS.cdc"
+import PDS from 0x{{.PDS}}
 
 pub fun main(): UInt64 {
     return PDS.nextDistId

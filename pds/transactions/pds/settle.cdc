@@ -1,4 +1,4 @@
-import PDS from "../../contracts/PDS.cdc"
+import PDS from 0x{{.PDS}}
 import {{.CollectibleNFTName}} from 0x{{.CollectibleNFTAddress}}
 
 transaction (distId: UInt64, nftIDs: [UInt64]) {

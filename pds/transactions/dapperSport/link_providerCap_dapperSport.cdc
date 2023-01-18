@@ -1,5 +1,5 @@
 import NonFungibleToken from 0x{{.NonFungibleToken}}
-import ExampleNFT from 0x{{.ExampleNFT}}
+import {{.DapperSportContract}} from 0x{{.DapperSportAddress}}
 
 transaction(NFTProviderPath: PrivatePath) {
 
@@ -8,7 +8,7 @@ transaction(NFTProviderPath: PrivatePath) {
             return
         }
         // This needs to be used to allow for PDS to withdraw
-        signer.link<&{NonFungibleToken.Provider}>( NFTProviderPath, target: ExampleNFT.CollectionStoragePath)
+        signer.link<&{NonFungibleToken.Provider}>( NFTProviderPath, target: {{.DapperSportContract}}.CollectionStoragePath)
     }
 
 }

@@ -1,6 +1,6 @@
-import PDS from "../../contracts/PDS.cdc"
+import PDS from 0x{{.PDS}}
 import {{.PackNFTName}} from 0x{{.PackNFTAddress}}
-import NonFungibleToken from "../../contracts/NonFungibleToken.cdc"
+import NonFungibleToken from 0x{{.NonFungibleToken}}
 
 transaction (distId: UInt64, commitHashes: [String], issuer: Address ) {
     prepare(pds: AuthAccount) {

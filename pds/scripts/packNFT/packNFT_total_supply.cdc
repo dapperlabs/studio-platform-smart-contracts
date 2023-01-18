@@ -1,4 +1,4 @@
-import PackNFT from "../../contracts/PackNFT.cdc"
+import PackNFT from 0x{{.PackNFT}}
 
 pub fun main(): UInt64{
     return PackNFT.totalSupply 

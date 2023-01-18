@@ -1,4 +1,4 @@
-import NonFungibleToken from "../../contracts/NonFungibleToken.cdc"
+import NonFungibleToken from 0x{{.NonFungibleToken}}
 import {{.CollectibleNFTName}} from 0x{{.CollectibleNFTAddress}}
 
 // Used for testing purposes
