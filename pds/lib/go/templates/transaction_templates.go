@@ -5,7 +5,7 @@ import (
 
 	_ "github.com/kevinburke/go-bindata"
 
-	"github.com/onflow/flow-nft/lib/go/templates/internal/assets"
+	"github.com/dapperlabs/studio-platform-smart-contracts/lib/go/templates/internal/assets"
 )
 
 const (

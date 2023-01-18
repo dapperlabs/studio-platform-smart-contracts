@@ -13,7 +13,7 @@ func TestPDSDeployment(t *testing.T) {
 	// Create new keys for the NFT contract account
 	// and deploy all the NFT contracts
 	exampleNFTAccountKey, _ := accountKeys.NewWithSigner()
-	nftAddress, _, exampleNFTAddress := deployNFTContracts(t, b, exampleNFTAccountKey)
+	nftAddress, _, exampleNFTAddress, _, _ := deployPDSContracts(t, b, exampleNFTAccountKey, exampleNFTAccountKey)
 
 	t.Run("Should have properly initialized fields after deployment", func(t *testing.T) {
 
