@@ -34,9 +34,10 @@ const (
 	GetCollectionGroupByIDScriptPath     = ScriptsRootPath + "/get_collection_group.cdc"
 
 	// NFTs
-	MintNFTTxPath           = TransactionsRootPath + "/admin/mint_nft.cdc"
-	ReadNftSupplyScriptPath = ScriptsRootPath + "/total_supply.cdc"
-	ReadNftPropertiesTxPath = ScriptsRootPath + "/get_nft.cdc"
+	MintNFTTxPath                        = TransactionsRootPath + "/admin/mint_nft.cdc"
+	ReadNftSupplyScriptPath              = ScriptsRootPath + "/total_supply.cdc"
+	ReadNftPropertiesTxPath              = ScriptsRootPath + "/get_nft.cdc"
+	DSSCollectionDisplayMetadataViewPath = ScriptsRootPath + "/metadata_display_view.cdc"
 
 	// MetadataViews
 	MetadataViewsContractsBaseURL = "https://raw.githubusercontent.com/onflow/flow-nft/master/contracts/"
@@ -171,4 +172,11 @@ func LoadMetadataViews(ftAddress flow.Address, nftAddress flow.Address) []byte {
 	code = []byte(strings.Replace(strings.Replace(string(code), MetadataFTReplaceAddress, "0x"+ftAddress.String(), 1), MetadataNFTReplaceAddress, "0x"+nftAddress.String(), 1))
 
 	return code
+}
+
+func loadDSSCollectionDisplayMetadataViewScript(contracts Contracts) []byte {
+	return replaceAddresses(
+		readFile(DSSCollectionDisplayMetadataViewPath),
+		contracts,
+	)
 }

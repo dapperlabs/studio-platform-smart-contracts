@@ -238,12 +238,13 @@ func testMintNFT(
 	shouldRevert bool,
 	recipientAddress string,
 ) {
+	collectionGroupName := "Top Shot All Stars"
 	createCollectionGroup(
 		t,
 		b,
 		contracts,
 		false,
-		"Top Shot All Stars",
+		collectionGroupName,
 		"public",
 		"tscollection",
 	)
@@ -279,10 +280,22 @@ func testMintNFT(
 	)
 
 	if !shouldRevert {
-		nft := getNFTData(t, b, contracts, userAddress.String(), 1)
-		assert.Equal(t, uint64(1), nft.ID)
-		assert.Equal(t, uint64(1), nft.CollectionGroupID)
+		nftID := 1
+		nft := getNFTData(t, b, contracts, userAddress.String(), nftID)
+		assert.Equal(t, uint64(nftID), nft.ID)
+		assert.Equal(t, uint64(nftID), nft.CollectionGroupID)
 		assert.Equal(t, userAddress.String(), nft.CompletedBy)
 		assert.NotNil(t, nft.CompletionDate)
+
+		displayView := getDSSCollectionNFTDisplayMetadataView(
+			t,
+			b,
+			contracts,
+			userAddress,
+			uint64(nftID),
+		)
+		assert.Contains(t, displayView.Name, collectionGroupName)
+		assert.Contains(t, displayView.Description, userAddress.String())
+		assert.NotNil(t, displayView.ImageURL)
 	}
 }

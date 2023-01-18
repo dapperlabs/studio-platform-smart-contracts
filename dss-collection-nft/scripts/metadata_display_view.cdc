@@ -1,0 +1,39 @@
+import DSSCollection from "../../contracts/DSSCollection.cdc"
+import MetadataViews from 0xMETADATAVIEWSADDRESS
+
+pub struct NFT {
+    pub let name: String
+    pub let description: String
+    pub let thumbnail: String
+
+    init(
+        name: String,
+        description: String,
+        thumbnail: String,
+    ) {
+        self.name = name
+        self.description = description
+        self.thumbnail = thumbnail
+    }
+}
+
+pub fun main(address: Address, id: UInt64): NFT {
+    let account = getAccount(address)
+
+    let collectionRef = account.getCapability(DSSCollection.CollectionPublicPath)
+                            .borrow<&{DSSCollection.DSSCollectionNFTCollectionPublic}>()!
+
+    let nft = collectionRef.borrowDSSCollectionNFT(id: id)!
+
+    // Get the basic display information for this NFT
+    let view = nft.resolveView(Type<MetadataViews.Display>())!
+
+    let display = view as! MetadataViews.Display
+
+    return NFT(
+        name: display.name,
+        description: display.description,
+        thumbnail: display.thumbnail.uri()
+    )
+}
+

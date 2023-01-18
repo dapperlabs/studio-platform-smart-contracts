@@ -20,6 +20,12 @@ type NFTData struct {
 	CompletedBy       string
 }
 
+type DisplayView struct {
+	Name        string
+	Description string
+	ImageURL    string
+}
+
 func parseCollectionGroupData(value cadence.Value) CollectionGroupData {
 	fields := value.(cadence.Struct).Fields
 	return CollectionGroupData{
@@ -39,6 +45,15 @@ func parseNFTProperties(value cadence.Value) NFTData {
 		array[2].ToGoValue().(uint64),
 		array[3].ToGoValue().(uint64),
 		array[4].ToGoValue().(string),
+	}
+}
+
+func parseMetadataDisplayView(value cadence.Value) DisplayView {
+	fields := value.(cadence.Struct).Fields
+	return DisplayView{
+		fields[0].ToGoValue().(string),
+		fields[1].ToGoValue().(string),
+		fields[2].ToGoValue().(string),
 	}
 }
 
