@@ -1,21 +1,14 @@
 /*
-    Adapted from: AllDay.cdc
+    DSSCollection contains collection group & completion functionality for DSS.
     Author: Jeremy Ahrens jer.ahrens@dapperlabs.com
 */
 
 import NonFungibleToken from "./NonFungibleToken.cdc"
-
-/*
-    DSSCollection contains collection group & completion functionality. 
-    It is designed for use by all Dapper Sports.
-*/
+import MetadataViews from "./MetadataViews.cdc"
 
 // The DSSCollection contract
 //
 pub contract DSSCollection: NonFungibleToken {
-    //------------------------------------------------------------
-    // Events
-    //------------------------------------------------------------
 
     // Contract Events
     //
@@ -58,10 +51,6 @@ pub contract DSSCollection: NonFungibleToken {
     pub let AdminStoragePath:       StoragePath
     pub let MinterPrivatePath:      PrivatePath
 
-    //------------------------------------------------------------
-    // Publicly readable contract state
-    //------------------------------------------------------------
-
     // Entity Counts
     //
     pub var totalSupply:                 UInt64
@@ -70,10 +59,6 @@ pub contract DSSCollection: NonFungibleToken {
     // List of collection groups
     //
     access(self) let collectionGroupByID: @{UInt64: CollectionGroup}
-
-    //------------------------------------------------------------
-    // CollectionGroup
-    //------------------------------------------------------------
 
     // A public struct to access CollectionGroup data
     //
@@ -157,6 +142,7 @@ pub contract DSSCollection: NonFungibleToken {
             }
 
             // Create the DSSCollection NFT, filled out with our information
+            //
             let dssCollectionNFT <- create NFT(
                 id: DSSCollection.totalSupply + 1,
                 collectionGroupID: self.id,
@@ -164,8 +150,6 @@ pub contract DSSCollection: NonFungibleToken {
                 completedBy: completedBy
             )
             DSSCollection.totalSupply = DSSCollection.totalSupply + 1
-            
-            // increment serial number
             self.numMinted = self.numMinted + 1 as UInt64
 
             return <- dssCollectionNFT
@@ -188,7 +172,6 @@ pub contract DSSCollection: NonFungibleToken {
             self.numMinted = 0 as UInt64
             self.nftIDInCollectionGroup = {}
 
-            // Increment for the nextCollectionGroupID
             DSSCollection.nextCollectionGroupID = self.id + 1 as UInt64
 
             emit CollectionGroupCreated(
@@ -226,21 +209,49 @@ pub contract DSSCollection: NonFungibleToken {
         }
     }
 
-    //------------------------------------------------------------
-    // NFT
-    //------------------------------------------------------------
-
     // A DSSCollection NFT
     //
-    pub resource NFT: NonFungibleToken.INFT {
+    pub resource NFT: NonFungibleToken.INFT, MetadataViews.Resolver {
         pub let id: UInt64
         pub let collectionGroupID: UInt64
         pub let serialNumber: UInt64
         pub let completionDate: UFix64
         pub let completedBy: String
 
+        pub fun name(): String {
+            let collectionGroupData: DSSCollection.CollectionGroupData
+                = DSSCollection.getCollectionGroupData(id: self.collectionGroupID)
+            return collectionGroupData.name
+                .concat(" Completion Token")
+        }
+
+        pub fun description(): String {
+            let serialNumber: String = self.serialNumber.toString()
+            let completionDate: String = self.completionDate.toString()
+            return "Completed by "
+                .concat(self.completedBy)
+                .concat(" on ")
+                .concat(completionDate)
+                .concat(" with serial number ")
+                .concat(serialNumber)
+        }
+
         destroy() {
             emit DSSCollectionNFTBurned(id: self.id)
+        }
+
+        pub fun getViews(): [Type] {
+            return [
+                Type<MetadataViews.Display>()
+            ]
+        }
+
+        pub fun resolveView(_ view: Type): AnyStruct? {
+            return MetadataViews.Display(
+                name: self.name(),
+                description: self.description(),
+                thumbnail: MetadataViews.HTTPFile(url:"https://storage.googleapis.com/dl-nfl-assets-prod/static/images/collection-group/token-placeholder.png")
+            )
         }
 
         init(
@@ -269,10 +280,6 @@ pub contract DSSCollection: NonFungibleToken {
         }
     }
 
-    //------------------------------------------------------------
-    // Collection
-    //------------------------------------------------------------
-
     // A public collection interface that allows DSSCollection NFTs to be borrowed
     //
     pub resource interface DSSCollectionNFTCollectionPublic {
@@ -296,7 +303,8 @@ pub contract DSSCollection: NonFungibleToken {
         NonFungibleToken.Provider,
         NonFungibleToken.Receiver,
         NonFungibleToken.CollectionPublic,
-        DSSCollectionNFTCollectionPublic
+        DSSCollectionNFTCollectionPublic,
+        MetadataViews.ResolverCollection
     {
         // dictionary of NFT conforming tokens
         // NFT is a resource type with an UInt64 ID field
@@ -373,6 +381,12 @@ pub contract DSSCollection: NonFungibleToken {
             }
         }
 
+        pub fun borrowViewResolver(id: UInt64): &AnyResource{MetadataViews.Resolver} {
+            let nft = (&self.ownedNFTs[id] as auth &NonFungibleToken.NFT?)!
+            let dssNFT = nft as! &DSSCollection.NFT
+            return dssNFT as &AnyResource{MetadataViews.Resolver}
+        }
+
         destroy() {
             destroy self.ownedNFTs
         }
@@ -387,10 +401,6 @@ pub contract DSSCollection: NonFungibleToken {
     pub fun createEmptyCollection(): @NonFungibleToken.Collection {
         return <- create Collection()
     }
-
-    //------------------------------------------------------------
-    // Admin
-    //------------------------------------------------------------
 
     // An interface containing the Admin function that allows minting NFTs
     //
@@ -471,10 +481,6 @@ pub contract DSSCollection: NonFungibleToken {
             return <- self.borrowCollectionGroup(id: collectionGroupID).mint(completedBy: completedBy)
         }
     }
-
-    //------------------------------------------------------------
-    // Contract lifecycle
-    //------------------------------------------------------------
 
     // DSSCollection contract initializer
     //
