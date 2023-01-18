@@ -7,9 +7,9 @@ import (
 )
 
 const (
-	filenameBorrowNFT           = "scripts/borrow_nft.cdc"
+	filenameBorrowNFT           = "scripts/exampleNFT/borrow_nft.cdc"
 	filenameGetCollectionLength = "scripts/get_collection_length.cdc"
-	filenameGetTotalSupply      = "scripts/get_total_supply.cdc"
+	filenameGetTotalSupply      = "scripts/exampleNFT/get_total_supply.cdc"
 	filenameGetNFTMetadata      = "scripts/get_nft_metadata.cdc"
 	filenameGetNFTView          = "scripts/get_nft_view.cdc"
 )
@@ -19,6 +19,14 @@ const (
 // If it owns it, it will not fail.
 func GenerateBorrowNFTScript(nftAddress, exampleNFTAddress flow.Address) []byte {
 	code := assets.MustAssetString(filenameBorrowNFT)
+	return replaceAddresses(code, nftAddress, exampleNFTAddress, flow.EmptyAddress, flow.EmptyAddress, flow.EmptyAddress)
+}
+
+// GenerateGetTotalSupplyScript creates a script that retrieves an NFT collection
+// from storage and tries to borrow a reference for an NFT that it owns.
+// If it owns it, it will not fail.
+func GenerateGetTotalSupplyScript(nftAddress, exampleNFTAddress flow.Address) []byte {
+	code := assets.MustAssetString(filenameGetTotalSupply)
 	return replaceAddresses(code, nftAddress, exampleNFTAddress, flow.EmptyAddress, flow.EmptyAddress, flow.EmptyAddress)
 }
 

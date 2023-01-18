@@ -1,6 +1,10 @@
 package test
 
 import (
+	"github.com/dapperlabs/studio-platform-smart-contracts/lib/go/templates"
+	"github.com/onflow/cadence"
+	jsoncdc "github.com/onflow/cadence/encoding/json"
+	"github.com/stretchr/testify/assert"
 	"testing"
 )
 
@@ -19,23 +23,23 @@ func TestMintExampleNFTs(t *testing.T) {
 			exampleNFTAccountKey,
 			exampleNFTSigner)
 
-		//script := templates.GenerateBorrowNFTScript(nftAddress, exampleNFTAddress)
-		//executeScriptAndCheck(
-		//	t, b,
-		//	script,
-		//	[][]byte{
-		//		jsoncdc.MustEncode(cadence.NewAddress(exampleNFTAddress)),
-		//		jsoncdc.MustEncode(cadence.NewUInt64(0)),
-		//	},
-		//)
+		script := templates.GenerateBorrowNFTScript(nftAddress, exampleNFTAddress)
+		executeScriptAndCheck(
+			t, b,
+			script,
+			[][]byte{
+				jsoncdc.MustEncode(cadence.NewAddress(exampleNFTAddress)),
+				jsoncdc.MustEncode(cadence.NewUInt64(0)),
+			},
+		)
 
-		//script = templates.GenerateGetTotalSupplyScript(nftAddress, exampleNFTAddress)
-		//supply := executeScriptAndCheck(t, b, script, nil)
-		//assert.Equal(t, cadence.NewUInt64(1), supply)
-		//
-		//assertCollectionLength(t, b, nftAddress, exampleNFTAddress,
-		//	exampleNFTAddress,
-		//	1,
-		//)
+		script = templates.GenerateGetTotalSupplyScript(nftAddress, exampleNFTAddress)
+		supply := executeScriptAndCheck(t, b, script, nil)
+		assert.Equal(t, cadence.NewUInt64(1), supply)
+
+		assertCollectionLength(t, b, nftAddress, exampleNFTAddress,
+			exampleNFTAddress,
+			1,
+		)
 	})
 }
