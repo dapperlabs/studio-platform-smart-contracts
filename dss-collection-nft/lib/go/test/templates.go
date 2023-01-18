@@ -1,7 +1,10 @@
 package test
 
 import (
+	"io/ioutil"
+	"net/http"
 	"regexp"
+	"strings"
 
 	"github.com/onflow/flow-go-sdk"
 )
@@ -11,6 +14,7 @@ import (
 const (
 	nftAddressPlaceholder           = "\"[^\"]*NonFungibleToken.cdc\""
 	DSSCollectionAddressPlaceholder = "\"[^\"]*DSSCollection.cdc\""
+	metadataViewsAddressPlaceholder = "0xMETADATAVIEWSADDRESS"
 )
 
 const (
@@ -33,6 +37,12 @@ const (
 	MintNFTTxPath           = TransactionsRootPath + "/admin/mint_nft.cdc"
 	ReadNftSupplyScriptPath = ScriptsRootPath + "/total_supply.cdc"
 	ReadNftPropertiesTxPath = ScriptsRootPath + "/get_nft.cdc"
+
+	// MetadataViews
+	MetadataViewsContractsBaseURL = "https://raw.githubusercontent.com/onflow/flow-nft/master/contracts/"
+	MetadataViewsInterfaceFile    = "MetadataViews.cdc"
+	MetadataFTReplaceAddress      = `"./utility/FungibleToken.cdc"`
+	MetadataNFTReplaceAddress     = `"./NonFungibleToken.cdc"`
 )
 
 // ------------------------------------------------------------
@@ -44,6 +54,8 @@ func replaceAddresses(code []byte, contracts Contracts) []byte {
 
 	DSSCollectionRe := regexp.MustCompile(DSSCollectionAddressPlaceholder)
 	code = DSSCollectionRe.ReplaceAll(code, []byte("0x"+contracts.DSSCollectionAddress.String()))
+
+	code = []byte(strings.ReplaceAll(string(code), metadataViewsAddressPlaceholder, "0x"+contracts.MetadataViewsAddress.String()))
 
 	return code
 }
@@ -128,4 +140,22 @@ func readNFTPropertiesScript(contracts Contracts) []byte {
 		readFile(ReadNftPropertiesTxPath),
 		contracts,
 	)
+}
+
+func DownloadFile(url string) ([]byte, error) {
+	// Get the data
+	resp, err := http.Get(url)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	return ioutil.ReadAll(resp.Body)
+}
+
+func LoadMetadataViews(ftAddress flow.Address, nftAddress flow.Address) []byte {
+	code, _ := DownloadFile(MetadataViewsContractsBaseURL + MetadataViewsInterfaceFile)
+	code = []byte(strings.Replace(strings.Replace(string(code), MetadataFTReplaceAddress, "0x"+ftAddress.String(), 1), MetadataNFTReplaceAddress, "0x"+nftAddress.String(), 1))
+
+	return code
 }

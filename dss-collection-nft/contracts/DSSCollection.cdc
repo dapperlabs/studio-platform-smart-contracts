@@ -4,7 +4,7 @@
 */
 
 import NonFungibleToken from "./NonFungibleToken.cdc"
-import MetadataViews from "./MetadataViews.cdc"
+import MetadataViews from 0xMETADATAVIEWSADDRESS
 
 // The DSSCollection contract
 //

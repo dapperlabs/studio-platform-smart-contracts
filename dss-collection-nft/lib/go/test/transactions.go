@@ -35,10 +35,12 @@ func fundAccount(
 	tx.AddArgument(cadence.NewAddress(receiverAddress))
 	tx.AddArgument(cadenceUFix64(amount))
 
+	signer, _ := b.ServiceKey().Signer()
+
 	signAndSubmit(
 		t, b, tx,
 		[]flow.Address{b.ServiceKey().Address},
-		[]crypto.Signer{b.ServiceKey().Signer()},
+		[]crypto.Signer{signer},
 		false,
 	)
 }
@@ -64,10 +66,11 @@ func createCollectionGroup(
 		Identifier: productPathIdentifier,
 	})
 
+	signer, _ := b.ServiceKey().Signer()
 	signAndSubmit(
 		t, b, tx,
 		[]flow.Address{b.ServiceKey().Address, contracts.DSSCollectionAddress},
-		[]crypto.Signer{b.ServiceKey().Signer(), contracts.DSSCollectionSigner},
+		[]crypto.Signer{signer, contracts.DSSCollectionSigner},
 		shouldRevert,
 	)
 }
@@ -97,10 +100,11 @@ func createTimeBoundCollectionGroup(
 	tx.AddArgument(cadence.UFix64(startTime))
 	tx.AddArgument(cadence.UFix64(endTime))
 
+	signer, _ := b.ServiceKey().Signer()
 	signAndSubmit(
 		t, b, tx,
 		[]flow.Address{b.ServiceKey().Address, contracts.DSSCollectionAddress},
-		[]crypto.Signer{b.ServiceKey().Signer(), contracts.DSSCollectionSigner},
+		[]crypto.Signer{signer, contracts.DSSCollectionSigner},
 		shouldRevert,
 	)
 }
@@ -120,10 +124,11 @@ func closeCollectionGroup(
 		AddAuthorizer(contracts.DSSCollectionAddress)
 	tx.AddArgument(cadence.UInt64(id))
 
+	signer, _ := b.ServiceKey().Signer()
 	signAndSubmit(
 		t, b, tx,
 		[]flow.Address{b.ServiceKey().Address, contracts.DSSCollectionAddress},
-		[]crypto.Signer{b.ServiceKey().Signer(), contracts.DSSCollectionSigner},
+		[]crypto.Signer{signer, contracts.DSSCollectionSigner},
 		shouldRevert,
 	)
 }
@@ -145,10 +150,11 @@ func addNFTToCollectionGroup(
 	tx.AddArgument(cadence.UInt64(collectionGroupID))
 	tx.AddArgument(cadence.UInt64(nftID))
 
+	signer, _ := b.ServiceKey().Signer()
 	signAndSubmit(
 		t, b, tx,
 		[]flow.Address{b.ServiceKey().Address, contracts.DSSCollectionAddress},
-		[]crypto.Signer{b.ServiceKey().Signer(), contracts.DSSCollectionSigner},
+		[]crypto.Signer{signer, contracts.DSSCollectionSigner},
 		shouldRevert,
 	)
 }
@@ -172,10 +178,11 @@ func mintNFT(
 	tx.AddArgument(cadence.UInt64(collectionGroupID))
 	tx.AddArgument(cadence.String(completedBy))
 
+	signer, _ := b.ServiceKey().Signer()
 	signAndSubmit(
 		t, b, tx,
 		[]flow.Address{b.ServiceKey().Address, contracts.DSSCollectionAddress},
-		[]crypto.Signer{b.ServiceKey().Signer(), contracts.DSSCollectionSigner},
+		[]crypto.Signer{signer, contracts.DSSCollectionSigner},
 		shouldRevert,
 	)
 }
