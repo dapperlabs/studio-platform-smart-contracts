@@ -2,11 +2,11 @@ package test
 
 import (
 	"encoding/hex"
+	studioPlatformContracts "github.com/dapperlabs/studio-platform-smart-contracts/lib/go/contracts"
 	"github.com/onflow/cadence"
 	emulator "github.com/onflow/flow-emulator"
 	"github.com/onflow/flow-go-sdk"
 	"github.com/onflow/flow-go-sdk/crypto"
-	sdktemplates "github.com/onflow/flow-go-sdk/templates"
 	"github.com/onflow/flow-go-sdk/test"
 	"github.com/onflow/flow-nft/lib/go/contracts"
 	"github.com/stretchr/testify/assert"
@@ -16,15 +16,16 @@ import (
 
 // Deploys the NonFungibleToken, MetadataViews, and ExampleNFT contracts to new accounts
 // and returns their addresses
-func deployNFTContracts(
+func deployPDSContracts(
 	t *testing.T,
 	b *emulator.Blockchain,
 	exampleNFTAccountKey *flow.AccountKey,
-) (flow.Address, flow.Address, flow.Address) {
+	iPackNFTAccountKey *flow.AccountKey,
+) (flow.Address, flow.Address, flow.Address, flow.Address, flow.Address) {
 
+	// 1. Deploy utility contracts
 	nftAddress := deploy(t, b, "NonFungibleToken", contracts.NonFungibleToken())
 	metadataAddress := deploy(t, b, "MetadataViews", contracts.MetadataViews(flow.HexToAddress(emulatorFTAddress), nftAddress))
-
 	exampleNFTAddress := deploy(
 		t, b,
 		"ExampleNFT",
@@ -32,32 +33,30 @@ func deployNFTContracts(
 		exampleNFTAccountKey,
 	)
 
-	return nftAddress, metadataAddress, exampleNFTAddress
+	iPackNFTAddress := deploy(
+		t, b,
+		"IPackNFT",
+		studioPlatformContracts.IPackNFT(nftAddress),
+		iPackNFTAccountKey,
+	)
+
+	// 2. Deploy Pack NFT contract
+	packNFTAddress := deployPackNftContract(t, b, nftAddress, iPackNFTAddress)
+
+	// 3. Deploy PDS contract
+	pdsAddress := deployPDSContract(t, b, nftAddress, iPackNFTAddress)
+
+	return nftAddress, metadataAddress, exampleNFTAddress, packNFTAddress, pdsAddress
 }
 
-func deployPackNftContracts(t *testing.T, b *emulator.Blockchain) PackNftContracts {
+func deployPackNftContract(t *testing.T, b *emulator.Blockchain, nftAddress, iPackNFTAddress flow.Address) flow.Address {
 	accountKeys := test.AccountKeyGenerator()
-
-	nftAddress := deployNFTContract(t, b)
-	iPackCode := LoadIPackNFT(nftAddress)
-	iPackAddress, err := b.CreateAccount(nil, []sdktemplates.Contract{
-		{
-			Name:   "IPackNFT",
-			Source: string(iPackCode),
-		},
-	})
-	if !assert.NoError(t, err) {
-		t.Log(err.Error())
-	}
-	_, err = b.CommitBlock()
-	assert.NoError(t, err)
 
 	// set up PackNFT account
 	PackNftAccountKey, PackNftSigner := accountKeys.NewWithSigner()
 	PackNftAddress, _ := b.CreateAccount([]*flow.AccountKey{PackNftAccountKey}, nil)
-	PackNftCode := LoadPackNFT(nftAddress, iPackAddress)
+	PackNftCode := LoadPackNFT(nftAddress, iPackNFTAddress)
 	fundAccount(t, b, PackNftAddress, defaultAccountFunding)
-	require.NoError(t, err)
 
 	packNFTencodedStr := hex.EncodeToString(PackNftCode)
 	txBytes, _ := LoadPackNFTDeployScript()
@@ -85,36 +84,17 @@ func deployPackNftContracts(t *testing.T, b *emulator.Blockchain) PackNftContrac
 	_, err = b.CommitBlock()
 	require.NoError(t, err)
 
-	return PackNftContracts{
-		nftAddress,
-		PackNftAddress,
-		PackNftSigner,
-	}
+	return PackNftAddress
 }
 
-func deployPDSContracts(t *testing.T, b *emulator.Blockchain) PdsContracts {
+func deployPDSContract(t *testing.T, b *emulator.Blockchain, nftAddress, iPackNFTAddress flow.Address) flow.Address {
 	accountKeys := test.AccountKeyGenerator()
-
-	nftAddress := deployNFTContract(t, b)
-	iPackCode := LoadIPackNFT(nftAddress)
-	iPackAddress, err := b.CreateAccount(nil, []sdktemplates.Contract{
-		{
-			Name:   "IPackNFT",
-			Source: string(iPackCode),
-		},
-	})
-	if !assert.NoError(t, err) {
-		t.Log(err.Error())
-	}
-	_, err = b.CommitBlock()
-	assert.NoError(t, err)
 
 	// set up PackNFT account
 	PDSAccountKey, PDSSigner := accountKeys.NewWithSigner()
 	PDSAddress, _ := b.CreateAccount([]*flow.AccountKey{PDSAccountKey}, nil)
-	PDSCode := LoadPDS(nftAddress, iPackAddress)
+	PDSCode := LoadPDS(nftAddress, iPackNFTAddress)
 	fundAccount(t, b, PDSAddress, defaultAccountFunding)
-	require.NoError(t, err)
 
 	PDSEncodedStr := hex.EncodeToString(PDSCode)
 	script, _ := LoadPDSDeployScript()
@@ -147,9 +127,5 @@ func deployPDSContracts(t *testing.T, b *emulator.Blockchain) PdsContracts {
 	_, err = b.CommitBlock()
 	require.NoError(t, err)
 
-	return PdsContracts{
-		nftAddress,
-		PDSAddress,
-		PDSSigner,
-	}
+	return PDSAddress
 }
