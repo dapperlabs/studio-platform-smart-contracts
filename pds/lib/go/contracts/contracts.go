@@ -16,7 +16,7 @@ var (
 )
 
 const (
-	filenameIPackNFT = "IPackHFT.cdc"
+	filenameIPackNFT = "IPackNFT.cdc"
 )
 
 // IPackNFT returns the IPackNFT contract.
