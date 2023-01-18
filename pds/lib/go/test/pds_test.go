@@ -64,3 +64,21 @@ func TestMintExampleNFTs(t *testing.T) {
 		)
 	})
 }
+
+// Create all required resources for different accounts
+func TestMintPackNFTs(t *testing.T) {
+	b, accountKeys := newTestSetup(t)
+
+	exampleNFTAccountKey, exampleNFTSigner := accountKeys.NewWithSigner()
+	nftAddress, metadataAddress, exampleNFTAddress, _, _ := deployPDSContracts(t, b, exampleNFTAccountKey, exampleNFTAccountKey)
+
+	t.Run("Should be able to mint a token", func(t *testing.T) {
+		// Mint a single NFT with standard royalty cuts and metadata
+		mintExampleNFT(t, b,
+			accountKeys,
+			nftAddress, metadataAddress, exampleNFTAddress,
+			exampleNFTAccountKey,
+			exampleNFTSigner)
+
+	})
+}
