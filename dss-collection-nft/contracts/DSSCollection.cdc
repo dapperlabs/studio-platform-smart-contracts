@@ -215,7 +215,7 @@ pub contract DSSCollection: NonFungibleToken {
     // Get the publicly available data for a CollectionGroup by id
     //
     pub fun validateTimeRange(timeBound: Bool, startTime: UFix64?, endTime: UFix64?): Bool {
-        if timeBound {
+        if !timeBound {
             return true
         }
 
@@ -303,10 +303,14 @@ pub contract DSSCollection: NonFungibleToken {
         //
         pub var ownedNFTs: @{UInt64: NonFungibleToken.NFT}
 
-        // withdraw of soul-bound token throws a panic
+        // withdraw removes an NFT from the collection and moves it to the caller
         //
         pub fun withdraw(withdrawID: UInt64): @NonFungibleToken.NFT {
-            panic("cannot withdraw a soul-bound token")
+            let token <- self.ownedNFTs.remove(key: withdrawID) ?? panic("missing NFT")
+
+            emit Withdraw(id: token.id, from: self.owner?.address)
+
+            return <-token
         }
 
         // deposit takes a NFT and adds it to the collections dictionary
@@ -447,7 +451,7 @@ pub contract DSSCollection: NonFungibleToken {
 
         // Add NFT to Collection Group
         //
-        pub fun addNFTToCollectionGroup(nftID: UInt64, collectionGroupID: UInt64) {
+        pub fun addNFTToCollectionGroup(collectionGroupID: UInt64, nftID: UInt64) {
             if let collectionGroup = &DSSCollection.collectionGroupByID[collectionGroupID] as &DSSCollection.CollectionGroup? {
                 collectionGroup.addNFTToCollectionGroup(nftID: nftID)
                 return

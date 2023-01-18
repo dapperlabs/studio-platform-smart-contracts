@@ -15,6 +15,9 @@ type CollectionGroupData struct {
 type NFTData struct {
 	ID                uint64
 	CollectionGroupID uint64
+	SerialNumber      uint64
+	CompletionDate    uint64
+	CompletedBy       string
 }
 
 func parseCollectionGroupData(value cadence.Value) CollectionGroupData {
@@ -28,11 +31,14 @@ func parseCollectionGroupData(value cadence.Value) CollectionGroupData {
 	}
 }
 
-func parseDSSCollectionProperties(value cadence.Value) NFTData {
+func parseNFTProperties(value cadence.Value) NFTData {
 	array := value.(cadence.Array).Values
 	return NFTData{
 		array[0].ToGoValue().(uint64),
 		array[1].ToGoValue().(uint64),
+		array[2].ToGoValue().(uint64),
+		array[3].ToGoValue().(uint64),
+		array[4].ToGoValue().(string),
 	}
 }
 

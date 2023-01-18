@@ -23,14 +23,16 @@ const (
 	IsAccountSetupScriptPath = ScriptsRootPath + "/user/is_account_setup.cdc"
 
 	// Collection Groups
-	CreateCollectionGroupTxPath      = TransactionsRootPath + "/admin/create_collection_group.cdc"
-	CloseCollectionGroupTxPath       = TransactionsRootPath + "/admin/close_collection_group.cdc"
-	GetCollectionGroupByIDScriptPath = ScriptsRootPath + "/get_collection_group.cdc"
+	CreateCollectionGroupTxPath          = TransactionsRootPath + "/admin/create_collection_group.cdc"
+	CreateTimeBoundCollectionGroupTxPath = TransactionsRootPath + "/admin/create_collection_group_time_bound.cdc"
+	CloseCollectionGroupTxPath           = TransactionsRootPath + "/admin/close_collection_group.cdc"
+	AddNFTToCollectionGroupTxPath        = TransactionsRootPath + "/admin/add_nft_to_collection_group.cdc"
+	GetCollectionGroupByIDScriptPath     = ScriptsRootPath + "/get_collection_group.cdc"
 
 	// NFTs
-	MintNFTTxPath           = TransactionsRootPath + "/admin/nfts/mint_nft.cdc"
-	ReadNftSupplyScriptPath = ScriptsRootPath + "/nfts/read_nft_supply.cdc"
-	ReadNftPropertiesTxPath = ScriptsRootPath + "/nfts/read_nft_properties.cdc"
+	MintNFTTxPath           = TransactionsRootPath + "/admin/mint_nft.cdc"
+	ReadNftSupplyScriptPath = ScriptsRootPath + "/total_supply.cdc"
+	ReadNftPropertiesTxPath = ScriptsRootPath + "/get_nft.cdc"
 )
 
 // ------------------------------------------------------------
@@ -76,6 +78,13 @@ func createCollectionGroupTransaction(contracts Contracts) []byte {
 	)
 }
 
+func createTimeBoundCollectionGroupTransaction(contracts Contracts) []byte {
+	return replaceAddresses(
+		readFile(CreateTimeBoundCollectionGroupTxPath),
+		contracts,
+	)
+}
+
 func readCollectionGroupByIDScript(contracts Contracts) []byte {
 	return replaceAddresses(
 		readFile(GetCollectionGroupByIDScriptPath),
@@ -90,6 +99,13 @@ func closeCollectionGroupTransaction(contracts Contracts) []byte {
 	)
 }
 
+func addNFTToCollectionGroupTransaction(contracts Contracts) []byte {
+	return replaceAddresses(
+		readFile(AddNFTToCollectionGroupTxPath),
+		contracts,
+	)
+}
+
 // ------------------------------------------------------------
 // DSSCollection NFTs
 // ------------------------------------------------------------
@@ -100,14 +116,14 @@ func mintDSSCollectionTransaction(contracts Contracts) []byte {
 	)
 }
 
-func getDSSCollectionSupplyScript(contracts Contracts) []byte {
+func readDSSCollectionSupplyScript(contracts Contracts) []byte {
 	return replaceAddresses(
 		readFile(ReadNftSupplyScriptPath),
 		contracts,
 	)
 }
 
-func getDSSCollectionPropertiesScript(contracts Contracts) []byte {
+func readNFTPropertiesScript(contracts Contracts) []byte {
 	return replaceAddresses(
 		readFile(ReadNftPropertiesTxPath),
 		contracts,

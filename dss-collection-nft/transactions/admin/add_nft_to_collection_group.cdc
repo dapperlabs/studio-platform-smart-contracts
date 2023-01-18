@@ -1,7 +1,7 @@
 import NonFungibleToken from "../../contracts/NonFungibleToken.cdc"
 import DSSCollection from "../../contracts/DSSCollection.cdc"
 
-transaction(nftID: UInt64, collectionGroupID: UInt64) {
+transaction(collectionGroupID: UInt64, nftID: UInt64) {
     // local variable for the admin reference
     let admin: &DSSCollection.Admin
 
@@ -13,13 +13,14 @@ transaction(nftID: UInt64, collectionGroupID: UInt64) {
 
     execute {
         self.admin.addNFTToCollectionGroup(
-            nftID: nftID, 
-            collectionGroupID: collectionGroupID
+            collectionGroupID: collectionGroupID,
+            nftID: nftID
         )
 
         log("====================================")
-        log("Added NFT to Collection Group: ".concat(nftID.toString()))
         log("CollectionGroupID: ".concat(collectionGroupID.toString()))
+        log("Added NFT to Collection Group: ".concat(nftID.toString()))
         log("====================================")
     }
 }
+

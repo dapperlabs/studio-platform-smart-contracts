@@ -239,3 +239,24 @@ func getCollectionGroupData(
 
 	return parseCollectionGroupData(result)
 }
+
+func getNFTData(
+	t *testing.T,
+	b *emulator.Blockchain,
+	contracts Contracts,
+	address string,
+	nftID int,
+) NFTData {
+	script := readNFTPropertiesScript(contracts)
+	result := executeScriptAndCheck(
+		t,
+		b,
+		script,
+		[][]byte{
+			jsoncdc.MustEncode(cadence.Address(flow.HexToAddress(address))),
+			jsoncdc.MustEncode(cadence.UInt64(nftID)),
+		},
+	)
+
+	return parseNFTProperties(result)
+}

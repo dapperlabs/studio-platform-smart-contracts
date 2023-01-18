@@ -72,6 +72,39 @@ func createCollectionGroup(
 	)
 }
 
+func createTimeBoundCollectionGroup(
+	t *testing.T,
+	b *emulator.Blockchain,
+	contracts Contracts,
+	shouldRevert bool,
+	collectionGroupName string,
+	productPathDomain string,
+	productPathIdentifier string,
+	startTime int,
+	endTime int,
+) {
+	tx := flow.NewTransaction().
+		SetScript(createTimeBoundCollectionGroupTransaction(contracts)).
+		SetGasLimit(100).
+		SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
+		SetPayer(b.ServiceKey().Address).
+		AddAuthorizer(contracts.DSSCollectionAddress)
+	tx.AddArgument(cadence.String(collectionGroupName))
+	tx.AddArgument(cadence.Path{
+		Domain:     productPathDomain,
+		Identifier: productPathIdentifier,
+	})
+	tx.AddArgument(cadence.UFix64(startTime))
+	tx.AddArgument(cadence.UFix64(endTime))
+
+	signAndSubmit(
+		t, b, tx,
+		[]flow.Address{b.ServiceKey().Address, contracts.DSSCollectionAddress},
+		[]crypto.Signer{b.ServiceKey().Signer(), contracts.DSSCollectionSigner},
+		shouldRevert,
+	)
+}
+
 func closeCollectionGroup(
 	t *testing.T,
 	b *emulator.Blockchain,
@@ -86,6 +119,58 @@ func closeCollectionGroup(
 		SetPayer(b.ServiceKey().Address).
 		AddAuthorizer(contracts.DSSCollectionAddress)
 	tx.AddArgument(cadence.UInt64(id))
+
+	signAndSubmit(
+		t, b, tx,
+		[]flow.Address{b.ServiceKey().Address, contracts.DSSCollectionAddress},
+		[]crypto.Signer{b.ServiceKey().Signer(), contracts.DSSCollectionSigner},
+		shouldRevert,
+	)
+}
+
+func addNFTToCollectionGroup(
+	t *testing.T,
+	b *emulator.Blockchain,
+	contracts Contracts,
+	shouldRevert bool,
+	collectionGroupID uint64,
+	nftID uint64,
+) {
+	tx := flow.NewTransaction().
+		SetScript(addNFTToCollectionGroupTransaction(contracts)).
+		SetGasLimit(100).
+		SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
+		SetPayer(b.ServiceKey().Address).
+		AddAuthorizer(contracts.DSSCollectionAddress)
+	tx.AddArgument(cadence.UInt64(collectionGroupID))
+	tx.AddArgument(cadence.UInt64(nftID))
+
+	signAndSubmit(
+		t, b, tx,
+		[]flow.Address{b.ServiceKey().Address, contracts.DSSCollectionAddress},
+		[]crypto.Signer{b.ServiceKey().Signer(), contracts.DSSCollectionSigner},
+		shouldRevert,
+	)
+}
+
+func mintNFT(
+	t *testing.T,
+	b *emulator.Blockchain,
+	contracts Contracts,
+	shouldRevert bool,
+	recipientAddress string,
+	collectionGroupID uint64,
+	completedBy string,
+) {
+	tx := flow.NewTransaction().
+		SetScript(mintDSSCollectionTransaction(contracts)).
+		SetGasLimit(100).
+		SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
+		SetPayer(b.ServiceKey().Address).
+		AddAuthorizer(contracts.DSSCollectionAddress)
+	tx.AddArgument(cadence.Address(flow.HexToAddress(recipientAddress)))
+	tx.AddArgument(cadence.UInt64(collectionGroupID))
+	tx.AddArgument(cadence.String(completedBy))
 
 	signAndSubmit(
 		t, b, tx,
