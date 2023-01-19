@@ -30,7 +30,7 @@ const (
 	CreateCollectionGroupTxPath          = TransactionsRootPath + "/admin/create_collection_group.cdc"
 	CreateTimeBoundCollectionGroupTxPath = TransactionsRootPath + "/admin/create_collection_group_time_bound.cdc"
 	CloseCollectionGroupTxPath           = TransactionsRootPath + "/admin/close_collection_group.cdc"
-	AddNFTToCollectionGroupTxPath        = TransactionsRootPath + "/admin/add_nft_to_collection_group.cdc"
+	AddNFTToCollectionGroupTxPath        = TransactionsRootPath + "/admin/add_edition_to_collection_group.cdc"
 	GetCollectionGroupByIDScriptPath     = ScriptsRootPath + "/get_collection_group.cdc"
 
 	// NFTs

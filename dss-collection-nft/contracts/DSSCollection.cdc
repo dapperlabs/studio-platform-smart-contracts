@@ -30,7 +30,7 @@ pub contract DSSCollection: NonFungibleToken {
         timeBound: Bool
     )
     pub event CollectionGroupClosed(id: UInt64)
-    pub event NFTAddedToCollectionGroup(nftID: UInt64, collectionGroupID: UInt64)
+    pub event EditionAddedToCollectionGroup(editionID: UInt64, collectionGroupID: UInt64)
 
     // NFT Events
     //
@@ -70,10 +70,10 @@ pub contract DSSCollection: NonFungibleToken {
         pub let startTime: UFix64?
         pub let endTime: UFix64?
         pub let timeBound: Bool
-        pub var nftIDInCollectionGroup: {UInt64: Bool}
+        pub var editionIDInCollectionGroup: {UInt64: Bool}
 
-        pub fun nftIDExistsInCollectionGroup(nftID: UInt64): Bool {
-           return self.nftIDInCollectionGroup.containsKey(nftID)
+        pub fun editionIDExistsInCollectionGroup(editionID: UInt64): Bool {
+           return self.editionIDInCollectionGroup.containsKey(editionID)
         }
 
         init (id: UInt64) {
@@ -85,7 +85,7 @@ pub contract DSSCollection: NonFungibleToken {
                 self.startTime = collectionGroup.startTime
                 self.endTime = collectionGroup.endTime
                 self.timeBound = collectionGroup.timeBound
-                self.nftIDInCollectionGroup = collectionGroup.nftIDInCollectionGroup
+                self.editionIDInCollectionGroup = collectionGroup.editionIDInCollectionGroup
             } else {
                 panic("collectionGroup does not exist")
             }
@@ -103,7 +103,7 @@ pub contract DSSCollection: NonFungibleToken {
         pub let endTime: UFix64?
         pub let timeBound: Bool
         pub var numMinted: UInt64
-        pub var nftIDInCollectionGroup: {UInt64: Bool}
+        pub var editionIDInCollectionGroup: {UInt64: Bool}
 
         // Close this collection group
         //
@@ -117,16 +117,16 @@ pub contract DSSCollection: NonFungibleToken {
             emit CollectionGroupClosed(id: self.id)
         }
 
-        // Add nftID to collection group
+        // Add editionID to collection group
         //
-        access(contract) fun addNFTToCollectionGroup(nftID: UInt64) {
+        access(contract) fun addEditionToCollectionGroup(editionID: UInt64) {
             pre {
                 self.open == true: "not open"
             }
 
-            self.nftIDInCollectionGroup[nftID] = true
+            self.editionIDInCollectionGroup[editionID] = true
 
-            emit NFTAddedToCollectionGroup(nftID: nftID, collectionGroupID: self.id)
+            emit EditionAddedToCollectionGroup(editionID: editionID, collectionGroupID: self.id)
         }
 
         // Mint a DSSCollection NFT in this group
@@ -170,7 +170,7 @@ pub contract DSSCollection: NonFungibleToken {
             self.endTime = endTime
             self.timeBound = timeBound
             self.numMinted = 0 as UInt64
-            self.nftIDInCollectionGroup = {}
+            self.editionIDInCollectionGroup = {}
 
             DSSCollection.nextCollectionGroupID = self.id + 1 as UInt64
 
@@ -250,7 +250,9 @@ pub contract DSSCollection: NonFungibleToken {
             return MetadataViews.Display(
                 name: self.name(),
                 description: self.description(),
-                thumbnail: MetadataViews.HTTPFile(url:"https://storage.googleapis.com/dl-nfl-assets-prod/static/images/collection-group/token-placeholder.png")
+                thumbnail: MetadataViews.HTTPFile(
+                    url:"https://storage.googleapis.com/dl-nfl-assets-prod/static/images/collection-group/token-placeholder.png"
+                )
             )
         }
 
@@ -459,11 +461,11 @@ pub contract DSSCollection: NonFungibleToken {
             panic("collection group does not exist")
         }
 
-        // Add NFT to Collection Group
+        // Add Edition to Collection Group
         //
-        pub fun addNFTToCollectionGroup(collectionGroupID: UInt64, nftID: UInt64) {
+        pub fun addEditionToCollectionGroup(collectionGroupID: UInt64, editionID: UInt64) {
             if let collectionGroup = &DSSCollection.collectionGroupByID[collectionGroupID] as &DSSCollection.CollectionGroup? {
-                collectionGroup.addNFTToCollectionGroup(nftID: nftID)
+                collectionGroup.addEditionToCollectionGroup(editionID: editionID)
                 return
             }
             panic("collection group does not exist")
@@ -508,7 +510,6 @@ pub contract DSSCollection: NonFungibleToken {
             target: self.AdminStoragePath
         )
 
-        // Let the world know we are here
         emit ContractInitialized()
     }
 }
