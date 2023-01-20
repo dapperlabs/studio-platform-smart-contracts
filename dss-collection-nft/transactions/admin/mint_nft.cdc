@@ -1,7 +1,12 @@
 import NonFungibleToken from "../../contracts/NonFungibleToken.cdc"
 import DSSCollection from "../../contracts/DSSCollection.cdc"
 
-transaction(recipientAddress: Address, collectionGroupID: UInt64, completedBy: String) {
+transaction(
+    recipientAddress: Address,
+    collectionGroupID: UInt64,
+    completedBy: String,
+    level: UInt64
+) {
     
     // local variable for storing the minter reference
     let minter: &{DSSCollection.NFTMinter}
@@ -24,7 +29,11 @@ transaction(recipientAddress: Address, collectionGroupID: UInt64, completedBy: S
 
     execute {
         // mint the NFT and deposit it to the recipient's collection
-        let nft <- self.minter.mintNFT(collectionGroupID: collectionGroupID, completedBy: completedBy)
+        let nft <- self.minter.mintNFT(
+            collectionGroupID: collectionGroupID,
+            completedBy: completedBy,
+            level: level
+        )
         self.recipient.deposit(token: <- (nft as @NonFungibleToken.NFT))
     }
 }

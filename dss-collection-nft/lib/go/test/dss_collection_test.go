@@ -3,6 +3,7 @@ package test
 import (
 	emulator "github.com/onflow/flow-emulator"
 	"github.com/stretchr/testify/assert"
+	"strconv"
 	"testing"
 )
 
@@ -226,7 +227,6 @@ func TestMintNFT(t *testing.T) {
 			b,
 			contracts,
 			false,
-			"0x179b6b1cb6755e31",
 		)
 	})
 }
@@ -236,7 +236,6 @@ func testMintNFT(
 	b *emulator.Blockchain,
 	contracts Contracts,
 	shouldRevert bool,
-	recipientAddress string,
 ) {
 	collectionGroupName := "Top Shot All Stars"
 	createCollectionGroup(
@@ -269,6 +268,8 @@ func testMintNFT(
 	userAddress, userSigner := createAccount(t, b)
 	setupDSSCollectionAccount(t, b, userAddress, userSigner, contracts)
 
+	nftLevel := 5
+
 	mintNFT(
 		t,
 		b,
@@ -277,6 +278,7 @@ func testMintNFT(
 		userAddress.String(),
 		1,
 		userAddress.String(),
+		uint64(nftLevel),
 	)
 
 	if !shouldRevert {
@@ -295,6 +297,7 @@ func testMintNFT(
 			uint64(nftID),
 		)
 		assert.Contains(t, displayView.Name, collectionGroupName)
+		assert.Contains(t, displayView.Name, strconv.Itoa(nftLevel))
 		assert.Contains(t, displayView.Description, userAddress.String())
 		assert.NotNil(t, displayView.ImageURL)
 	}

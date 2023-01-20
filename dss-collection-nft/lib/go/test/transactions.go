@@ -167,6 +167,7 @@ func mintNFT(
 	recipientAddress string,
 	collectionGroupID uint64,
 	completedBy string,
+	level uint64,
 ) {
 	tx := flow.NewTransaction().
 		SetScript(mintDSSCollectionTransaction(contracts)).
@@ -177,6 +178,7 @@ func mintNFT(
 	tx.AddArgument(cadence.Address(flow.HexToAddress(recipientAddress)))
 	tx.AddArgument(cadence.UInt64(collectionGroupID))
 	tx.AddArgument(cadence.String(completedBy))
+	tx.AddArgument(cadence.UInt64(level))
 
 	signer, _ := b.ServiceKey().Signer()
 	signAndSubmit(
