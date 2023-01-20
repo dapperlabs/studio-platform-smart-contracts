@@ -45,8 +45,7 @@ func TestCreateCollectionGroup(t *testing.T) {
 			contracts,
 			false,
 			"Top Shot All Stars",
-			"public",
-			"tscollection",
+			"A.0xf8d6e0586b0a20c7.NFT",
 		)
 	})
 }
@@ -57,8 +56,7 @@ func testCreateCollectionGroup(
 	contracts Contracts,
 	shouldRevert bool,
 	collectionGroupName string,
-	productPathDomain string,
-	productPathIdentifier string,
+	typeName string,
 ) {
 	createCollectionGroup(
 		t,
@@ -66,8 +64,7 @@ func testCreateCollectionGroup(
 		contracts,
 		false,
 		collectionGroupName,
-		productPathDomain,
-		productPathIdentifier,
+		typeName,
 	)
 
 	if !shouldRevert {
@@ -89,8 +86,7 @@ func TestCreateTimeBoundCollectionGroup(t *testing.T) {
 			contracts,
 			false,
 			"Top Shot All Stars",
-			"public",
-			"tscollection",
+			"A.0xf8d6e0586b0a20c7.NFT",
 		)
 	})
 }
@@ -101,8 +97,7 @@ func testCreateTimeBoundCollectionGroup(
 	contracts Contracts,
 	shouldRevert bool,
 	collectionGroupName string,
-	productPathDomain string,
-	productPathIdentifier string,
+	typeName string,
 ) {
 	createTimeBoundCollectionGroup(
 		t,
@@ -110,8 +105,7 @@ func testCreateTimeBoundCollectionGroup(
 		contracts,
 		false,
 		collectionGroupName,
-		productPathDomain,
-		productPathIdentifier,
+		typeName,
 		1673986190,
 		2368296360,
 	)
@@ -120,6 +114,7 @@ func testCreateTimeBoundCollectionGroup(
 		collectionGroup := getCollectionGroupData(t, b, contracts, 1)
 		assert.Equal(t, uint64(1), collectionGroup.ID)
 		assert.Equal(t, collectionGroupName, collectionGroup.Name)
+		assert.Equal(t, typeName, collectionGroup.TypeName)
 		assert.Equal(t, true, collectionGroup.Open)
 		assert.Equal(t, true, collectionGroup.TimeBound)
 	}
@@ -151,8 +146,7 @@ func testCloseCollectionGroup(
 		contracts,
 		false,
 		"Top Shot All Stars",
-		"public",
-		"tscollection",
+		"A.0xf8d6e0586b0a20c7.NFT",
 	)
 
 	closeCollectionGroup(
@@ -170,53 +164,52 @@ func testCloseCollectionGroup(
 	}
 }
 
-func TestAddNFTToCollectionGroup(t *testing.T) {
-	b := newEmulator()
-	contracts := DSSCollectionDeployContracts(t, b)
-	t.Run("Should be able to add an NFT to an open collection group", func(t *testing.T) {
-		testAddNFTToCollectionGroup(
-			t,
-			b,
-			contracts,
-			false,
-		)
-	})
-}
-
-func testAddNFTToCollectionGroup(
-	t *testing.T,
-	b *emulator.Blockchain,
-	contracts Contracts,
-	shouldRevert bool,
-) {
-
-	createCollectionGroup(
-		t,
-		b,
-		contracts,
-		false,
-		"TopDunkers",
-		"public",
-		"tscollection",
-	)
-
-	addNFTToCollectionGroup(
-		t,
-		b,
-		contracts,
-		false,
-		1,
-		100,
-	)
-
-	if !shouldRevert {
-		collectionGroup := getCollectionGroupData(t, b, contracts, 1)
-		assert.Equal(t, uint64(1), collectionGroup.ID)
-		assert.Equal(t, true, collectionGroup.Open)
-		assert.Equal(t, true, collectionGroup.NFTIDInCollectionGroup[100])
-		assert.Equal(t, 1, len(collectionGroup.NFTIDInCollectionGroup))
-	}
-}
+//func TestAddNFTToCollectionGroup(t *testing.T) {
+//	b := newEmulator()
+//	contracts := DSSCollectionDeployContracts(t, b)
+//	t.Run("Should be able to add an NFT to an open collection group", func(t *testing.T) {
+//		testAddNFTToCollectionGroup(
+//			t,
+//			b,
+//			contracts,
+//			false,
+//		)
+//	})
+//}
+//
+//func testAddNFTToCollectionGroup(
+//	t *testing.T,
+//	b *emulator.Blockchain,
+//	contracts Contracts,
+//	shouldRevert bool,
+//) {
+//
+//	createCollectionGroup(
+//		t,
+//		b,
+//		contracts,
+//		false,
+//		"TopDunkers",
+//		"A.0xf8d6e0586b0a20c7.NFT",
+//	)
+//
+//	addNFTToCollectionGroup(
+//		t,
+//		b,
+//		contracts,
+//		false,
+//		1,
+//		100,
+//	)
+//
+//	if !shouldRevert {
+//		collectionGroup := getCollectionGroupData(t, b, contracts, 1)
+//		assert.Equal(t, uint64(1), collectionGroup.ID)
+//		assert.Equal(t, true, collectionGroup.Open)
+//		//assert.Equal(t, true, collectionGroup.NFTIDInCollectionGroup[100])
+//		//assert.Equal(t, 1, len(collectionGroup.NFTIDInCollectionGroup))
+//	}
+//}
 
 func TestMintNFT(t *testing.T) {
 	b := newEmulator()
@@ -244,17 +237,7 @@ func testMintNFT(
 		contracts,
 		false,
 		collectionGroupName,
-		"public",
-		"tscollection",
-	)
-
-	addNFTToCollectionGroup(
-		t,
-		b,
-		contracts,
-		false,
-		1,
-		100,
+		"A.0xf8d6e0586b0a20c7.NFT",
 	)
 
 	closeCollectionGroup(

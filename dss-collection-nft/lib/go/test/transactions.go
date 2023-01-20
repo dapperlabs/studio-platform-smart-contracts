@@ -51,8 +51,7 @@ func createCollectionGroup(
 	contracts Contracts,
 	shouldRevert bool,
 	collectionGroupName string,
-	productPathDomain string,
-	productPathIdentifier string,
+	typeName string,
 ) {
 	tx := flow.NewTransaction().
 		SetScript(createCollectionGroupTransaction(contracts)).
@@ -61,10 +60,7 @@ func createCollectionGroup(
 		SetPayer(b.ServiceKey().Address).
 		AddAuthorizer(contracts.DSSCollectionAddress)
 	tx.AddArgument(cadence.String(collectionGroupName))
-	tx.AddArgument(cadence.Path{
-		Domain:     productPathDomain,
-		Identifier: productPathIdentifier,
-	})
+	tx.AddArgument(cadence.String(typeName))
 
 	signer, _ := b.ServiceKey().Signer()
 	signAndSubmit(
@@ -81,8 +77,7 @@ func createTimeBoundCollectionGroup(
 	contracts Contracts,
 	shouldRevert bool,
 	collectionGroupName string,
-	productPathDomain string,
-	productPathIdentifier string,
+	typeName string,
 	startTime int,
 	endTime int,
 ) {
@@ -93,10 +88,7 @@ func createTimeBoundCollectionGroup(
 		SetPayer(b.ServiceKey().Address).
 		AddAuthorizer(contracts.DSSCollectionAddress)
 	tx.AddArgument(cadence.String(collectionGroupName))
-	tx.AddArgument(cadence.Path{
-		Domain:     productPathDomain,
-		Identifier: productPathIdentifier,
-	})
+	tx.AddArgument(cadence.String(typeName))
 	tx.AddArgument(cadence.UFix64(startTime))
 	tx.AddArgument(cadence.UFix64(endTime))
 

@@ -1,7 +1,7 @@
 import NonFungibleToken from "../../contracts/NonFungibleToken.cdc"
 import DSSCollection from "../../contracts/DSSCollection.cdc"
 
-transaction(name: String, productPublicPath: PublicPath, startTime: UFix64?, endTime: UFix64?) {
+transaction(name: String, typeName: String, startTime: UFix64?, endTime: UFix64?) {
     let admin: &DSSCollection.Admin
 
     prepare(signer: AuthAccount) {
@@ -12,7 +12,7 @@ transaction(name: String, productPublicPath: PublicPath, startTime: UFix64?, end
     execute {
         let id = self.admin.createCollectionGroup(
             name: name,
-            productPublicPath: productPublicPath,
+            typeName: typeName,
             startTime: startTime,
             endTime: endTime,
             timeBound: true

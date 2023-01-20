@@ -5,11 +5,11 @@ import (
 )
 
 type CollectionGroupData struct {
-	ID                     uint64
-	Name                   string
-	Open                   bool
-	TimeBound              bool
-	NFTIDInCollectionGroup map[uint64]bool
+	ID        uint64
+	Name      string
+	TypeName  string
+	Open      bool
+	TimeBound bool
 }
 
 type NFTData struct {
@@ -31,9 +31,9 @@ func parseCollectionGroupData(value cadence.Value) CollectionGroupData {
 	return CollectionGroupData{
 		fields[0].ToGoValue().(uint64),
 		fields[1].ToGoValue().(string),
+		fields[2].ToGoValue().(string),
 		fields[3].ToGoValue().(bool),
 		fields[6].ToGoValue().(bool),
-		cadenceUint64DictToGo(fields[7].(cadence.Dictionary)),
 	}
 }
 

@@ -19,21 +19,29 @@ pub contract DSSCollection: NonFungibleToken {
     pub event Withdraw(id: UInt64, from: Address?)
     pub event Deposit(id: UInt64, to: Address?)
 
-    // CollectionGroup Events
+    // Events
     //
     pub event CollectionGroupCreated(
         id: UInt64,
         name: String,
-        productPublicPath: PublicPath,
+        typeName: String,
         startTime: UFix64?,
         endTime: UFix64?,
         timeBound: Bool
     )
     pub event CollectionGroupClosed(id: UInt64)
-    pub event EditionAddedToCollectionGroup(editionID: UInt64, collectionGroupID: UInt64)
-
-    // NFT Events
-    //
+    pub event SlotCreated(
+        id: UInt64,
+        collectionGroupID: UInt64,
+        logicalOperator: String,
+        typeName: String,
+        slotType: String
+    )
+    pub event ItemAddedToSlot(
+        itemID: UInt64,
+        itemValue: UInt64,
+        collectionGroupID: UInt64
+    )
     pub event DSSCollectionNFTMinted(
         id: UInt64,
         collectionGroupID: UInt64,
@@ -56,37 +64,120 @@ pub contract DSSCollection: NonFungibleToken {
     //
     pub var totalSupply:                 UInt64
     pub var nextCollectionGroupID:       UInt64
+    pub var nextSlotID:       UInt64
 
-    // List of collection groups
+    // Lists in contract
     //
     access(self) let collectionGroupByID: @{UInt64: CollectionGroup}
+    access(self) let slotByID: @{UInt64: Slot}
+
+    // A public struct to access Slot data
+    //
+    pub struct SlotData {
+        pub let id: UInt64
+        pub let collectionGroupID: UInt64
+        pub let logicalOperator: String // (AND / OR)
+        pub let typeName: String // (A.contractAddress.NFT...)
+        pub let slotType: String // (edition.id, edition.tier, play.id)
+        pub var items: {UInt64: AnyStruct}
+
+        pub fun itemIDExistsInSlot(id: UInt64): Bool {
+           return self.items.containsKey(id)
+        }
+
+        init (id: UInt64) {
+            if let slot = &DSSCollection.slotByID[id] as &DSSCollection.Slot? {
+                self.id = slot.id
+                self.collectionGroupID = slot.collectionGroupID
+                self.logicalOperator = slot.logicalOperator
+                self.typeName = slot.typeName
+                self.slotType = slot.slotType
+                self.items = slot.items
+            } else {
+                panic("slot does not exist")
+            }
+        }
+    }
+
+    // A top-level Slot with a unique ID
+    //
+    pub resource Slot {
+        pub let id: UInt64
+        pub let collectionGroupID: UInt64
+        pub let logicalOperator: String // (AND / OR)
+        pub let typeName: String // (A.contractAddress.NFT...)
+        pub let slotType: String // (edition.id, edition.tier, play.id)
+        pub var items: {UInt64: UInt64}
+
+        // Add item to slot
+        //
+        access(contract) fun addItemToSlot(itemID: UInt64, itemValue: UInt64) {
+            pre {
+                DSSCollection.CollectionGroupData(
+                    id: self.collectionGroupID
+                ).open == true: "collection group not open"
+            }
+
+            self.items[itemID] = itemValue
+
+            emit ItemAddedToSlot(
+                 itemID: itemID,
+                 itemValue: itemValue,
+                 collectionGroupID: self.collectionGroupID
+             )
+        }
+
+        init (
+            collectionGroupID: UInt64,
+            logicalOperator: String,
+            typeName: String,
+            slotType: String
+        ) {
+            pre {
+                DSSCollection.CollectionGroupData(
+                    id: collectionGroupID
+                ).open == true: "collection group not open"
+            }
+
+            self.id = DSSCollection.nextSlotID
+            self.collectionGroupID = collectionGroupID
+            self.logicalOperator = logicalOperator
+            self.typeName = typeName
+            self.slotType = slotType
+            self.items = {}
+
+            DSSCollection.nextSlotID = self.id + 1 as UInt64
+
+            emit SlotCreated(
+                id: self.id,
+                collectionGroupID: self.collectionGroupID,
+                logicalOperator: self.logicalOperator,
+                typeName: self.typeName,
+                slotType: self.slotType
+            )
+        }
+    }
 
     // A public struct to access CollectionGroup data
     //
     pub struct CollectionGroupData {
         pub let id: UInt64
         pub let name: String
-        pub let productPublicPath: PublicPath
+        pub let typeName: String
         pub let open: Bool
         pub let startTime: UFix64?
         pub let endTime: UFix64?
         pub let timeBound: Bool
-        pub var editionIDInCollectionGroup: {UInt64: Bool}
-
-        pub fun editionIDExistsInCollectionGroup(editionID: UInt64): Bool {
-           return self.editionIDInCollectionGroup.containsKey(editionID)
-        }
 
         init (id: UInt64) {
             if let collectionGroup = &DSSCollection.collectionGroupByID[id] as &DSSCollection.CollectionGroup? {
                 self.id = collectionGroup.id
                 self.name = collectionGroup.name
-                self.productPublicPath = collectionGroup.productPublicPath
+                self.typeName = collectionGroup.typeName
                 self.open = collectionGroup.open
                 self.startTime = collectionGroup.startTime
                 self.endTime = collectionGroup.endTime
                 self.timeBound = collectionGroup.timeBound
-                self.editionIDInCollectionGroup = collectionGroup.editionIDInCollectionGroup
             } else {
                 panic("collectionGroup does not exist")
             }
@@ -98,13 +189,12 @@ pub contract DSSCollection: NonFungibleToken {
     pub resource CollectionGroup {
         pub let id: UInt64
         pub let name: String
-        pub let productPublicPath: PublicPath
+        pub let typeName: String
         pub var open: Bool
         pub let startTime: UFix64?
         pub let endTime: UFix64?
         pub let timeBound: Bool
         pub var numMinted: UInt64
-        pub var editionIDInCollectionGroup: {UInt64: Bool}
 
         // Close this collection group
         //
@@ -116,18 +206,6 @@ pub contract DSSCollection: NonFungibleToken {
             self.open = false
 
             emit CollectionGroupClosed(id: self.id)
-        }
-
-        // Add editionID to collection group
-        //
-        access(contract) fun addEditionToCollectionGroup(editionID: UInt64) {
-            pre {
-                self.open == true: "not open"
-            }
-
-            self.editionIDInCollectionGroup[editionID] = true
-
-            emit EditionAddedToCollectionGroup(editionID: editionID, collectionGroupID: self.id)
         }
 
         // Mint a DSSCollection NFT in this group
@@ -159,28 +237,27 @@ pub contract DSSCollection: NonFungibleToken {
         }
 
         init (
-            name: String, 
-            productPublicPath: PublicPath, 
-            startTime: UFix64?, 
-            endTime: UFix64?, 
+            name: String,
+            typeName: String,
+            startTime: UFix64?,
+            endTime: UFix64?,
             timeBound: Bool
         ) {
             self.id = DSSCollection.nextCollectionGroupID
             self.name = name
-            self.productPublicPath = productPublicPath
+            self.typeName = typeName
             self.open = true
             self.startTime = startTime
             self.endTime = endTime
             self.timeBound = timeBound
             self.numMinted = 0 as UInt64
-            self.editionIDInCollectionGroup = {}
 
             DSSCollection.nextCollectionGroupID = self.id + 1 as UInt64
 
             emit CollectionGroupCreated(
                 id: self.id,
                 name: self.name,
-                productPublicPath: self.productPublicPath,
+                typeName: self.typeName,
                 startTime: self.startTime,
                 endTime: self.endTime,
                 timeBound: self.timeBound
@@ -196,6 +273,16 @@ pub contract DSSCollection: NonFungibleToken {
         }
 
         return DSSCollection.CollectionGroupData(id: id)
+    }
+
+    // Get the publicly available data for a Slot by id
+    //
+    pub fun getSlotData(id: UInt64): DSSCollection.SlotData {
+        pre {
+            DSSCollection.slotByID[id] != nil: "Cannot borrow slot, no such id"
+        }
+
+        return DSSCollection.SlotData(id: id)
     }
 
     // Get the publicly available data for a CollectionGroup by id
@@ -437,11 +524,21 @@ pub contract DSSCollection: NonFungibleToken {
             return (&DSSCollection.collectionGroupByID[id] as &DSSCollection.CollectionGroup?)!
         }
 
+        // Borrow a Slot
+        //
+        pub fun borrowSlot(id: UInt64): &DSSCollection.Slot {
+            pre {
+                DSSCollection.slotByID[id] != nil: "Cannot borrow slot, no such id"
+            }
+
+            return (&DSSCollection.slotByID[id] as &DSSCollection.Slot?)!
+        }
+
         // Create a Collection Group
         //
         pub fun createCollectionGroup(
             name: String,
-            productPublicPath: PublicPath,
+            typeName: String,
             startTime: UFix64?,
             endTime: UFix64?,
             timeBound: Bool
@@ -449,7 +546,7 @@ pub contract DSSCollection: NonFungibleToken {
             // Create and store the new collection group
             let collectionGroup <- create DSSCollection.CollectionGroup(
                 name: name,
-                productPublicPath: productPublicPath,
+                typeName: typeName,
                 startTime: startTime,
                 endTime: endTime,
                 timeBound: timeBound
@@ -471,14 +568,14 @@ pub contract DSSCollection: NonFungibleToken {
             panic("collection group does not exist")
         }
 
-        // Add Edition to Collection Group
+        // Add Item to Slot
         //
-        pub fun addEditionToCollectionGroup(collectionGroupID: UInt64, editionID: UInt64) {
-            if let collectionGroup = &DSSCollection.collectionGroupByID[collectionGroupID] as &DSSCollection.CollectionGroup? {
-                collectionGroup.addEditionToCollectionGroup(editionID: editionID)
+        pub fun addItemToSlot(slotID: UInt64, itemID: UInt64, itemValue: UInt64) {
+            if let slot = &DSSCollection.slotByID[slotID] as &DSSCollection.Slot? {
+                slot.addItemToSlot(itemID: itemID, itemValue: itemValue)
                 return
             }
-            panic("collection group does not exist")
+            panic("slot does not exist")
         }
 
 
@@ -506,9 +603,11 @@ pub contract DSSCollection: NonFungibleToken {
         // Initialize the entity counts
         self.totalSupply = 0
         self.nextCollectionGroupID = 1
+        self.nextSlotID = 1
 
         // Initialize the metadata lookup dictionaries
         self.collectionGroupByID <- {}
+        self.slotByID <- {}
 
         // Create an Admin resource and save it to storage
         let admin <- create Admin()
@@ -523,4 +622,5 @@ pub contract DSSCollection: NonFungibleToken {
         emit ContractInitialized()
     }
 }
+
  
