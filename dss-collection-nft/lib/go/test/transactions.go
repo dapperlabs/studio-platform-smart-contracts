@@ -51,6 +51,7 @@ func createCollectionGroup(
 	contracts Contracts,
 	shouldRevert bool,
 	collectionGroupName string,
+	collectionGroupDescription string,
 	typeName string,
 ) uint64 {
 	tx := flow.NewTransaction().
@@ -60,6 +61,7 @@ func createCollectionGroup(
 		SetPayer(b.ServiceKey().Address).
 		AddAuthorizer(contracts.DSSCollectionAddress)
 	tx.AddArgument(cadence.String(collectionGroupName))
+	tx.AddArgument(cadence.String(collectionGroupDescription))
 	tx.AddArgument(cadence.String(typeName))
 
 	signer, _ := b.ServiceKey().Signer()
@@ -80,6 +82,7 @@ func createTimeBoundCollectionGroup(
 	contracts Contracts,
 	shouldRevert bool,
 	collectionGroupName string,
+	collectionGroupDescription string,
 	typeName string,
 	startTime int,
 	endTime int,
@@ -91,6 +94,7 @@ func createTimeBoundCollectionGroup(
 		SetPayer(b.ServiceKey().Address).
 		AddAuthorizer(contracts.DSSCollectionAddress)
 	tx.AddArgument(cadence.String(collectionGroupName))
+	tx.AddArgument(cadence.String(collectionGroupDescription))
 	tx.AddArgument(cadence.String(typeName))
 	tx.AddArgument(cadence.UFix64(startTime))
 	tx.AddArgument(cadence.UFix64(endTime))
@@ -166,7 +170,7 @@ func mintNFT(
 	recipientAddress string,
 	collectionGroupID uint64,
 	completedBy string,
-	level uint64,
+	level uint8,
 ) {
 	tx := flow.NewTransaction().
 		SetScript(mintDSSCollectionTransaction(contracts)).
@@ -177,7 +181,7 @@ func mintNFT(
 	tx.AddArgument(cadence.Address(flow.HexToAddress(recipientAddress)))
 	tx.AddArgument(cadence.UInt64(collectionGroupID))
 	tx.AddArgument(cadence.String(completedBy))
-	tx.AddArgument(cadence.UInt64(level))
+	tx.AddArgument(cadence.UInt8(level))
 
 	signer, _ := b.ServiceKey().Signer()
 	signAndSubmit(

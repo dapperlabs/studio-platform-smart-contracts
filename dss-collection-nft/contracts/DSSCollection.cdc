@@ -24,6 +24,7 @@ pub contract DSSCollection: NonFungibleToken {
     pub event CollectionGroupCreated(
         id: UInt64,
         name: String,
+        description: String,
         typeName: String,
         startTime: UFix64?,
         endTime: UFix64?,
@@ -47,13 +48,13 @@ pub contract DSSCollection: NonFungibleToken {
         slotID: UInt64,
         collectionGroupID: UInt64
     )
-    pub event DSSCollectionNFTMinted(
+    pub event CollectionNFTMinted(
         id: UInt64,
         collectionGroupID: UInt64,
         serialNumber: UInt64,
         completedBy: String,
         completionDate: UFix64,
-        level: UInt64
+        level: UInt8
     )
     pub event DSSCollectionNFTBurned(id: UInt64)
 
@@ -202,6 +203,7 @@ pub contract DSSCollection: NonFungibleToken {
     pub struct CollectionGroupData {
         pub let id: UInt64
         pub let name: String
+        pub let description: String
         pub let typeName: String
         pub let open: Bool
         pub let startTime: UFix64?
@@ -212,6 +214,7 @@ pub contract DSSCollection: NonFungibleToken {
             if let collectionGroup = &DSSCollection.collectionGroupByID[id] as &DSSCollection.CollectionGroup? {
                 self.id = collectionGroup.id
                 self.name = collectionGroup.name
+                self.description = collectionGroup.description
                 self.typeName = collectionGroup.typeName
                 self.open = collectionGroup.open
                 self.startTime = collectionGroup.startTime
@@ -228,6 +231,7 @@ pub contract DSSCollection: NonFungibleToken {
     pub resource CollectionGroup {
         pub let id: UInt64
         pub let name: String
+        pub let description: String
         pub let typeName: String
         pub var open: Bool
         pub let startTime: UFix64?
@@ -249,7 +253,7 @@ pub contract DSSCollection: NonFungibleToken {
 
         // Mint a DSSCollection NFT in this group
         //
-        pub fun mint(completedBy: String, level: UInt64): @DSSCollection.NFT {
+        pub fun mint(completedBy: String, level: UInt8): @DSSCollection.NFT {
             pre {
                 self.open != true: "cannot mint an open collection group"
                 DSSCollection.validateTimeRange(
@@ -277,6 +281,7 @@ pub contract DSSCollection: NonFungibleToken {
 
         init (
             name: String,
+            description: String,
             typeName: String,
             startTime: UFix64?,
             endTime: UFix64?,
@@ -284,6 +289,7 @@ pub contract DSSCollection: NonFungibleToken {
         ) {
             self.id = self.uuid
             self.name = name
+            self.description = description
             self.typeName = typeName
             self.open = true
             self.startTime = startTime
@@ -294,6 +300,7 @@ pub contract DSSCollection: NonFungibleToken {
             emit CollectionGroupCreated(
                 id: self.id,
                 name: self.name,
+                description: self.description,
                 typeName: self.typeName,
                 startTime: self.startTime,
                 endTime: self.endTime,
@@ -332,7 +339,7 @@ pub contract DSSCollection: NonFungibleToken {
         return DSSCollection.ItemData(id: id)
     }
 
-    // Get the publicly available data for a CollectionGroup by id
+    // Validate time range of collection group
     //
     pub fun validateTimeRange(timeBound: Bool, startTime: UFix64?, endTime: UFix64?): Bool {
         if !timeBound {
@@ -354,7 +361,7 @@ pub contract DSSCollection: NonFungibleToken {
         pub let serialNumber: UInt64
         pub let completionDate: UFix64
         pub let completedBy: String
-        pub let level: UInt64
+        pub let level: UInt8
 
         pub fun name(): String {
             let collectionGroupData: DSSCollection.CollectionGroupData
@@ -402,7 +409,7 @@ pub contract DSSCollection: NonFungibleToken {
             collectionGroupID: UInt64,
             serialNumber: UInt64,
             completedBy: String,
-            level: UInt64
+            level: UInt8
         ) {
             pre {
                 DSSCollection.collectionGroupByID[collectionGroupID] != nil: "no such collectionGroupID"
@@ -415,7 +422,7 @@ pub contract DSSCollection: NonFungibleToken {
             self.completedBy = completedBy
             self.level = level
 
-            emit DSSCollectionNFTMinted(
+            emit CollectionNFTMinted(
                 id: self.id,
                 collectionGroupID: self.collectionGroupID,
                 serialNumber: self.serialNumber,
@@ -554,7 +561,7 @@ pub contract DSSCollection: NonFungibleToken {
         // Mint a single NFT
         // The collectionGroupID for the given ID must already exist
         //
-        pub fun mintNFT(collectionGroupID: UInt64, completedBy: String, level: UInt64): @DSSCollection.NFT
+        pub fun mintNFT(collectionGroupID: UInt64, completedBy: String, level: UInt8): @DSSCollection.NFT
     }
 
     // A resource that allows managing metadata and minting NFTs
@@ -585,6 +592,7 @@ pub contract DSSCollection: NonFungibleToken {
         //
         pub fun createCollectionGroup(
             name: String,
+            description: String,
             typeName: String,
             startTime: UFix64?,
             endTime: UFix64?,
@@ -593,6 +601,7 @@ pub contract DSSCollection: NonFungibleToken {
             // Create and store the new collection group
             let collectionGroup <- create DSSCollection.CollectionGroup(
                 name: name,
+                description: description,
                 typeName: typeName,
                 startTime: startTime,
                 endTime: endTime,
@@ -629,7 +638,7 @@ pub contract DSSCollection: NonFungibleToken {
         // Mint a single NFT
         // The CollectionGroup for the given ID must already exist
         //
-        pub fun mintNFT(collectionGroupID: UInt64, completedBy: String, level: UInt64): @DSSCollection.NFT {
+        pub fun mintNFT(collectionGroupID: UInt64, completedBy: String, level: UInt8): @DSSCollection.NFT {
             pre {
                 // Make sure the collection group exists
                 DSSCollection.collectionGroupByID.containsKey(collectionGroupID): "No such CollectionGroupID"

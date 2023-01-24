@@ -64,6 +64,7 @@ func testCreateCollectionGroup(
 		contracts,
 		false,
 		collectionGroupName,
+		"All Stars",
 		typeName,
 	)
 
@@ -105,6 +106,7 @@ func testCreateTimeBoundCollectionGroup(
 		contracts,
 		false,
 		collectionGroupName,
+		"All Stars",
 		typeName,
 		1673986190,
 		2368296360,
@@ -146,6 +148,7 @@ func testCloseCollectionGroup(
 		contracts,
 		false,
 		"Top Shot All Stars",
+		"All Stars",
 		"A.0xf8d6e0586b0a20c7.NFT",
 	)
 
@@ -237,6 +240,7 @@ func testMintNFT(
 		contracts,
 		false,
 		collectionGroupName,
+		"All Stars",
 		"A.0xf8d6e0586b0a20c7.NFT",
 	)
 
@@ -261,7 +265,7 @@ func testMintNFT(
 		userAddress.String(),
 		collectionGroupId,
 		userAddress.String(),
-		uint64(nftLevel),
+		uint8(nftLevel),
 	)
 
 	if !shouldRevert {

@@ -5,7 +5,7 @@ transaction(
     recipientAddress: Address,
     collectionGroupID: UInt64,
     completedBy: String,
-    level: UInt64
+    level: UInt8
 ) {
     
     // local variable for storing the minter reference
