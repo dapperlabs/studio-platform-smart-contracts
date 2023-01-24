@@ -30,16 +30,21 @@ pub contract DSSCollection: NonFungibleToken {
         timeBound: Bool
     )
     pub event CollectionGroupClosed(id: UInt64)
+    pub event ItemCreated(
+        id: UInt64,
+        itemID: UInt64,
+        points: UInt64,
+        itemType: String
+    )
     pub event SlotCreated(
         id: UInt64,
         collectionGroupID: UInt64,
         logicalOperator: String,
-        typeName: String,
-        slotType: String
+        typeName: String
     )
     pub event ItemAddedToSlot(
-        itemID: UInt64,
-        itemValue: UInt64,
+        id: UInt64,
+        slotID: UInt64,
         collectionGroupID: UInt64
     )
     pub event DSSCollectionNFTMinted(
@@ -52,7 +57,6 @@ pub contract DSSCollection: NonFungibleToken {
     )
     pub event DSSCollectionNFTBurned(id: UInt64)
 
-
     // Named Paths
     //
     pub let CollectionStoragePath:  StoragePath
@@ -63,13 +67,59 @@ pub contract DSSCollection: NonFungibleToken {
     // Entity Counts
     //
     pub var totalSupply:                 UInt64
-    pub var nextCollectionGroupID:       UInt64
-    pub var nextSlotID:       UInt64
 
     // Lists in contract
     //
     access(self) let collectionGroupByID: @{UInt64: CollectionGroup}
     access(self) let slotByID: @{UInt64: Slot}
+    access(self) let itemByID: @{UInt64: Item}
+
+    // A public struct to access Slot data
+    //
+    pub struct ItemData {
+        pub let id: UInt64 // unique uuid of resource
+        pub let itemID: UInt64 // the id of the edition, tier, play
+        pub let points: UInt64 // points for item
+        pub let itemType: String // (edition.id, edition.tier, play.id)
+
+        init (id: UInt64) {
+            if let item = &DSSCollection.itemByID[id] as &DSSCollection.Item? {
+                self.id = item.id
+                self.itemID = item.itemID
+                self.points = item.points
+                self.itemType = item.itemType
+            } else {
+                panic("item does not exist")
+            }
+        }
+    }
+
+    // A top-level Item with a unique ID
+    //
+    pub resource Item {
+        pub let id: UInt64 // unique uuid of resource
+        pub let itemID: UInt64 // the id of the edition, tier, play
+        pub let points: UInt64 // points for item
+        pub let itemType: String // (edition.id, edition.tier, play.id)
+
+        init (
+            itemID: UInt64,
+            points: UInt64,
+            itemType: String
+        ) {
+            self.id = self.uuid
+            self.itemID = itemID
+            self.points = points
+            self.itemType = itemType
+
+            emit ItemCreated(
+                id: self.id,
+                itemID: self.itemID,
+                points: self.points,
+                itemType: self.itemType
+            )
+        }
+    }
 
     // A public struct to access Slot data
     //
@@ -78,12 +128,7 @@ pub contract DSSCollection: NonFungibleToken {
         pub let collectionGroupID: UInt64
         pub let logicalOperator: String // (AND / OR)
         pub let typeName: String // (A.contractAddress.NFT...)
-        pub let slotType: String // (edition.id, edition.tier, play.id)
-        pub var items: {UInt64: AnyStruct}
-
-        pub fun itemIDExistsInSlot(id: UInt64): Bool {
-           return self.items.containsKey(id)
-        }
+        pub var items: [ItemData]
 
         init (id: UInt64) {
             if let slot = &DSSCollection.slotByID[id] as &DSSCollection.Slot? {
@@ -91,7 +136,6 @@ pub contract DSSCollection: NonFungibleToken {
                 self.collectionGroupID = slot.collectionGroupID
                 self.logicalOperator = slot.logicalOperator
                 self.typeName = slot.typeName
-                self.slotType = slot.slotType
                 self.items = slot.items
             } else {
                 panic("slot does not exist")
@@ -106,23 +150,23 @@ pub contract DSSCollection: NonFungibleToken {
         pub let collectionGroupID: UInt64
         pub let logicalOperator: String // (AND / OR)
         pub let typeName: String // (A.contractAddress.NFT...)
-        pub let slotType: String // (edition.id, edition.tier, play.id)
-        pub var items: {UInt64: UInt64}
+        pub var items: [ItemData]
 
         // Add item to slot
         //
-        access(contract) fun addItemToSlot(itemID: UInt64, itemValue: UInt64) {
+        access(contract) fun addItemToSlot(id: UInt64) {
             pre {
                 DSSCollection.CollectionGroupData(
                     id: self.collectionGroupID
                 ).open == true: "collection group not open"
             }
 
-            self.items[itemID] = itemValue
+            let item = DSSCollection.getItemData(id: id)
+            self.items.append(item)
 
             emit ItemAddedToSlot(
-                 itemID: itemID,
-                 itemValue: itemValue,
+                 id: item.id,
+                 slotID: self.id,
                  collectionGroupID: self.collectionGroupID
              )
         }
@@ -130,8 +174,7 @@ pub contract DSSCollection: NonFungibleToken {
         init (
             collectionGroupID: UInt64,
             logicalOperator: String,
-            typeName: String,
-            slotType: String
+            typeName: String
         ) {
             pre {
                 DSSCollection.CollectionGroupData(
@@ -139,21 +182,17 @@ pub contract DSSCollection: NonFungibleToken {
                 ).open == true: "collection group not open"
             }
 
-            self.id = DSSCollection.nextSlotID
+            self.id = self.uuid
             self.collectionGroupID = collectionGroupID
             self.logicalOperator = logicalOperator
             self.typeName = typeName
-            self.slotType = slotType
-            self.items = {}
-
-            DSSCollection.nextSlotID = self.id + 1 as UInt64
+            self.items = []
 
             emit SlotCreated(
                 id: self.id,
                 collectionGroupID: self.collectionGroupID,
                 logicalOperator: self.logicalOperator,
-                typeName: self.typeName,
-                slotType: self.slotType
+                typeName: self.typeName
             )
         }
     }
@@ -243,7 +282,7 @@ pub contract DSSCollection: NonFungibleToken {
             endTime: UFix64?,
             timeBound: Bool
         ) {
-            self.id = DSSCollection.nextCollectionGroupID
+            self.id = self.uuid
             self.name = name
             self.typeName = typeName
             self.open = true
@@ -251,8 +290,6 @@ pub contract DSSCollection: NonFungibleToken {
             self.endTime = endTime
             self.timeBound = timeBound
             self.numMinted = 0 as UInt64
-
-            DSSCollection.nextCollectionGroupID = self.id + 1 as UInt64
 
             emit CollectionGroupCreated(
                 id: self.id,
@@ -283,6 +320,16 @@ pub contract DSSCollection: NonFungibleToken {
         }
 
         return DSSCollection.SlotData(id: id)
+    }
+
+    // Get the publicly available data for a Slot by id
+    //
+    pub fun getItemData(id: UInt64): DSSCollection.ItemData {
+        pre {
+            DSSCollection.itemByID[id] != nil: "Cannot borrow item, no such id"
+        }
+
+        return DSSCollection.ItemData(id: id)
     }
 
     // Get the publicly available data for a CollectionGroup by id
@@ -570,9 +617,9 @@ pub contract DSSCollection: NonFungibleToken {
 
         // Add Item to Slot
         //
-        pub fun addItemToSlot(slotID: UInt64, itemID: UInt64, itemValue: UInt64) {
+        pub fun addItemToSlot(slotID: UInt64, id: UInt64) {
             if let slot = &DSSCollection.slotByID[slotID] as &DSSCollection.Slot? {
-                slot.addItemToSlot(itemID: itemID, itemValue: itemValue)
+                slot.addItemToSlot(id: id)
                 return
             }
             panic("slot does not exist")
@@ -602,12 +649,11 @@ pub contract DSSCollection: NonFungibleToken {
 
         // Initialize the entity counts
         self.totalSupply = 0
-        self.nextCollectionGroupID = 1
-        self.nextSlotID = 1
 
         // Initialize the metadata lookup dictionaries
         self.collectionGroupByID <- {}
         self.slotByID <- {}
+        self.itemByID <- {}
 
         // Create an Admin resource and save it to storage
         let admin <- create Admin()
@@ -622,5 +668,3 @@ pub contract DSSCollection: NonFungibleToken {
         emit ContractInitialized()
     }
 }
-
- 

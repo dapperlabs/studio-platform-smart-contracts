@@ -52,7 +52,7 @@ func createCollectionGroup(
 	shouldRevert bool,
 	collectionGroupName string,
 	typeName string,
-) {
+) uint64 {
 	tx := flow.NewTransaction().
 		SetScript(createCollectionGroupTransaction(contracts)).
 		SetGasLimit(100).
@@ -63,12 +63,15 @@ func createCollectionGroup(
 	tx.AddArgument(cadence.String(typeName))
 
 	signer, _ := b.ServiceKey().Signer()
-	signAndSubmit(
+	txResult := signAndSubmit(
 		t, b, tx,
 		[]flow.Address{b.ServiceKey().Address, contracts.DSSCollectionAddress},
 		[]crypto.Signer{signer, contracts.DSSCollectionSigner},
 		shouldRevert,
 	)
+	collectionGroupId := txResult.Events[0].Value.Fields[0].ToGoValue().(uint64)
+
+	return collectionGroupId
 }
 
 func createTimeBoundCollectionGroup(
@@ -80,7 +83,7 @@ func createTimeBoundCollectionGroup(
 	typeName string,
 	startTime int,
 	endTime int,
-) {
+) uint64 {
 	tx := flow.NewTransaction().
 		SetScript(createTimeBoundCollectionGroupTransaction(contracts)).
 		SetGasLimit(100).
@@ -93,12 +96,16 @@ func createTimeBoundCollectionGroup(
 	tx.AddArgument(cadence.UFix64(endTime))
 
 	signer, _ := b.ServiceKey().Signer()
-	signAndSubmit(
+	txResult := signAndSubmit(
 		t, b, tx,
 		[]flow.Address{b.ServiceKey().Address, contracts.DSSCollectionAddress},
 		[]crypto.Signer{signer, contracts.DSSCollectionSigner},
 		shouldRevert,
 	)
+
+	collectionGroupId := txResult.Events[0].Value.Fields[0].ToGoValue().(uint64)
+
+	return collectionGroupId
 }
 
 func closeCollectionGroup(

@@ -58,7 +58,7 @@ func testCreateCollectionGroup(
 	collectionGroupName string,
 	typeName string,
 ) {
-	createCollectionGroup(
+	collectionGroupId := createCollectionGroup(
 		t,
 		b,
 		contracts,
@@ -68,8 +68,8 @@ func testCreateCollectionGroup(
 	)
 
 	if !shouldRevert {
-		collectionGroup := getCollectionGroupData(t, b, contracts, 1)
-		assert.Equal(t, uint64(1), collectionGroup.ID)
+		collectionGroup := getCollectionGroupData(t, b, contracts, collectionGroupId)
+		assert.Equal(t, collectionGroupId, collectionGroup.ID)
 		assert.Equal(t, collectionGroupName, collectionGroup.Name)
 		assert.Equal(t, true, collectionGroup.Open)
 		assert.Equal(t, false, collectionGroup.TimeBound)
@@ -99,7 +99,7 @@ func testCreateTimeBoundCollectionGroup(
 	collectionGroupName string,
 	typeName string,
 ) {
-	createTimeBoundCollectionGroup(
+	collectionGroupId := createTimeBoundCollectionGroup(
 		t,
 		b,
 		contracts,
@@ -111,8 +111,8 @@ func testCreateTimeBoundCollectionGroup(
 	)
 
 	if !shouldRevert {
-		collectionGroup := getCollectionGroupData(t, b, contracts, 1)
-		assert.Equal(t, uint64(1), collectionGroup.ID)
+		collectionGroup := getCollectionGroupData(t, b, contracts, collectionGroupId)
+		assert.Equal(t, collectionGroupId, collectionGroup.ID)
 		assert.Equal(t, collectionGroupName, collectionGroup.Name)
 		assert.Equal(t, typeName, collectionGroup.TypeName)
 		assert.Equal(t, true, collectionGroup.Open)
@@ -140,7 +140,7 @@ func testCloseCollectionGroup(
 	shouldRevert bool,
 ) {
 
-	createCollectionGroup(
+	collectionGroupId := createCollectionGroup(
 		t,
 		b,
 		contracts,
@@ -154,12 +154,12 @@ func testCloseCollectionGroup(
 		b,
 		contracts,
 		false,
-		1,
+		collectionGroupId,
 	)
 
 	if !shouldRevert {
-		collectionGroup := getCollectionGroupData(t, b, contracts, 1)
-		assert.Equal(t, uint64(1), collectionGroup.ID)
+		collectionGroup := getCollectionGroupData(t, b, contracts, collectionGroupId)
+		assert.Equal(t, collectionGroupId, collectionGroup.ID)
 		assert.Equal(t, false, collectionGroup.Open)
 	}
 }
@@ -231,7 +231,7 @@ func testMintNFT(
 	shouldRevert bool,
 ) {
 	collectionGroupName := "Top Shot All Stars"
-	createCollectionGroup(
+	collectionGroupId := createCollectionGroup(
 		t,
 		b,
 		contracts,
@@ -245,7 +245,7 @@ func testMintNFT(
 		b,
 		contracts,
 		false,
-		1,
+		collectionGroupId,
 	)
 
 	userAddress, userSigner := createAccount(t, b)
@@ -259,7 +259,7 @@ func testMintNFT(
 		contracts,
 		false,
 		userAddress.String(),
-		1,
+		collectionGroupId,
 		userAddress.String(),
 		uint64(nftLevel),
 	)
@@ -268,7 +268,7 @@ func testMintNFT(
 		nftID := 1
 		nft := getNFTData(t, b, contracts, userAddress.String(), nftID)
 		assert.Equal(t, uint64(nftID), nft.ID)
-		assert.Equal(t, uint64(nftID), nft.CollectionGroupID)
+		assert.Equal(t, collectionGroupId, nft.CollectionGroupID)
 		assert.Equal(t, userAddress.String(), nft.CompletedBy)
 		assert.NotNil(t, nft.CompletionDate)
 

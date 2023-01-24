@@ -2,6 +2,7 @@ package test
 
 import (
 	jsoncdc "github.com/onflow/cadence/encoding/json"
+	"github.com/onflow/flow-emulator/types"
 	"io/ioutil"
 	"testing"
 
@@ -137,7 +138,7 @@ func signAndSubmit(
 	signerAddresses []flow.Address,
 	signers []crypto.Signer,
 	shouldRevert bool,
-) {
+) *types.TransactionResult {
 	// sign transaction with each signer
 	for i := len(signerAddresses) - 1; i >= 0; i-- {
 		signerAddress := signerAddresses[i]
@@ -152,7 +153,8 @@ func signAndSubmit(
 		}
 	}
 
-	submit(t, b, tx, shouldRevert)
+	result := submit(t, b, tx, shouldRevert)
+	return result
 }
 
 // submit submits a transaction and checks
@@ -162,7 +164,7 @@ func submit(
 	b *emulator.Blockchain,
 	tx *flow.Transaction,
 	shouldRevert bool,
-) {
+) *types.TransactionResult {
 	// submit the signed transaction
 	err := b.AddTransaction(*tx)
 	require.NoError(t, err)
@@ -180,6 +182,7 @@ func submit(
 
 	_, err = b.CommitBlock()
 	assert.NoError(t, err)
+	return result
 }
 
 // executeScriptAndCheck executes a script and checks to make sure that it succeeded.
