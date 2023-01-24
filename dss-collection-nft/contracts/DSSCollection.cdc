@@ -56,7 +56,7 @@ pub contract DSSCollection: NonFungibleToken {
         completionDate: UFix64,
         level: UInt8
     )
-    pub event DSSCollectionNFTBurned(id: UInt64)
+    pub event CollectionNFTBurned(id: UInt64)
 
     // Named Paths
     //
@@ -385,7 +385,7 @@ pub contract DSSCollection: NonFungibleToken {
         }
 
         destroy() {
-            emit DSSCollectionNFTBurned(id: self.id)
+            emit CollectionNFTBurned(id: self.id)
         }
 
         pub fun getViews(): [Type] {
@@ -588,6 +588,16 @@ pub contract DSSCollection: NonFungibleToken {
             return (&DSSCollection.slotByID[id] as &DSSCollection.Slot?)!
         }
 
+        // Borrow a Item
+        //
+        pub fun borrowItem(id: UInt64): &DSSCollection.Item {
+            pre {
+                DSSCollection.itemByID[id] != nil: "Cannot borrow item, no such id"
+            }
+
+            return (&DSSCollection.itemByID[id] as &DSSCollection.Item?)!
+        }
+
         // Create a Collection Group
         //
         pub fun createCollectionGroup(
@@ -622,6 +632,41 @@ pub contract DSSCollection: NonFungibleToken {
                 return collectionGroup.id
             }
             panic("collection group does not exist")
+        }
+
+        // Create a Slot
+        //
+        pub fun createSlot(
+            collectionGroupID: UInt64,
+            logicalOperator: String,
+            typeName: String
+        ): UInt64 {
+            // Create and store the new slot
+            let slot <- create DSSCollection.Slot(
+                collectionGroupID: collectionGroupID,
+                logicalOperator: logicalOperator,
+                typeName: typeName
+            )
+            let slotID = slot.id
+            DSSCollection.slotByID[slot.id] <-! slot
+            return slotID
+        }
+
+        // Create an Item
+        //
+        pub fun createItem(
+            itemID: UInt64,
+            points: UInt64,
+            itemType: String
+        ): UInt64 {
+            let item <- create DSSCollection.Item(
+                itemID: itemID,
+                points: points,
+                itemType: itemType
+            )
+            let id = item.id
+            DSSCollection.itemByID[item.id] <-! item
+            return id
         }
 
         // Add Item to Slot

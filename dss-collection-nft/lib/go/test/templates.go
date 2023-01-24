@@ -30,8 +30,16 @@ const (
 	CreateCollectionGroupTxPath          = TransactionsRootPath + "/admin/create_collection_group.cdc"
 	CreateTimeBoundCollectionGroupTxPath = TransactionsRootPath + "/admin/create_collection_group_time_bound.cdc"
 	CloseCollectionGroupTxPath           = TransactionsRootPath + "/admin/close_collection_group.cdc"
-	AddNFTToCollectionGroupTxPath        = TransactionsRootPath + "/admin/add_edition_to_collection_group.cdc"
 	GetCollectionGroupByIDScriptPath     = ScriptsRootPath + "/get_collection_group.cdc"
+
+	// Slots
+	CreateSlotTxPath      = TransactionsRootPath + "/admin/create_slot.cdc"
+	GetSlotByIDScriptPath = ScriptsRootPath + "/get_slot.cdc"
+
+	// Items
+	CreateItemTxPath      = TransactionsRootPath + "/admin/create_item.cdc"
+	GetItemByIDScriptPath = ScriptsRootPath + "/get_item.cdc"
+	AddItemToSlotTxPath   = TransactionsRootPath + "/admin/add_item_to_slot.cdc"
 
 	// NFTs
 	MintNFTTxPath                        = TransactionsRootPath + "/admin/mint_nft.cdc"
@@ -111,9 +119,37 @@ func createTimeBoundCollectionGroupTransaction(contracts Contracts) []byte {
 	)
 }
 
+func createSlotTransaction(contracts Contracts) []byte {
+	return replaceAddresses(
+		readFile(CreateSlotTxPath),
+		contracts,
+	)
+}
+
+func createItemTransaction(contracts Contracts) []byte {
+	return replaceAddresses(
+		readFile(CreateItemTxPath),
+		contracts,
+	)
+}
+
 func readCollectionGroupByIDScript(contracts Contracts) []byte {
 	return replaceAddresses(
 		readFile(GetCollectionGroupByIDScriptPath),
+		contracts,
+	)
+}
+
+func readSlotByIDScript(contracts Contracts) []byte {
+	return replaceAddresses(
+		readFile(GetSlotByIDScriptPath),
+		contracts,
+	)
+}
+
+func readItemByIDScript(contracts Contracts) []byte {
+	return replaceAddresses(
+		readFile(GetItemByIDScriptPath),
 		contracts,
 	)
 }
@@ -125,9 +161,9 @@ func closeCollectionGroupTransaction(contracts Contracts) []byte {
 	)
 }
 
-func addNFTToCollectionGroupTransaction(contracts Contracts) []byte {
+func addItemToSlotTransaction(contracts Contracts) []byte {
 	return replaceAddresses(
-		readFile(AddNFTToCollectionGroupTxPath),
+		readFile(AddItemToSlotTxPath),
 		contracts,
 	)
 }

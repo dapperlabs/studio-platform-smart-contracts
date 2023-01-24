@@ -136,22 +136,84 @@ func closeCollectionGroup(
 	)
 }
 
-func addNFTToCollectionGroup(
+func createSlot(
 	t *testing.T,
 	b *emulator.Blockchain,
 	contracts Contracts,
 	shouldRevert bool,
 	collectionGroupID uint64,
-	nftID uint64,
-) {
+	logicalOperator string,
+	typeName string,
+) uint64 {
 	tx := flow.NewTransaction().
-		SetScript(addNFTToCollectionGroupTransaction(contracts)).
+		SetScript(createSlotTransaction(contracts)).
 		SetGasLimit(100).
 		SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
 		SetPayer(b.ServiceKey().Address).
 		AddAuthorizer(contracts.DSSCollectionAddress)
 	tx.AddArgument(cadence.UInt64(collectionGroupID))
-	tx.AddArgument(cadence.UInt64(nftID))
+	tx.AddArgument(cadence.String(logicalOperator))
+	tx.AddArgument(cadence.String(typeName))
+
+	signer, _ := b.ServiceKey().Signer()
+	txResult := signAndSubmit(
+		t, b, tx,
+		[]flow.Address{b.ServiceKey().Address, contracts.DSSCollectionAddress},
+		[]crypto.Signer{signer, contracts.DSSCollectionSigner},
+		shouldRevert,
+	)
+	slotId := txResult.Events[0].Value.Fields[0].ToGoValue().(uint64)
+
+	return slotId
+}
+
+func createItem(
+	t *testing.T,
+	b *emulator.Blockchain,
+	contracts Contracts,
+	shouldRevert bool,
+	itemID uint64,
+	points uint64,
+	itemType string,
+) uint64 {
+	tx := flow.NewTransaction().
+		SetScript(createItemTransaction(contracts)).
+		SetGasLimit(100).
+		SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
+		SetPayer(b.ServiceKey().Address).
+		AddAuthorizer(contracts.DSSCollectionAddress)
+	tx.AddArgument(cadence.UInt64(itemID))
+	tx.AddArgument(cadence.UInt64(points))
+	tx.AddArgument(cadence.String(itemType))
+
+	signer, _ := b.ServiceKey().Signer()
+	txResult := signAndSubmit(
+		t, b, tx,
+		[]flow.Address{b.ServiceKey().Address, contracts.DSSCollectionAddress},
+		[]crypto.Signer{signer, contracts.DSSCollectionSigner},
+		shouldRevert,
+	)
+	slotId := txResult.Events[0].Value.Fields[0].ToGoValue().(uint64)
+
+	return slotId
+}
+
+func addItemToSlot(
+	t *testing.T,
+	b *emulator.Blockchain,
+	contracts Contracts,
+	shouldRevert bool,
+	slotID uint64,
+	ID uint64,
+) {
+	tx := flow.NewTransaction().
+		SetScript(addItemToSlotTransaction(contracts)).
+		SetGasLimit(100).
+		SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
+		SetPayer(b.ServiceKey().Address).
+		AddAuthorizer(contracts.DSSCollectionAddress)
+	tx.AddArgument(cadence.UInt64(slotID))
+	tx.AddArgument(cadence.UInt64(ID))
 
 	signer, _ := b.ServiceKey().Signer()
 	signAndSubmit(

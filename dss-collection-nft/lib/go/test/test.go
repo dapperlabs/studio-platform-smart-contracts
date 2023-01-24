@@ -263,6 +263,30 @@ func getCollectionGroupData(
 	return parseCollectionGroupData(result)
 }
 
+func getSlotData(
+	t *testing.T,
+	b *emulator.Blockchain,
+	contracts Contracts,
+	id uint64,
+) SlotData {
+	script := readSlotByIDScript(contracts)
+	result := executeScriptAndCheck(t, b, script, [][]byte{jsoncdc.MustEncode(cadence.UInt64(id))})
+
+	return parseSlotData(result)
+}
+
+func getItemData(
+	t *testing.T,
+	b *emulator.Blockchain,
+	contracts Contracts,
+	id uint64,
+) ItemData {
+	script := readItemByIDScript(contracts)
+	result := executeScriptAndCheck(t, b, script, [][]byte{jsoncdc.MustEncode(cadence.UInt64(id))})
+
+	return parseItemData(result)
+}
+
 func getNFTData(
 	t *testing.T,
 	b *emulator.Blockchain,

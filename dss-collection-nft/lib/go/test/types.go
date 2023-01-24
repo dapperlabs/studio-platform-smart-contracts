@@ -13,6 +13,21 @@ type CollectionGroupData struct {
 	TimeBound   bool
 }
 
+type SlotData struct {
+	ID                uint64
+	CollectionGroupID uint64
+	LogicalOperator   string
+	TypeName          string
+	Items             []ItemData
+}
+
+type ItemData struct {
+	ID       uint64
+	ItemID   uint64
+	Points   uint64
+	ItemType string
+}
+
 type NFTData struct {
 	ID                uint64
 	CollectionGroupID uint64
@@ -36,6 +51,33 @@ func parseCollectionGroupData(value cadence.Value) CollectionGroupData {
 		fields[3].ToGoValue().(string),
 		fields[4].ToGoValue().(bool),
 		fields[7].ToGoValue().(bool),
+	}
+}
+
+func parseSlotData(value cadence.Value) SlotData {
+	fields := value.(cadence.Struct).Fields
+	var items []ItemData
+	for _, val := range fields[4].(cadence.Array).Values {
+		item := parseItemData(val)
+		items = append(items, item)
+	}
+	slotData := SlotData{
+		fields[0].ToGoValue().(uint64),
+		fields[1].ToGoValue().(uint64),
+		fields[2].ToGoValue().(string),
+		fields[3].ToGoValue().(string),
+		items,
+	}
+	return slotData
+}
+
+func parseItemData(value cadence.Value) ItemData {
+	fields := value.(cadence.Struct).Fields
+	return ItemData{
+		fields[0].ToGoValue().(uint64),
+		fields[1].ToGoValue().(uint64),
+		fields[2].ToGoValue().(uint64),
+		fields[3].ToGoValue().(string),
 	}
 }
 

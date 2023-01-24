@@ -8,7 +8,6 @@ pub fun main(address: Address): Bool {
     return account.getCapability<&{
             NonFungibleToken.CollectionPublic,
             DSSCollection.DSSCollectionNFTCollectionPublic
-        }>(DSSCollection.CollectionPublicPath)
-        != nil
+        }>(DSSCollection.CollectionPublicPath).check()
 }
 

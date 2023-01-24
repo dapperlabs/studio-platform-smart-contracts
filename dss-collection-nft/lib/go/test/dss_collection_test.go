@@ -167,52 +167,194 @@ func testCloseCollectionGroup(
 	}
 }
 
-//func TestAddNFTToCollectionGroup(t *testing.T) {
-//	b := newEmulator()
-//	contracts := DSSCollectionDeployContracts(t, b)
-//	t.Run("Should be able to add an NFT to an open collection group", func(t *testing.T) {
-//		testAddNFTToCollectionGroup(
-//			t,
-//			b,
-//			contracts,
-//			false,
-//		)
-//	})
-//}
-//
-//func testAddNFTToCollectionGroup(
-//	t *testing.T,
-//	b *emulator.Blockchain,
-//	contracts Contracts,
-//	shouldRevert bool,
-//) {
-//
-//	createCollectionGroup(
-//		t,
-//		b,
-//		contracts,
-//		false,
-//		"TopDunkers",
-//		"A.0xf8d6e0586b0a20c7.NFT",
-//	)
-//
-//	addNFTToCollectionGroup(
-//		t,
-//		b,
-//		contracts,
-//		false,
-//		1,
-//		100,
-//	)
-//
-//	if !shouldRevert {
-//		collectionGroup := getCollectionGroupData(t, b, contracts, 1)
-//		assert.Equal(t, uint64(1), collectionGroup.ID)
-//		assert.Equal(t, true, collectionGroup.Open)
-//		//assert.Equal(t, true, collectionGroup.NFTIDInCollectionGroup[100])
-//		//assert.Equal(t, 1, len(collectionGroup.NFTIDInCollectionGroup))
-//	}
-//}
+func TestCreateSlot(t *testing.T) {
+	b := newEmulator()
+	contracts := DSSCollectionDeployContracts(t, b)
+	t.Run("Should be able to create a new slot", func(t *testing.T) {
+
+		testCreateSlot(
+			t,
+			b,
+			contracts,
+			false,
+			"OR",
+			"A.0xf8d6e0586b0a20c7.NFT",
+		)
+	})
+}
+
+func testCreateSlot(
+	t *testing.T,
+	b *emulator.Blockchain,
+	contracts Contracts,
+	shouldRevert bool,
+	logicalOperator string,
+	typeName string,
+) {
+	collectionGroupID := createCollectionGroup(
+		t,
+		b,
+		contracts,
+		false,
+		"NBA All Stars",
+		"All Stars",
+		typeName,
+	)
+
+	slotID := createSlot(
+		t,
+		b,
+		contracts,
+		false,
+		collectionGroupID,
+		logicalOperator,
+		typeName,
+	)
+
+	if !shouldRevert {
+		slot := getSlotData(t, b, contracts, slotID)
+		assert.Equal(t, slotID, slot.ID)
+		assert.Equal(t, logicalOperator, slot.LogicalOperator)
+		assert.Equal(t, typeName, slot.TypeName)
+	}
+}
+
+func TestCreateItem(t *testing.T) {
+	b := newEmulator()
+	contracts := DSSCollectionDeployContracts(t, b)
+	t.Run("Should be able to create a new item", func(t *testing.T) {
+
+		testCreateItem(
+			t,
+			b,
+			contracts,
+			false,
+			100,
+			10,
+			"edition.id",
+		)
+	})
+}
+
+func testCreateItem(
+	t *testing.T,
+	b *emulator.Blockchain,
+	contracts Contracts,
+	shouldRevert bool,
+	itemID uint64,
+	points uint64,
+	itemType string,
+) {
+	collectionGroupID := createCollectionGroup(
+		t,
+		b,
+		contracts,
+		shouldRevert,
+		"NBA All Stars",
+		"All Stars",
+		"A.0xf8d6e0586b0a20c7.NFT",
+	)
+
+	_ = createSlot(
+		t,
+		b,
+		contracts,
+		shouldRevert,
+		collectionGroupID,
+		"OR",
+		"A.0xf8d6e0586b0a20c7.NFT",
+	)
+
+	id := createItem(
+		t,
+		b,
+		contracts,
+		shouldRevert,
+		itemID,
+		points,
+		itemType,
+	)
+
+	if !shouldRevert {
+		item := getItemData(t, b, contracts, id)
+		assert.Equal(t, id, item.ID)
+		assert.Equal(t, itemID, item.ItemID)
+		assert.Equal(t, points, item.Points)
+		assert.Equal(t, itemType, item.ItemType)
+	}
+}
+
+func TestAddItemToSlot(t *testing.T) {
+	b := newEmulator()
+	contracts := DSSCollectionDeployContracts(t, b)
+	t.Run("Should be able to add an item to a slot", func(t *testing.T) {
+		testAddItemToSlot(
+			t,
+			b,
+			contracts,
+			false,
+		)
+	})
+}
+
+func testAddItemToSlot(
+	t *testing.T,
+	b *emulator.Blockchain,
+	contracts Contracts,
+	shouldRevert bool,
+) {
+
+	collectionGroupID := createCollectionGroup(
+		t,
+		b,
+		contracts,
+		shouldRevert,
+		"NBA All Stars",
+		"All Stars",
+		"A.0xf8d6e0586b0a20c7.NFT",
+	)
+
+	slotID := createSlot(
+		t,
+		b,
+		contracts,
+		shouldRevert,
+		collectionGroupID,
+		"OR",
+		"A.0xf8d6e0586b0a20c7.NFT",
+	)
+
+	itemID := 100
+	points := 10
+	itemType := "edition.id"
+	id := createItem(
+		t,
+		b,
+		contracts,
+		shouldRevert,
+		uint64(itemID),
+		uint64(points),
+		itemType,
+	)
+
+	addItemToSlot(
+		t,
+		b,
+		contracts,
+		false,
+		slotID,
+		id,
+	)
+
+	if !shouldRevert {
+		slot := getSlotData(t, b, contracts, slotID)
+		assert.Equal(t, slotID, slot.ID)
+		assert.Equal(t, 1, len(slot.Items))
+		assert.Equal(t, uint64(itemID), slot.Items[0].ItemID)
+		assert.Equal(t, uint64(points), slot.Items[0].Points)
+		assert.Equal(t, itemType, slot.Items[0].ItemType)
+	}
+}
 
 func TestMintNFT(t *testing.T) {
 	b := newEmulator()
