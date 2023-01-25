@@ -1,6 +1,11 @@
 import DSSCollection from "../../contracts/DSSCollection.cdc"
 
-transaction(slotID: UInt64, id: UInt64) {
+transaction(
+    itemID: UInt64,
+    points: UInt64,
+    itemType: String,
+    slotID: UInt64
+) {
     let admin: &DSSCollection.Admin
 
     prepare(signer: AuthAccount) {
@@ -9,9 +14,11 @@ transaction(slotID: UInt64, id: UInt64) {
     }
 
     execute {
-        self.admin.addItemToSlot(
-            slotID: slotID,
-            id: id
+        self.admin.createItemInSlot(
+            itemID: itemID,
+            points: points,
+            itemType: itemType,
+            slotID: slotID
         )
     }
 }

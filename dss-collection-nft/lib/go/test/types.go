@@ -21,7 +21,6 @@ type SlotData struct {
 }
 
 type Item struct {
-	ID       uint64
 	ItemID   uint64
 	Points   uint64
 	ItemType string
@@ -74,8 +73,7 @@ func parseItemData(value cadence.Value) Item {
 	return Item{
 		fields[0].ToGoValue().(uint64),
 		fields[1].ToGoValue().(uint64),
-		fields[2].ToGoValue().(uint64),
-		fields[3].ToGoValue().(string),
+		fields[2].ToGoValue().(string),
 	}
 }
 

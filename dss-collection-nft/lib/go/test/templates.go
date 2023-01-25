@@ -33,13 +33,9 @@ const (
 	GetCollectionGroupByIDScriptPath     = ScriptsRootPath + "/get_collection_group.cdc"
 
 	// Slots
-	CreateSlotTxPath      = TransactionsRootPath + "/admin/create_slot.cdc"
-	GetSlotByIDScriptPath = ScriptsRootPath + "/get_slot.cdc"
-
-	// Items
-	CreateItemTxPath      = TransactionsRootPath + "/admin/create_item.cdc"
-	GetItemByIDScriptPath = ScriptsRootPath + "/get_item.cdc"
-	AddItemToSlotTxPath   = TransactionsRootPath + "/admin/add_item_to_slot.cdc"
+	CreateSlotTxPath       = TransactionsRootPath + "/admin/create_slot.cdc"
+	GetSlotByIDScriptPath  = ScriptsRootPath + "/get_slot.cdc"
+	CreateItemInSlotTxPath = TransactionsRootPath + "/admin/create_item_in_slot.cdc"
 
 	// NFTs
 	MintNFTTxPath                        = TransactionsRootPath + "/admin/mint_nft.cdc"
@@ -126,13 +122,6 @@ func createSlotTransaction(contracts Contracts) []byte {
 	)
 }
 
-func createItemTransaction(contracts Contracts) []byte {
-	return replaceAddresses(
-		readFile(CreateItemTxPath),
-		contracts,
-	)
-}
-
 func readCollectionGroupByIDScript(contracts Contracts) []byte {
 	return replaceAddresses(
 		readFile(GetCollectionGroupByIDScriptPath),
@@ -147,13 +136,6 @@ func readSlotByIDScript(contracts Contracts) []byte {
 	)
 }
 
-func readItemByIDScript(contracts Contracts) []byte {
-	return replaceAddresses(
-		readFile(GetItemByIDScriptPath),
-		contracts,
-	)
-}
-
 func closeCollectionGroupTransaction(contracts Contracts) []byte {
 	return replaceAddresses(
 		readFile(CloseCollectionGroupTxPath),
@@ -161,9 +143,9 @@ func closeCollectionGroupTransaction(contracts Contracts) []byte {
 	)
 }
 
-func addItemToSlotTransaction(contracts Contracts) []byte {
+func createItemInSlotTransaction(contracts Contracts) []byte {
 	return replaceAddresses(
-		readFile(AddItemToSlotTxPath),
+		readFile(CreateItemInSlotTxPath),
 		contracts,
 	)
 }

@@ -173,12 +173,12 @@ func testCreateSlot(
 	}
 }
 
-func TestCreateItem(t *testing.T) {
+func TestCreateItemInSlot(t *testing.T) {
 	b := newEmulator()
 	contracts := DSSCollectionDeployContracts(t, b)
 	t.Run("Should be able to create a new item", func(t *testing.T) {
 
-		testCreateItem(
+		testCreateItemInSlot(
 			t,
 			b,
 			contracts,
@@ -190,7 +190,7 @@ func TestCreateItem(t *testing.T) {
 	})
 }
 
-func testCreateItem(
+func testCreateItemInSlot(
 	t *testing.T,
 	b *emulator.Blockchain,
 	contracts Contracts,
@@ -199,65 +199,6 @@ func testCreateItem(
 	points uint64,
 	itemType string,
 ) {
-	collectionGroupID := createCollectionGroup(
-		t,
-		b,
-		contracts,
-		shouldRevert,
-		"NBA All Stars",
-		"All Stars",
-		"A.0xf8d6e0586b0a20c7.NFT",
-	)
-
-	_ = createSlot(
-		t,
-		b,
-		contracts,
-		shouldRevert,
-		collectionGroupID,
-		"OR",
-		"A.0xf8d6e0586b0a20c7.NFT",
-	)
-
-	id := createItem(
-		t,
-		b,
-		contracts,
-		shouldRevert,
-		itemID,
-		points,
-		itemType,
-	)
-
-	if !shouldRevert {
-		item := getItemData(t, b, contracts, id)
-		assert.Equal(t, id, item.ID)
-		assert.Equal(t, itemID, item.ItemID)
-		assert.Equal(t, points, item.Points)
-		assert.Equal(t, itemType, item.ItemType)
-	}
-}
-
-func TestAddItemToSlot(t *testing.T) {
-	b := newEmulator()
-	contracts := DSSCollectionDeployContracts(t, b)
-	t.Run("Should be able to add an item to a slot", func(t *testing.T) {
-		testAddItemToSlot(
-			t,
-			b,
-			contracts,
-			false,
-		)
-	})
-}
-
-func testAddItemToSlot(
-	t *testing.T,
-	b *emulator.Blockchain,
-	contracts Contracts,
-	shouldRevert bool,
-) {
-
 	collectionGroupID := createCollectionGroup(
 		t,
 		b,
@@ -278,34 +219,23 @@ func testAddItemToSlot(
 		"A.0xf8d6e0586b0a20c7.NFT",
 	)
 
-	itemID := 100
-	points := 10
-	itemType := "edition.id"
-	id := createItem(
+	createItemInSlot(
 		t,
 		b,
 		contracts,
 		shouldRevert,
-		uint64(itemID),
-		uint64(points),
+		itemID,
+		points,
 		itemType,
-	)
-
-	addItemToSlot(
-		t,
-		b,
-		contracts,
-		false,
 		slotID,
-		id,
 	)
 
 	if !shouldRevert {
 		slot := getSlotData(t, b, contracts, slotID)
 		assert.Equal(t, slotID, slot.ID)
 		assert.Equal(t, 1, len(slot.Items))
-		assert.Equal(t, uint64(itemID), slot.Items[0].ItemID)
-		assert.Equal(t, uint64(points), slot.Items[0].Points)
+		assert.Equal(t, itemID, slot.Items[0].ItemID)
+		assert.Equal(t, points, slot.Items[0].Points)
 		assert.Equal(t, itemType, slot.Items[0].ItemType)
 	}
 }
