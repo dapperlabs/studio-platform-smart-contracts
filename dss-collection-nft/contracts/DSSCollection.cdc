@@ -127,7 +127,7 @@ pub contract DSSCollection: NonFungibleToken {
             pre {
                 DSSCollection.CollectionGroupData(
                     id: self.collectionGroupID
-                ).open == true: "Collection group not open"
+                ).open: "Collection group not open"
             }
 
             let item = DSSCollection.Item(
@@ -154,7 +154,10 @@ pub contract DSSCollection: NonFungibleToken {
             pre {
                 DSSCollection.CollectionGroupData(
                     id: collectionGroupID
-                ).open == true: "Collection group not open"
+                ).open: "Collection group not open"
+                DSSCollection.validateLogicalOperator(
+                    logicalOperator: logicalOperator
+                ) == true : "Slot submitted with unsupported logical operator"
             }
 
             self.id = self.uuid
@@ -301,9 +304,17 @@ pub contract DSSCollection: NonFungibleToken {
         }
         if endTime! >= getCurrentBlock().timestamp {
             return true
-        } else {
-            return false
         }
+        return false
+    }
+
+    // Validate logical operator of collection group
+    //
+    pub fun validateLogicalOperator(logicalOperator: String): Bool {
+        if logicalOperator == "OR" || logicalOperator == "AND" {
+            return true
+        }
+        return false
     }
 
     // A DSSCollection NFT
@@ -582,7 +593,7 @@ pub contract DSSCollection: NonFungibleToken {
             return slotID
         }
 
-        // Create an Item
+        // Create an Item in slot
         //
         pub fun createItemInSlot(
             itemID: UInt64,
