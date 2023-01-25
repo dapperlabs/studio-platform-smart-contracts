@@ -239,7 +239,7 @@ pub contract DSSCollection: NonFungibleToken {
         //
         pub fun mint(completedBy: String, level: UInt8): @DSSCollection.NFT {
             pre {
-                self.open != true: "cannot mint an open collection group"
+                !self.open : "Cannot mint an open collection group"
                 DSSCollection.validateTimeRange(
                     timeBound: self.timeBound,
                     startTime: self.startTime,
