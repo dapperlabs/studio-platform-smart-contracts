@@ -280,7 +280,7 @@ func getItemData(
 	b *emulator.Blockchain,
 	contracts Contracts,
 	id uint64,
-) ItemData {
+) Item {
 	script := readItemByIDScript(contracts)
 	result := executeScriptAndCheck(t, b, script, [][]byte{jsoncdc.MustEncode(cadence.UInt64(id))})
 

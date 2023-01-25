@@ -67,51 +67,35 @@ pub contract DSSCollection: NonFungibleToken {
 
     // Entity Counts
     //
-    pub var totalSupply:                 UInt64
+    pub var totalSupply:    UInt64
+    pub var nextItemID:     UInt64
 
     // Lists in contract
     //
     access(self) let collectionGroupByID: @{UInt64: CollectionGroup}
     access(self) let slotByID: @{UInt64: Slot}
-    access(self) let itemByID: @{UInt64: Item}
+    access(self) let itemByID: {UInt64: Item}
 
-    // A public struct to access Slot data
+    // A public struct to access Item data
     //
-    pub struct ItemData {
-        pub let id: UInt64 // unique uuid of resource
-        pub let itemID: UInt64 // the id of the edition, tier, play
-        pub let points: UInt64 // points for item
-        pub let itemType: String // (edition.id, edition.tier, play.id)
-
-        init (id: UInt64) {
-            if let item = &DSSCollection.itemByID[id] as &DSSCollection.Item? {
-                self.id = item.id
-                self.itemID = item.itemID
-                self.points = item.points
-                self.itemType = item.itemType
-            } else {
-                panic("item does not exist")
-            }
-        }
-    }
-
-    // A top-level Item with a unique ID
-    //
-    pub resource Item {
+    pub struct Item {
         pub let id: UInt64 // unique uuid of resource
         pub let itemID: UInt64 // the id of the edition, tier, play
         pub let points: UInt64 // points for item
         pub let itemType: String // (edition.id, edition.tier, play.id)
 
         init (
+            id: UInt64,
             itemID: UInt64,
             points: UInt64,
             itemType: String
         ) {
-            self.id = self.uuid
+            self.id = id
             self.itemID = itemID
             self.points = points
             self.itemType = itemType
+
+            DSSCollection.nextItemID = self.id + 1 as UInt64
 
             emit ItemCreated(
                 id: self.id,
@@ -129,7 +113,7 @@ pub contract DSSCollection: NonFungibleToken {
         pub let collectionGroupID: UInt64
         pub let logicalOperator: String // (AND / OR)
         pub let typeName: String // (A.contractAddress.NFT...)
-        pub var items: [ItemData]
+        pub var items: [Item]
 
         init (id: UInt64) {
             if let slot = &DSSCollection.slotByID[id] as &DSSCollection.Slot? {
@@ -151,7 +135,7 @@ pub contract DSSCollection: NonFungibleToken {
         pub let collectionGroupID: UInt64
         pub let logicalOperator: String // (AND / OR)
         pub let typeName: String // (A.contractAddress.NFT...)
-        pub var items: [ItemData]
+        pub var items: [Item]
 
         // Add item to slot
         //
@@ -162,7 +146,7 @@ pub contract DSSCollection: NonFungibleToken {
                 ).open == true: "collection group not open"
             }
 
-            let item = DSSCollection.getItemData(id: id)
+            let item = DSSCollection.getItem(id: id)
             self.items.append(item)
 
             emit ItemAddedToSlot(
@@ -331,12 +315,8 @@ pub contract DSSCollection: NonFungibleToken {
 
     // Get the publicly available data for a Slot by id
     //
-    pub fun getItemData(id: UInt64): DSSCollection.ItemData {
-        pre {
-            DSSCollection.itemByID[id] != nil: "Cannot borrow item, no such id"
-        }
-
-        return DSSCollection.ItemData(id: id)
+    pub fun getItem(id: UInt64): DSSCollection.Item {
+        return DSSCollection.itemByID[id]!
     }
 
     // Validate time range of collection group
@@ -493,15 +473,12 @@ pub contract DSSCollection: NonFungibleToken {
         // and deposits each contained NFT into this Collection
         //
         pub fun batchDeposit(tokens: @NonFungibleToken.Collection) {
-            // Get an array of the IDs to be deposited
             let keys = tokens.getIDs()
 
-            // Iterate through the keys in the collection and deposit each one
             for key in keys {
                 self.deposit(token: <-tokens.withdraw(withdrawID: key))
             }
 
-            // Destroy the empty Collection
             destroy tokens
         }
 
@@ -558,9 +535,6 @@ pub contract DSSCollection: NonFungibleToken {
     // An interface containing the Admin function that allows minting NFTs
     //
     pub resource interface NFTMinter {
-        // Mint a single NFT
-        // The collectionGroupID for the given ID must already exist
-        //
         pub fun mintNFT(collectionGroupID: UInt64, completedBy: String, level: UInt8): @DSSCollection.NFT
     }
 
@@ -608,7 +582,6 @@ pub contract DSSCollection: NonFungibleToken {
             endTime: UFix64?,
             timeBound: Bool
         ): UInt64 {
-            // Create and store the new collection group
             let collectionGroup <- create DSSCollection.CollectionGroup(
                 name: name,
                 description: description,
@@ -620,7 +593,6 @@ pub contract DSSCollection: NonFungibleToken {
             let collectionGroupID = collectionGroup.id
             DSSCollection.collectionGroupByID[collectionGroup.id] <-! collectionGroup
 
-            // Return the new ID for convenience
             return collectionGroupID
         }
 
@@ -641,7 +613,6 @@ pub contract DSSCollection: NonFungibleToken {
             logicalOperator: String,
             typeName: String
         ): UInt64 {
-            // Create and store the new slot
             let slot <- create DSSCollection.Slot(
                 collectionGroupID: collectionGroupID,
                 logicalOperator: logicalOperator,
@@ -659,14 +630,15 @@ pub contract DSSCollection: NonFungibleToken {
             points: UInt64,
             itemType: String
         ): UInt64 {
-            let item <- create DSSCollection.Item(
+            let item = DSSCollection.Item(
+                id: DSSCollection.nextItemID,
                 itemID: itemID,
                 points: points,
                 itemType: itemType
             )
-            let id = item.id
-            DSSCollection.itemByID[item.id] <-! item
-            return id
+
+            DSSCollection.itemByID[item.id] = item
+            return item.id
         }
 
         // Add Item to Slot
@@ -703,11 +675,12 @@ pub contract DSSCollection: NonFungibleToken {
 
         // Initialize the entity counts
         self.totalSupply = 0
+        self.nextItemID = 1
 
         // Initialize the metadata lookup dictionaries
         self.collectionGroupByID <- {}
         self.slotByID <- {}
-        self.itemByID <- {}
+        self.itemByID = {}
 
         // Create an Admin resource and save it to storage
         let admin <- create Admin()

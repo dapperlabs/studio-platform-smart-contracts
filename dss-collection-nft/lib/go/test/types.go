@@ -18,10 +18,10 @@ type SlotData struct {
 	CollectionGroupID uint64
 	LogicalOperator   string
 	TypeName          string
-	Items             []ItemData
+	Items             []Item
 }
 
-type ItemData struct {
+type Item struct {
 	ID       uint64
 	ItemID   uint64
 	Points   uint64
@@ -56,7 +56,7 @@ func parseCollectionGroupData(value cadence.Value) CollectionGroupData {
 
 func parseSlotData(value cadence.Value) SlotData {
 	fields := value.(cadence.Struct).Fields
-	var items []ItemData
+	var items []Item
 	for _, val := range fields[4].(cadence.Array).Values {
 		item := parseItemData(val)
 		items = append(items, item)
@@ -71,9 +71,9 @@ func parseSlotData(value cadence.Value) SlotData {
 	return slotData
 }
 
-func parseItemData(value cadence.Value) ItemData {
+func parseItemData(value cadence.Value) Item {
 	fields := value.(cadence.Struct).Fields
-	return ItemData{
+	return Item{
 		fields[0].ToGoValue().(uint64),
 		fields[1].ToGoValue().(uint64),
 		fields[2].ToGoValue().(uint64),
