@@ -233,7 +233,7 @@ func mintNFT(
 	collectionGroupID uint64,
 	completedBy string,
 	level uint8,
-) {
+) uint64 {
 	tx := flow.NewTransaction().
 		SetScript(mintDSSCollectionTransaction(contracts)).
 		SetGasLimit(100).
@@ -246,10 +246,13 @@ func mintNFT(
 	tx.AddArgument(cadence.UInt8(level))
 
 	signer, _ := b.ServiceKey().Signer()
-	signAndSubmit(
+	txResult := signAndSubmit(
 		t, b, tx,
 		[]flow.Address{b.ServiceKey().Address, contracts.DSSCollectionAddress},
 		[]crypto.Signer{signer, contracts.DSSCollectionSigner},
 		shouldRevert,
 	)
+
+	nftId := txResult.Events[0].Value.Fields[0].ToGoValue().(uint64)
+	return nftId
 }

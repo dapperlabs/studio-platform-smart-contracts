@@ -251,7 +251,6 @@ pub contract DSSCollection: NonFungibleToken {
             // Create the DSSCollection NFT, filled out with our information
             //
             let dssCollectionNFT <- create NFT(
-                id: DSSCollection.totalSupply + 1,
                 collectionGroupID: self.id,
                 serialNumber: self.numMinted + 1,
                 completedBy: completedBy,
@@ -385,7 +384,6 @@ pub contract DSSCollection: NonFungibleToken {
         }
 
         init(
-            id: UInt64,
             collectionGroupID: UInt64,
             serialNumber: UInt64,
             completedBy: String,
@@ -395,7 +393,7 @@ pub contract DSSCollection: NonFungibleToken {
                 DSSCollection.collectionGroupByID[collectionGroupID] != nil: "no such collectionGroupID"
             }
 
-            self.id = id
+            self.id = self.uuid
             self.collectionGroupID = collectionGroupID
             self.serialNumber = serialNumber
             self.completionDate = getCurrentBlock().timestamp

@@ -399,7 +399,7 @@ func testMintNFT(
 
 	nftLevel := 5
 
-	mintNFT(
+	nftID := mintNFT(
 		t,
 		b,
 		contracts,
@@ -411,8 +411,7 @@ func testMintNFT(
 	)
 
 	if !shouldRevert {
-		nftID := 1
-		nft := getNFTData(t, b, contracts, userAddress.String(), nftID)
+		nft := getNFTData(t, b, contracts, userAddress.String(), int(nftID))
 		assert.Equal(t, uint64(nftID), nft.ID)
 		assert.Equal(t, collectionGroupId, nft.CollectionGroupID)
 		assert.Equal(t, userAddress.String(), nft.CompletedBy)
