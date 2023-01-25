@@ -73,50 +73,6 @@ func testCreateCollectionGroup(
 		assert.Equal(t, collectionGroupId, collectionGroup.ID)
 		assert.Equal(t, collectionGroupName, collectionGroup.Name)
 		assert.Equal(t, true, collectionGroup.Open)
-		assert.Equal(t, false, collectionGroup.TimeBound)
-	}
-}
-
-func TestCreateTimeBoundCollectionGroup(t *testing.T) {
-	b := newEmulator()
-	contracts := DSSCollectionDeployContracts(t, b)
-	t.Run("Should be able to create a new time-bound collection group", func(t *testing.T) {
-		testCreateTimeBoundCollectionGroup(
-			t,
-			b,
-			contracts,
-			false,
-			"Top Shot All Stars",
-			"A.0xf8d6e0586b0a20c7.NFT",
-		)
-	})
-}
-
-func testCreateTimeBoundCollectionGroup(
-	t *testing.T,
-	b *emulator.Blockchain,
-	contracts Contracts,
-	shouldRevert bool,
-	collectionGroupName string,
-	typeName string,
-) {
-	collectionGroupId := createTimeBoundCollectionGroup(
-		t,
-		b,
-		contracts,
-		false,
-		collectionGroupName,
-		"All Stars",
-		typeName,
-		2368296360,
-	)
-	if !shouldRevert {
-		collectionGroup := getCollectionGroupData(t, b, contracts, collectionGroupId)
-		assert.Equal(t, collectionGroupId, collectionGroup.ID)
-		assert.Equal(t, collectionGroupName, collectionGroup.Name)
-		assert.Equal(t, typeName, collectionGroup.TypeName)
-		assert.Equal(t, true, collectionGroup.Open)
-		assert.Equal(t, true, collectionGroup.TimeBound)
 	}
 }
 

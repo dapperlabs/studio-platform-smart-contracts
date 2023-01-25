@@ -26,8 +26,7 @@ pub contract DSSCollection: NonFungibleToken {
         name: String,
         description: String,
         typeName: String,
-        endTime: UFix64?,
-        timeBound: Bool
+        endTime: UFix64?
     )
     pub event CollectionGroupClosed(id: UInt64)
     pub event ItemCreated(
@@ -189,7 +188,6 @@ pub contract DSSCollection: NonFungibleToken {
         pub let typeName: String
         pub let open: Bool
         pub let endTime: UFix64?
-        pub let timeBound: Bool
 
         init (id: UInt64) {
             if let collectionGroup = &DSSCollection.collectionGroupByID[id] as &DSSCollection.CollectionGroup? {
@@ -199,7 +197,6 @@ pub contract DSSCollection: NonFungibleToken {
                 self.typeName = collectionGroup.typeName
                 self.open = collectionGroup.open
                 self.endTime = collectionGroup.endTime
-                self.timeBound = collectionGroup.timeBound
             } else {
                 panic("CollectionGroup does not exist")
             }
@@ -215,7 +212,6 @@ pub contract DSSCollection: NonFungibleToken {
         pub let typeName: String
         pub var open: Bool
         pub let endTime: UFix64?
-        pub let timeBound: Bool
         pub var numMinted: UInt64
 
         // Close this collection group
@@ -236,7 +232,6 @@ pub contract DSSCollection: NonFungibleToken {
             pre {
                 !self.open : "Cannot mint an open collection group"
                 DSSCollection.validateTimeBound(
-                    timeBound: self.timeBound,
                     endTime: self.endTime
                 ) == true : "Cannot mint a collection group outside of time bounds"
                 level <= 10: "Token level must be less than 10"
@@ -260,12 +255,10 @@ pub contract DSSCollection: NonFungibleToken {
             name: String,
             description: String,
             typeName: String,
-            endTime: UFix64?,
-            timeBound: Bool
+            endTime: UFix64?
         ) {
             pre {
                 DSSCollection.validateTimeBound(
-                    timeBound: timeBound,
                     endTime: endTime
                 ) == true : "Cannot create expired timebound collection group"
             }
@@ -275,7 +268,6 @@ pub contract DSSCollection: NonFungibleToken {
             self.typeName = typeName
             self.open = true
             self.endTime = endTime
-            self.timeBound = timeBound
             self.numMinted = 0 as UInt64
 
             emit CollectionGroupCreated(
@@ -283,8 +275,7 @@ pub contract DSSCollection: NonFungibleToken {
                 name: self.name,
                 description: self.description,
                 typeName: self.typeName,
-                endTime: self.endTime,
-                timeBound: self.timeBound
+                endTime: self.endTime
             )
         }
     }
@@ -317,8 +308,8 @@ pub contract DSSCollection: NonFungibleToken {
 
     // Validate time range of collection group
     //
-    pub fun validateTimeBound(timeBound: Bool, endTime: UFix64?): Bool {
-        if !timeBound {
+    pub fun validateTimeBound(endTime: UFix64?): Bool {
+        if endTime == nil {
             return true
         }
         if endTime! >= getCurrentBlock().timestamp {
@@ -573,15 +564,13 @@ pub contract DSSCollection: NonFungibleToken {
             name: String,
             description: String,
             typeName: String,
-            endTime: UFix64?,
-            timeBound: Bool
+            endTime: UFix64?
         ): UInt64 {
             let collectionGroup <- create DSSCollection.CollectionGroup(
                 name: name,
                 description: description,
                 typeName: typeName,
-                endTime: endTime,
-                timeBound: timeBound
+                endTime: endTime
             )
             let collectionGroupID = collectionGroup.id
             DSSCollection.collectionGroupByID[collectionGroup.id] <-! collectionGroup

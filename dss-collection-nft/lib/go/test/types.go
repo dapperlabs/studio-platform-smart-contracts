@@ -10,7 +10,6 @@ type CollectionGroupData struct {
 	Description string
 	TypeName    string
 	Open        bool
-	TimeBound   bool
 }
 
 type SlotData struct {
@@ -50,7 +49,6 @@ func parseCollectionGroupData(value cadence.Value) CollectionGroupData {
 		fields[2].ToGoValue().(string),
 		fields[3].ToGoValue().(string),
 		fields[4].ToGoValue().(bool),
-		fields[6].ToGoValue().(bool),
 	}
 }
 

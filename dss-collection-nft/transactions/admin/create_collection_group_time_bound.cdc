@@ -14,8 +14,7 @@ transaction(name: String, description: String, typeName: String, endTime: UFix64
             name: name,
             description: description,
             typeName: typeName,
-            endTime: endTime,
-            timeBound: true
+            endTime: endTime
         )
 
         log("====================================")
