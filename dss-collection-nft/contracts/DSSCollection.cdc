@@ -26,7 +26,6 @@ pub contract DSSCollection: NonFungibleToken {
         name: String,
         description: String,
         typeName: String,
-        startTime: UFix64?,
         endTime: UFix64?,
         timeBound: Bool
     )
@@ -85,12 +84,11 @@ pub contract DSSCollection: NonFungibleToken {
         pub let itemType: String // (edition.id, edition.tier, play.id)
 
         init (
-            id: UInt64,
             itemID: UInt64,
             points: UInt64,
             itemType: String
         ) {
-            self.id = id
+            self.id = DSSCollection.nextItemID
             self.itemID = itemID
             self.points = points
             self.itemType = itemType
@@ -123,7 +121,7 @@ pub contract DSSCollection: NonFungibleToken {
                 self.typeName = slot.typeName
                 self.items = slot.items
             } else {
-                panic("slot does not exist")
+                panic("Slot does not exist")
             }
         }
     }
@@ -143,7 +141,7 @@ pub contract DSSCollection: NonFungibleToken {
             pre {
                 DSSCollection.CollectionGroupData(
                     id: self.collectionGroupID
-                ).open == true: "collection group not open"
+                ).open == true: "Collection group not open"
             }
 
             let item = DSSCollection.getItem(id: id)
@@ -164,7 +162,7 @@ pub contract DSSCollection: NonFungibleToken {
             pre {
                 DSSCollection.CollectionGroupData(
                     id: collectionGroupID
-                ).open == true: "collection group not open"
+                ).open == true: "Collection group not open"
             }
 
             self.id = self.uuid
@@ -190,7 +188,6 @@ pub contract DSSCollection: NonFungibleToken {
         pub let description: String
         pub let typeName: String
         pub let open: Bool
-        pub let startTime: UFix64?
         pub let endTime: UFix64?
         pub let timeBound: Bool
 
@@ -201,11 +198,10 @@ pub contract DSSCollection: NonFungibleToken {
                 self.description = collectionGroup.description
                 self.typeName = collectionGroup.typeName
                 self.open = collectionGroup.open
-                self.startTime = collectionGroup.startTime
                 self.endTime = collectionGroup.endTime
                 self.timeBound = collectionGroup.timeBound
             } else {
-                panic("collectionGroup does not exist")
+                panic("CollectionGroup does not exist")
             }
         }
     }
@@ -218,7 +214,6 @@ pub contract DSSCollection: NonFungibleToken {
         pub let description: String
         pub let typeName: String
         pub var open: Bool
-        pub let startTime: UFix64?
         pub let endTime: UFix64?
         pub let timeBound: Bool
         pub var numMinted: UInt64
@@ -240,12 +235,11 @@ pub contract DSSCollection: NonFungibleToken {
         pub fun mint(completedBy: String, level: UInt8): @DSSCollection.NFT {
             pre {
                 !self.open : "Cannot mint an open collection group"
-                DSSCollection.validateTimeRange(
+                DSSCollection.validateTimeBound(
                     timeBound: self.timeBound,
-                    startTime: self.startTime,
                     endTime: self.endTime
-                ) == true : "cannot mint a collection group outside of time bounds"
-                level <= 10: "token level must be less than 10"
+                ) == true : "Cannot mint a collection group outside of time bounds"
+                level <= 10: "Token level must be less than 10"
             }
 
             // Create the DSSCollection NFT, filled out with our information
@@ -266,16 +260,20 @@ pub contract DSSCollection: NonFungibleToken {
             name: String,
             description: String,
             typeName: String,
-            startTime: UFix64?,
             endTime: UFix64?,
             timeBound: Bool
         ) {
+            pre {
+                DSSCollection.validateTimeBound(
+                    timeBound: timeBound,
+                    endTime: endTime
+                ) == true : "Cannot create expired timebound collection group"
+            }
             self.id = self.uuid
             self.name = name
             self.description = description
             self.typeName = typeName
             self.open = true
-            self.startTime = startTime
             self.endTime = endTime
             self.timeBound = timeBound
             self.numMinted = 0 as UInt64
@@ -285,7 +283,6 @@ pub contract DSSCollection: NonFungibleToken {
                 name: self.name,
                 description: self.description,
                 typeName: self.typeName,
-                startTime: self.startTime,
                 endTime: self.endTime,
                 timeBound: self.timeBound
             )
@@ -320,12 +317,11 @@ pub contract DSSCollection: NonFungibleToken {
 
     // Validate time range of collection group
     //
-    pub fun validateTimeRange(timeBound: Bool, startTime: UFix64?, endTime: UFix64?): Bool {
+    pub fun validateTimeBound(timeBound: Bool, endTime: UFix64?): Bool {
         if !timeBound {
             return true
         }
-
-        if startTime! <= getCurrentBlock().timestamp && endTime! >= getCurrentBlock().timestamp {
+        if endTime! >= getCurrentBlock().timestamp {
             return true
         } else {
             return false
@@ -364,6 +360,7 @@ pub contract DSSCollection: NonFungibleToken {
         }
 
         destroy() {
+            DSSCollection.totalSupply = DSSCollection.totalSupply - 1
             emit CollectionNFTBurned(id: self.id)
         }
 
@@ -445,7 +442,7 @@ pub contract DSSCollection: NonFungibleToken {
         // withdraw removes an NFT from the collection and moves it to the caller
         //
         pub fun withdraw(withdrawID: UInt64): @NonFungibleToken.NFT {
-            let token <- self.ownedNFTs.remove(key: withdrawID) ?? panic("missing NFT")
+            let token <- self.ownedNFTs.remove(key: withdrawID) ?? panic("Missing NFT")
 
             emit Withdraw(id: token.id, from: self.owner?.address)
 
@@ -576,7 +573,6 @@ pub contract DSSCollection: NonFungibleToken {
             name: String,
             description: String,
             typeName: String,
-            startTime: UFix64?,
             endTime: UFix64?,
             timeBound: Bool
         ): UInt64 {
@@ -584,7 +580,6 @@ pub contract DSSCollection: NonFungibleToken {
                 name: name,
                 description: description,
                 typeName: typeName,
-                startTime: startTime,
                 endTime: endTime,
                 timeBound: timeBound
             )
@@ -629,12 +624,10 @@ pub contract DSSCollection: NonFungibleToken {
             itemType: String
         ): UInt64 {
             let item = DSSCollection.Item(
-                id: DSSCollection.nextItemID,
                 itemID: itemID,
                 points: points,
                 itemType: itemType
             )
-
             DSSCollection.itemByID[item.id] = item
             return item.id
         }

@@ -84,7 +84,6 @@ func createTimeBoundCollectionGroup(
 	collectionGroupName string,
 	collectionGroupDescription string,
 	typeName string,
-	startTime int,
 	endTime int,
 ) uint64 {
 	tx := flow.NewTransaction().
@@ -96,7 +95,6 @@ func createTimeBoundCollectionGroup(
 	tx.AddArgument(cadence.String(collectionGroupName))
 	tx.AddArgument(cadence.String(collectionGroupDescription))
 	tx.AddArgument(cadence.String(typeName))
-	tx.AddArgument(cadence.UFix64(startTime))
 	tx.AddArgument(cadence.UFix64(endTime))
 
 	signer, _ := b.ServiceKey().Signer()

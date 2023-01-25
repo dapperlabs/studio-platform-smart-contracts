@@ -1,7 +1,7 @@
 import NonFungibleToken from "../../contracts/NonFungibleToken.cdc"
 import DSSCollection from "../../contracts/DSSCollection.cdc"
 
-transaction(name: String, description: String, typeName: String, startTime: UFix64?, endTime: UFix64?) {
+transaction(name: String, description: String, typeName: String, endTime: UFix64?) {
     let admin: &DSSCollection.Admin
 
     prepare(signer: AuthAccount) {
@@ -14,7 +14,6 @@ transaction(name: String, description: String, typeName: String, startTime: UFix
             name: name,
             description: description,
             typeName: typeName,
-            startTime: startTime,
             endTime: endTime,
             timeBound: true
         )

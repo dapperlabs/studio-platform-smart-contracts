@@ -50,7 +50,7 @@ func parseCollectionGroupData(value cadence.Value) CollectionGroupData {
 		fields[2].ToGoValue().(string),
 		fields[3].ToGoValue().(string),
 		fields[4].ToGoValue().(bool),
-		fields[7].ToGoValue().(bool),
+		fields[6].ToGoValue().(bool),
 	}
 }
 

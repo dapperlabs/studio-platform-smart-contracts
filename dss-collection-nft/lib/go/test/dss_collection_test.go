@@ -108,10 +108,8 @@ func testCreateTimeBoundCollectionGroup(
 		collectionGroupName,
 		"All Stars",
 		typeName,
-		1673986190,
 		2368296360,
 	)
-
 	if !shouldRevert {
 		collectionGroup := getCollectionGroupData(t, b, contracts, collectionGroupId)
 		assert.Equal(t, collectionGroupId, collectionGroup.ID)

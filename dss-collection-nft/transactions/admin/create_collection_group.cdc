@@ -16,7 +16,6 @@ transaction(name: String, description: String, typeName: String) {
             name: name,
             description: description,
             typeName: typeName,
-            startTime: nil,
             endTime: nil,
             timeBound: false
         )
