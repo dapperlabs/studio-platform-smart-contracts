@@ -227,7 +227,7 @@ pub contract DSSCollection: NonFungibleToken {
         //
         access(contract) fun close() {
             pre {
-                self.open == true: "not open"
+                self.open :  "Already closed"
             }
 
             self.open = false
