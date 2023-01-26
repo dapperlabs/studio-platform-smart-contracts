@@ -30,7 +30,7 @@ type NFTData struct {
 	CollectionGroupID uint64
 	SerialNumber      uint64
 	CompletionDate    uint64
-	CompletedBy       string
+	CompletionAddress string
 }
 
 type DisplayView struct {

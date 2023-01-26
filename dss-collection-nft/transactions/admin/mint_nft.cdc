@@ -4,7 +4,7 @@ import DSSCollection from "../../contracts/DSSCollection.cdc"
 transaction(
     recipientAddress: Address,
     collectionGroupID: UInt64,
-    completedBy: String,
+    completionAddress: String,
     level: UInt8
 ) {
     
@@ -31,7 +31,7 @@ transaction(
         // mint the NFT and deposit it to the recipient's collection
         let nft <- self.minter.mintNFT(
             collectionGroupID: collectionGroupID,
-            completedBy: completedBy,
+            completionAddress: completionAddress,
             level: level
         )
         self.recipient.deposit(token: <- (nft as @NonFungibleToken.NFT))

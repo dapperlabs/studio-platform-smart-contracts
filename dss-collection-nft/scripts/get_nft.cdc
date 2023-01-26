@@ -12,5 +12,5 @@ pub fun main(address: Address, id: UInt64): [AnyStruct] {
     let nft = collectionRef.borrowDSSCollectionNFT(id: id)
         ?? panic("Couldn't borrow DSS Collection NFT")
 
-    return [nft.id, nft.collectionGroupID, nft.serialNumber, nft.completionDate, nft.completedBy, nft.level]
+    return [nft.id, nft.collectionGroupID, nft.serialNumber, nft.completionDate, nft.completionAddress, nft.level]
 }

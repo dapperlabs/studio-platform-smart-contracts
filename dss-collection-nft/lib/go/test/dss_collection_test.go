@@ -286,7 +286,7 @@ func testMintNFT(
 		nft := getNFTData(t, b, contracts, userAddress.String(), int(nftID))
 		assert.Equal(t, uint64(nftID), nft.ID)
 		assert.Equal(t, collectionGroupId, nft.CollectionGroupID)
-		assert.Equal(t, userAddress.String(), nft.CompletedBy)
+		assert.Equal(t, userAddress.String(), nft.CompletionAddress)
 		assert.NotNil(t, nft.CompletionDate)
 
 		displayView := getDSSCollectionNFTDisplayMetadataView(

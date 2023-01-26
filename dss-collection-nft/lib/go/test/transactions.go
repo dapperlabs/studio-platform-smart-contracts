@@ -196,7 +196,7 @@ func mintNFT(
 	shouldRevert bool,
 	recipientAddress string,
 	collectionGroupID uint64,
-	completedBy string,
+	completionAddress string,
 	level uint8,
 ) uint64 {
 	tx := flow.NewTransaction().
@@ -207,7 +207,7 @@ func mintNFT(
 		AddAuthorizer(contracts.DSSCollectionAddress)
 	tx.AddArgument(cadence.Address(flow.HexToAddress(recipientAddress)))
 	tx.AddArgument(cadence.UInt64(collectionGroupID))
-	tx.AddArgument(cadence.String(completedBy))
+	tx.AddArgument(cadence.String(completionAddress))
 	tx.AddArgument(cadence.UInt8(level))
 
 	signer, _ := b.ServiceKey().Signer()

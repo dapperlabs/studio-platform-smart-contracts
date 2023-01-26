@@ -45,7 +45,7 @@ pub contract DSSCollection: NonFungibleToken {
         id: UInt64,
         collectionGroupID: UInt64,
         serialNumber: UInt64,
-        completedBy: String,
+        completionAddress: String,
         completionDate: UFix64,
         level: UInt8
     )
@@ -220,7 +220,7 @@ pub contract DSSCollection: NonFungibleToken {
 
         // Mint a DSSCollection NFT in this group
         //
-        pub fun mint(completedBy: String, level: UInt8): @DSSCollection.NFT {
+        pub fun mint(completionAddress: String, level: UInt8): @DSSCollection.NFT {
             pre {
                 !self.open : "Cannot mint an open collection group"
                 DSSCollection.validateTimeBound(
@@ -234,7 +234,7 @@ pub contract DSSCollection: NonFungibleToken {
             let dssCollectionNFT <- create NFT(
                 collectionGroupID: self.id,
                 serialNumber: self.numMinted + 1,
-                completedBy: completedBy,
+                completionAddress: completionAddress,
                 level: level
             )
             DSSCollection.totalSupply = DSSCollection.totalSupply + 1
@@ -317,7 +317,7 @@ pub contract DSSCollection: NonFungibleToken {
         pub let collectionGroupID: UInt64
         pub let serialNumber: UInt64
         pub let completionDate: UFix64
-        pub let completedBy: String
+        pub let completionAddress: String
         pub let level: UInt8
 
         pub fun name(): String {
@@ -334,7 +334,7 @@ pub contract DSSCollection: NonFungibleToken {
             let serialNumber: String = self.serialNumber.toString()
             let completionDate: String = self.completionDate.toString()
             return "Completed by "
-                .concat(self.completedBy)
+                .concat(self.completionAddress)
                 .concat(" on ")
                 .concat(completionDate)
                 .concat(" with serial number ")
@@ -365,7 +365,7 @@ pub contract DSSCollection: NonFungibleToken {
         init(
             collectionGroupID: UInt64,
             serialNumber: UInt64,
-            completedBy: String,
+            completionAddress: String,
             level: UInt8
         ) {
             pre {
@@ -376,14 +376,14 @@ pub contract DSSCollection: NonFungibleToken {
             self.collectionGroupID = collectionGroupID
             self.serialNumber = serialNumber
             self.completionDate = getCurrentBlock().timestamp
-            self.completedBy = completedBy
+            self.completionAddress = completionAddress
             self.level = level
 
             emit CollectionNFTMinted(
                 id: self.id,
                 collectionGroupID: self.collectionGroupID,
                 serialNumber: self.serialNumber,
-                completedBy: self.completedBy,
+                completionAddress: self.completionAddress,
                 completionDate: self.completionDate,
                 level: self.level,
             )
@@ -512,7 +512,7 @@ pub contract DSSCollection: NonFungibleToken {
     // An interface containing the Admin function that allows minting NFTs
     //
     pub resource interface NFTMinter {
-        pub fun mintNFT(collectionGroupID: UInt64, completedBy: String, level: UInt8): @DSSCollection.NFT
+        pub fun mintNFT(collectionGroupID: UInt64, completionAddress: String, level: UInt8): @DSSCollection.NFT
     }
 
     // A resource that allows managing metadata and minting NFTs
@@ -606,12 +606,12 @@ pub contract DSSCollection: NonFungibleToken {
         // Mint a single NFT
         // The CollectionGroup for the given ID must already exist
         //
-        pub fun mintNFT(collectionGroupID: UInt64, completedBy: String, level: UInt8): @DSSCollection.NFT {
+        pub fun mintNFT(collectionGroupID: UInt64, completionAddress: String, level: UInt8): @DSSCollection.NFT {
             pre {
                 // Make sure the collection group exists
                 DSSCollection.collectionGroupByID.containsKey(collectionGroupID): "No such CollectionGroupID"
             }
-            return <- self.borrowCollectionGroup(id: collectionGroupID).mint(completedBy: completedBy, level: level)
+            return <- self.borrowCollectionGroup(id: collectionGroupID).mint(completionAddress: completionAddress, level: level)
         }
     }
 
