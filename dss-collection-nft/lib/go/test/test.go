@@ -35,6 +35,7 @@ type Contracts struct {
 	MetadataViewsAddress flow.Address
 	DSSCollectionAddress flow.Address
 	DSSCollectionSigner  crypto.Signer
+	ExampleNFTAddress    flow.Address
 }
 
 func deployNFTContract(t *testing.T, b *emulator.Blockchain) flow.Address {
@@ -75,6 +76,8 @@ func DSSCollectionDeployContracts(t *testing.T, b *emulator.Blockchain) Contract
 	DSSCollectionAccountKey, DSSCollectionSigner := accountKeys.NewWithSigner()
 	DSSCollectionCode := LoadDSSCollectionContract(nftAddress, metadataViewsAddr)
 
+	ExampleNFTCode := LoadExampleNFTContract(nftAddress, metadataViewsAddr)
+
 	DSSCollectionAddress, err := b.CreateAccount(
 		[]*flow.AccountKey{DSSCollectionAccountKey},
 		nil,
@@ -96,6 +99,19 @@ func DSSCollectionDeployContracts(t *testing.T, b *emulator.Blockchain) Contract
 		SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
 		SetPayer(b.ServiceKey().Address)
 
+	tx2 := sdktemplates.AddAccountContract(
+		DSSCollectionAddress,
+		sdktemplates.Contract{
+			Name:   "ExampleNFT",
+			Source: string(ExampleNFTCode),
+		},
+	)
+
+	tx2.
+		SetGasLimit(100).
+		SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber+1).
+		SetPayer(b.ServiceKey().Address)
+
 	signer, err := b.ServiceKey().Signer()
 	assert.NoError(t, err)
 
@@ -109,11 +125,22 @@ func DSSCollectionDeployContracts(t *testing.T, b *emulator.Blockchain) Contract
 	_, err = b.CommitBlock()
 	require.NoError(t, err)
 
+	signAndSubmit(
+		t, b, tx2,
+		[]flow.Address{b.ServiceKey().Address, DSSCollectionAddress},
+		[]crypto.Signer{signer, DSSCollectionSigner},
+		false,
+	)
+
+	_, err = b.CommitBlock()
+	require.NoError(t, err)
+
 	return Contracts{
 		nftAddress,
 		metadataViewsAddr,
 		DSSCollectionAddress,
 		DSSCollectionSigner,
+		DSSCollectionAddress,
 	}
 }
 

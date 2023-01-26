@@ -1,7 +1,7 @@
 import DSSCollection from "../../contracts/DSSCollection.cdc"
 
 
-transaction(name: String, description: String, typeName: String) {
+transaction(name: String, description: String) {
     // local variable for the admin reference
     let admin: &DSSCollection.Admin
 
@@ -15,7 +15,6 @@ transaction(name: String, description: String, typeName: String) {
         let id = self.admin.createCollectionGroup(
             name: name,
             description: description,
-            typeName: typeName,
             endTime: nil
         )
 

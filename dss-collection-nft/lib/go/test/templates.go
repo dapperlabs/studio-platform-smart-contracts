@@ -15,10 +15,12 @@ const (
 	nftAddressPlaceholder           = "\"[^\"]*NonFungibleToken.cdc\""
 	DSSCollectionAddressPlaceholder = "\"[^\"]*DSSCollection.cdc\""
 	metadataViewsAddressPlaceholder = "0xMETADATAVIEWSADDRESS"
+	exampleNFTAddressPlaceholder    = "0xEXAMPLENFTADDRESS"
 )
 
 const (
 	DSSCollectionPath    = "../../../contracts/DSSCollection.cdc"
+	ExampleNFTPath       = "../../../contracts/ExampleNFT.cdc"
 	TransactionsRootPath = "../../../transactions"
 	ScriptsRootPath      = "../../../scripts"
 
@@ -73,12 +75,23 @@ func replaceAddresses(code []byte, contracts Contracts) []byte {
 	code = DapperSportRe.ReplaceAll(code, []byte("0x"+contracts.DSSCollectionAddress.String()))
 
 	code = []byte(strings.ReplaceAll(string(code), metadataViewsAddressPlaceholder, "0x"+contracts.MetadataViewsAddress.String()))
+	code = []byte(strings.ReplaceAll(string(code), exampleNFTAddressPlaceholder, "0x"+contracts.DSSCollectionAddress.String()))
 
 	return code
 }
 
 func LoadDSSCollectionContract(nftAddress flow.Address, metadataViewsAddress flow.Address) []byte {
 	code := readFile(DSSCollectionPath)
+
+	nftRe := regexp.MustCompile(nftAddressPlaceholder)
+	code = nftRe.ReplaceAll(code, []byte("0x"+nftAddress.String()))
+	code = []byte(strings.ReplaceAll(string(code), metadataViewsAddressPlaceholder, "0x"+metadataViewsAddress.String()))
+
+	return code
+}
+
+func LoadExampleNFTContract(nftAddress flow.Address, metadataViewsAddress flow.Address) []byte {
+	code := readFile(ExampleNFTPath)
 
 	nftRe := regexp.MustCompile(nftAddressPlaceholder)
 	code = nftRe.ReplaceAll(code, []byte("0x"+nftAddress.String()))

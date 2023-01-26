@@ -1,7 +1,8 @@
 import DSSCollection from "../../contracts/DSSCollection.cdc"
+import ExampleNFT from 0xEXAMPLENFTADDRESS
 
 
-transaction(collectionGroupID: UInt64, logicalOperator: String, typeName: String) {
+transaction(collectionGroupID: UInt64, logicalOperator: String) {
     // local variable for the admin reference
     let admin: &DSSCollection.Admin
 
@@ -12,6 +13,7 @@ transaction(collectionGroupID: UInt64, logicalOperator: String, typeName: String
     }
 
     execute {
+        let typeName = Type<@ExampleNFT.NFT>()
         let id = self.admin.createSlot(
             collectionGroupID: collectionGroupID,
             logicalOperator: logicalOperator,

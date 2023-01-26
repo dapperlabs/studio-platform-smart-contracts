@@ -15,7 +15,7 @@ func TestDSSCollectionDeployContracts(t *testing.T) {
 	DSSCollectionDeployContracts(t, b)
 }
 
-func TestEditionNFTSetupAccount(t *testing.T) {
+func TestDSSCollectionSetupAccount(t *testing.T) {
 	b := newEmulator()
 	contracts := DSSCollectionDeployContracts(t, b)
 	userAddress, userSigner := createAccount(t, b)
@@ -45,7 +45,6 @@ func TestCreateCollectionGroup(t *testing.T) {
 			contracts,
 			false,
 			"Top Shot All Stars",
-			"A.0xf8d6e0586b0a20c7.NFT",
 		)
 	})
 }
@@ -56,7 +55,6 @@ func testCreateCollectionGroup(
 	contracts Contracts,
 	shouldRevert bool,
 	collectionGroupName string,
-	typeName string,
 ) {
 	collectionGroupId := createCollectionGroup(
 		t,
@@ -65,7 +63,6 @@ func testCreateCollectionGroup(
 		false,
 		collectionGroupName,
 		"All Stars",
-		typeName,
 	)
 
 	if !shouldRevert {
@@ -103,7 +100,6 @@ func testCloseCollectionGroup(
 		false,
 		"Top Shot All Stars",
 		"All Stars",
-		"A.0xf8d6e0586b0a20c7.NFT",
 	)
 
 	closeCollectionGroup(
@@ -132,7 +128,6 @@ func TestCreateSlot(t *testing.T) {
 			contracts,
 			false,
 			"OR",
-			"A.0xf8d6e0586b0a20c7.NFT",
 		)
 	})
 }
@@ -143,7 +138,6 @@ func testCreateSlot(
 	contracts Contracts,
 	shouldRevert bool,
 	logicalOperator string,
-	typeName string,
 ) {
 	collectionGroupID := createCollectionGroup(
 		t,
@@ -152,7 +146,6 @@ func testCreateSlot(
 		false,
 		"NBA All Stars",
 		"All Stars",
-		typeName,
 	)
 
 	slotID := createSlot(
@@ -162,14 +155,12 @@ func testCreateSlot(
 		false,
 		collectionGroupID,
 		logicalOperator,
-		typeName,
 	)
 
 	if !shouldRevert {
 		slot := getSlotData(t, b, contracts, slotID)
 		assert.Equal(t, slotID, slot.ID)
 		assert.Equal(t, logicalOperator, slot.LogicalOperator)
-		assert.Equal(t, typeName, slot.TypeName)
 	}
 }
 
@@ -206,7 +197,6 @@ func testCreateItemInSlot(
 		shouldRevert,
 		"NBA All Stars",
 		"All Stars",
-		"A.0xf8d6e0586b0a20c7.NFT",
 	)
 
 	slotID := createSlot(
@@ -216,7 +206,6 @@ func testCreateItemInSlot(
 		shouldRevert,
 		collectionGroupID,
 		"OR",
-		"A.0xf8d6e0586b0a20c7.NFT",
 	)
 
 	createItemInSlot(
@@ -267,7 +256,6 @@ func testMintNFT(
 		false,
 		collectionGroupName,
 		"All Stars",
-		"A.0xf8d6e0586b0a20c7.NFT",
 	)
 
 	closeCollectionGroup(
