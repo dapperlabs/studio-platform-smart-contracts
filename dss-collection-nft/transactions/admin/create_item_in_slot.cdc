@@ -1,0 +1,25 @@
+import DSSCollection from "../../contracts/DSSCollection.cdc"
+
+transaction(
+    itemID: UInt64,
+    points: UInt64,
+    itemType: String,
+    slotID: UInt64
+) {
+    let admin: &DSSCollection.Admin
+
+    prepare(signer: AuthAccount) {
+        self.admin = signer.borrow<&DSSCollection.Admin>(from: DSSCollection.AdminStoragePath)
+            ?? panic("Could not borrow a reference to the DSSCollection Admin capability")
+    }
+
+    execute {
+        self.admin.createItemInSlot(
+            itemID: itemID,
+            points: points,
+            itemType: itemType,
+            slotID: slotID
+        )
+    }
+}
+
