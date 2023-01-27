@@ -25,6 +25,7 @@ pub contract PackNFT: NonFungibleToken, IPackNFT {
     pub event ContractInitialized()
     pub event Withdraw(id: UInt64, from: Address?)
     pub event Deposit(id: UInt64, to: Address?)
+    pub event Burned(id: UInt64)
 
     pub enum Status: UInt8 {
         pub case Sealed
@@ -35,12 +36,11 @@ pub contract PackNFT: NonFungibleToken, IPackNFT {
     pub resource PackNFTOperator: IPackNFT.IOperator {
 
          pub fun mint(distId: UInt64, commitHash: String, issuer: Address): @NFT{
-            let id = PackNFT.totalSupply + 1
-            let nft <- create NFT(initID: id, commitHash: commitHash, issuer: issuer)
+            let nft <- create NFT(commitHash: commitHash, issuer: issuer)
             PackNFT.totalSupply = PackNFT.totalSupply + 1
             let p  <-create Pack(commitHash: commitHash, issuer: issuer)
-            PackNFT.packs[id] <-! p
-            emit Mint(id: id, commitHash: commitHash, distId: distId)
+            PackNFT.packs[nft.id] <-! p
+            emit Mint(id: nft.id, commitHash: commitHash, distId: distId)
             return <- nft
          }
 
@@ -125,8 +125,16 @@ pub contract PackNFT: NonFungibleToken, IPackNFT {
             PackNFT.openRequest(id: self.id)
         }
 
-        init(initID: UInt64, commitHash: String, issuer: Address ) {
-            self.id = initID
+       destroy() {
+           let p <- PackNFT.packs.remove(key: self.id) ?? panic("no such pack")
+           PackNFT.totalSupply = PackNFT.totalSupply - (1 as UInt64)
+
+           emit Burned(id: self.id)
+           destroy p
+       }
+
+
+        init(commitHash: String, issuer: Address) {
             self.commitHash = commitHash
             self.issuer = issuer
         }
