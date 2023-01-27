@@ -34,10 +34,6 @@ pub contract interface IPackNFT{
     ///
     /// Emitted when a PackNFT has been burned
     pub event Burned(id: UInt64 )
-    /// Revealed
-    ///
-    /// Emitted when a packNFT has been revealed
-    pub event Revealed(id: UInt64, salt: [UInt8], nfts: String)
     /// Opened
     ///
     /// Emitted when a packNFT has been opened
@@ -89,7 +85,6 @@ pub contract interface IPackNFT{
 
     pub resource NFT: NonFungibleToken.INFT, IPackNFTToken, IPackNFTOwnerOperator{
         pub let id: UInt64
-        pub let hash: [UInt8]
         pub let issuer: Address
         pub fun reveal(openRequest: Bool)
         pub fun open() 
