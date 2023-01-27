@@ -1,4 +1,3 @@
-import NonFungibleToken from "../../contracts/NonFungibleToken.cdc"
 import DSSCollection from "../../contracts/DSSCollection.cdc"
 
 transaction(name: String, description: String, endTime: UFix64?) {

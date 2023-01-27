@@ -1,10 +1,8 @@
 import NonFungibleToken from "../../contracts/NonFungibleToken.cdc"
 import DSSCollection from "../../contracts/DSSCollection.cdc"
 
-// This transaction configures a wallet to hold DSSCollectionNFTs.
 transaction {
     prepare(signer: AuthAccount) {
-        // if the account doesn't already have a collection
         if signer.borrow<&DSSCollection.Collection>(from: DSSCollection.CollectionStoragePath) == nil {
 
             // create a new empty collection
