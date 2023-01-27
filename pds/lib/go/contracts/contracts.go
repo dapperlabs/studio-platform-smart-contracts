@@ -14,14 +14,13 @@ import (
 
 var (
 	placeholderNonFungibleToken = regexp.MustCompile(`{{.NonFungibleToken}}`)
-	placeholderIPackNFT         = regexp.MustCompile(`{{.IPackNFT}}`)
 	placeholderFungibleToken    = regexp.MustCompile(`{{.FungibleToken}}`)
+	placeholderIPackNFT         = regexp.MustCompile(`{{.IPackNFT}}`)
 	placeholderMetadataViews    = regexp.MustCompile(`{{.MetadataViews}}`)
 	placeholderRoyaltyAddress   = regexp.MustCompile(`{{.RoyaltyAddress}}`)
 )
 
 const (
-	filenameFungibleToken = "FungibleToken.cdc"
 	filenameIPackNFT      = "IPackNFT.cdc"
 	filenamePackNFT       = "PackNFT.cdc"
 	filenameAllDayPackNFT = "PackNFT_AllDay.cdc"
@@ -75,13 +74,5 @@ func PDS(nftAddress, iPackNFTAddress flow.Address) []byte {
 	code = placeholderNonFungibleToken.ReplaceAllString(code, nftAddress.String())
 	code = placeholderIPackNFT.ReplaceAllString(code, iPackNFTAddress.String())
 
-	return []byte(code)
-}
-
-// FungibleToken returns the PDS contract.
-//
-// The returned contract will import the PDS contract from the specified address.
-func FungibleToken() []byte {
-	code := assets.MustAssetString(filenameFungibleToken)
 	return []byte(code)
 }
