@@ -26,10 +26,6 @@ pub contract interface IPackNFT{
     /// This is emitted when owner of a PackNFT request for the entitled NFT to be
     /// deposited to its account
     pub event OpenRequest(id: UInt64)
-    /// New Pack NFT
-    ///
-    /// Emitted when a new PackNFT has been minted
-    pub event Minted(id: UInt64, hash: [UInt8], distId: UInt64 )
     /// Burned
     ///
     /// Emitted when a PackNFT has been burned
@@ -54,10 +50,8 @@ pub contract interface IPackNFT{
     }
 
     pub resource interface IPack {
-        pub let hash: [UInt8]
         pub let issuer: Address
         pub var status: Status
-        pub var salt: [UInt8]?
 
         pub fun verify(nftString: String): Bool
 
@@ -74,12 +68,11 @@ pub contract interface IPackNFT{
     pub resource PackNFTOperator: IOperator {
         pub fun mint(distId: UInt64, commitHash: String, issuer: Address): @NFT
         pub fun reveal(id: UInt64, nfts: [{Collectible}], salt: String)
-        pub fun open(id: UInt64, nfts: [{IPackNFT.Collectible}]) 
+        pub fun open(id: UInt64, nfts: [{IPackNFT.Collectible}])
     }
 
     pub resource interface IPackNFTToken {
         pub let id: UInt64
-        pub let hash: [UInt8]
         pub let issuer: Address
     }
 

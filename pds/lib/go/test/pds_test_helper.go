@@ -29,6 +29,8 @@ func deployPDSContracts(
 
 	// 1. Deploy utility contracts
 	nftAddress := deploy(t, b, "NonFungibleToken", contracts.NonFungibleToken())
+	ftAddress := deploy(t, b, "FungibleToken", studioPlatformContracts.FungibleToken())
+
 	metadataAddress := deploy(t, b, "MetadataViews", contracts.MetadataViews(flow.HexToAddress(emulatorFTAddress), nftAddress))
 	exampleNFTAddress := deploy(
 		t, b,
@@ -48,7 +50,7 @@ func deployPDSContracts(
 	packNFTAddress := deployPackNftContract(t, b, nftAddress, iPackNFTAddress)
 
 	// 3. Deploy AllDay Pack NFT contract
-	deployPackNftContract(t, b, nftAddress, iPackNFTAddress)
+	deployAllDayPackNftContract(t, b, nftAddress, ftAddress, iPackNFTAddress, metadataAddress)
 
 	// 4. Deploy PDS contract
 	pdsAddress := deployPDSContract(t, b, nftAddress, iPackNFTAddress)
@@ -94,13 +96,13 @@ func deployPackNftContract(t *testing.T, b *emulator.Blockchain, nftAddress, iPa
 	return PackNftAddress
 }
 
-func deployAllDayPackNftContract(t *testing.T, b *emulator.Blockchain, nftAddress, iPackNFTAddress flow.Address) flow.Address {
+func deployAllDayPackNftContract(t *testing.T, b *emulator.Blockchain, nftAddress, ftAddress, iPackNFTAddress, metaDataViewAddress flow.Address) flow.Address {
 	accountKeys := test.AccountKeyGenerator()
 
 	// set up PackNFT account
 	AllDayPackNftAccountKey, AllDayPackNftSigner := accountKeys.NewWithSigner()
 	AllDayPackNftAddress, _ := b.CreateAccount([]*flow.AccountKey{AllDayPackNftAccountKey}, nil)
-	PackNftCode := studioPlatformContracts.AllDayPackNFT(nftAddress, iPackNFTAddress)
+	PackNftCode := studioPlatformContracts.AllDayPackNFT(nftAddress, ftAddress, iPackNFTAddress, metaDataViewAddress, AllDayPackNftAddress)
 	fundAccount(t, b, AllDayPackNftAddress, defaultAccountFunding)
 
 	packNFTencodedStr := hex.EncodeToString(PackNftCode)
