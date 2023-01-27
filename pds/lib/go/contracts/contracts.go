@@ -15,14 +15,17 @@ import (
 var (
 	placeholderNonFungibleToken = regexp.MustCompile(`{{.NonFungibleToken}}`)
 	placeholderIPackNFT         = regexp.MustCompile(`{{.IPackNFT}}`)
+	placeholderFungibleToken    = regexp.MustCompile(`{{.FungibleToken}}`)
+	placeholderMetadataViews    = regexp.MustCompile(`{{.MetadataViews}}`)
+	placeholderRoyaltyAddress   = regexp.MustCompile(`{{.RoyaltyAddress}}`)
 )
 
 const (
+	filenameFungibleToken = "FungibleToken.cdc"
 	filenameIPackNFT      = "IPackNFT.cdc"
 	filenamePackNFT       = "PackNFT.cdc"
 	filenameAllDayPackNFT = "PackNFT_AllDay.cdc"
-
-	filenamePDS = "PDS.cdc"
+	filenamePDS           = "PDS.cdc"
 )
 
 // IPackNFT returns the IPackNFT contract.
@@ -51,11 +54,14 @@ func PackNFT(nftAddress, iPackNFTAddress flow.Address) []byte {
 // AllDayPackNFT returns the AllDayPackNFT contract.
 //
 // The returned contract will import the NonFungibleToken contract from the specified address.
-func AllDayPackNFT(nftAddress, iPackNFTAddress flow.Address) []byte {
+func AllDayPackNFT(nftAddress, ftAddress, iPackNFTAddress, metaDataViewAddress, packNFTAddress flow.Address) []byte {
 	code := assets.MustAssetString(filenameAllDayPackNFT)
 
 	code = placeholderNonFungibleToken.ReplaceAllString(code, nftAddress.String())
 	code = placeholderIPackNFT.ReplaceAllString(code, iPackNFTAddress.String())
+	code = placeholderFungibleToken.ReplaceAllString(code, ftAddress.String())
+	code = placeholderMetadataViews.ReplaceAllString(code, metaDataViewAddress.String())
+	code = placeholderRoyaltyAddress.ReplaceAllString(code, packNFTAddress.String())
 
 	return []byte(code)
 }
@@ -69,5 +75,13 @@ func PDS(nftAddress, iPackNFTAddress flow.Address) []byte {
 	code = placeholderNonFungibleToken.ReplaceAllString(code, nftAddress.String())
 	code = placeholderIPackNFT.ReplaceAllString(code, iPackNFTAddress.String())
 
+	return []byte(code)
+}
+
+// FungibleToken returns the PDS contract.
+//
+// The returned contract will import the PDS contract from the specified address.
+func FungibleToken() []byte {
+	code := assets.MustAssetString(filenameFungibleToken)
 	return []byte(code)
 }

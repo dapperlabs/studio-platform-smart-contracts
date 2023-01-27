@@ -1,6 +1,6 @@
 import Crypto
 import NonFungibleToken from 0x{{.NonFungibleToken}}
-import FungibleToken from 0x{{.NonFungibleToken}}
+import FungibleToken from 0x{{.FungibleToken}}
 import IPackNFT from 0x{{.IPackNFT}}
 import MetadataViews from 0x{{.MetadataViews}}
 
@@ -135,6 +135,7 @@ pub contract PackNFT: NonFungibleToken, IPackNFT {
 
 
         init(commitHash: String, issuer: Address) {
+            self.id = self.uuid
             self.commitHash = commitHash
             self.issuer = issuer
         }
