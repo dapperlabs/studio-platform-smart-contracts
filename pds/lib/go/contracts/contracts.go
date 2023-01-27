@@ -18,9 +18,11 @@ var (
 )
 
 const (
-	filenameIPackNFT = "IPackNFT.cdc"
-	filenamePackNFT  = "PackNFT.cdc"
-	filenamePDS      = "PDS.cdc"
+	filenameIPackNFT      = "IPackNFT.cdc"
+	filenamePackNFT       = "PackNFT.cdc"
+	filenameAllDayPackNFT = "PackNFT_AllDay.cdc"
+
+	filenamePDS = "PDS.cdc"
 )
 
 // IPackNFT returns the IPackNFT contract.
@@ -39,6 +41,18 @@ func IPackNFT(nftAddress flow.Address) []byte {
 // The returned contract will import the NonFungibleToken contract from the specified address.
 func PackNFT(nftAddress, iPackNFTAddress flow.Address) []byte {
 	code := assets.MustAssetString(filenamePackNFT)
+
+	code = placeholderNonFungibleToken.ReplaceAllString(code, nftAddress.String())
+	code = placeholderIPackNFT.ReplaceAllString(code, iPackNFTAddress.String())
+
+	return []byte(code)
+}
+
+// AllDayPackNFT returns the AllDayPackNFT contract.
+//
+// The returned contract will import the NonFungibleToken contract from the specified address.
+func AllDayPackNFT(nftAddress, iPackNFTAddress flow.Address) []byte {
+	code := assets.MustAssetString(filenameAllDayPackNFT)
 
 	code = placeholderNonFungibleToken.ReplaceAllString(code, nftAddress.String())
 	code = placeholderIPackNFT.ReplaceAllString(code, iPackNFTAddress.String())
