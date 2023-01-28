@@ -29,7 +29,6 @@ func deployPDSContracts(
 
 	// 1. Deploy utility contracts
 	nftAddress := deploy(t, b, "NonFungibleToken", contracts.NonFungibleToken())
-	//ftAddress := deploy(t, b, "FungibleToken", studioPlatformContracts.FungibleToken())
 
 	metadataAddress := deploy(t, b, "MetadataViews", contracts.MetadataViews(flow.HexToAddress(emulatorFTAddress), nftAddress))
 	exampleNFTAddress := deploy(
