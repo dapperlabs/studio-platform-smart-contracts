@@ -57,7 +57,7 @@ func deployPDSContracts(
 	deployAllDayPackNftContract(t, b, nftAddress, ftAddress, iPackNFTAddress, metadataAddress)
 
 	// 4. Deploy PDS contract
-	pdsAddress := deployPDSContract(t, b, nftAddress, iPackNFTAddress)
+	pdsAddress := deployPDSContract(t, b, nftAddress, iPackNFTAddress, pdsAccountKey, pdsSigner)
 
 	return nftAddress, metadataAddress, exampleNFTAddress, iPackNFTAddress, pdsAddress
 }
