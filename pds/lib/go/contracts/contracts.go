@@ -14,13 +14,17 @@ import (
 
 var (
 	placeholderNonFungibleToken = regexp.MustCompile(`{{.NonFungibleToken}}`)
+	placeholderFungibleToken    = regexp.MustCompile(`{{.FungibleToken}}`)
 	placeholderIPackNFT         = regexp.MustCompile(`{{.IPackNFT}}`)
+	placeholderMetadataViews    = regexp.MustCompile(`{{.MetadataViews}}`)
+	placeholderRoyaltyAddress   = regexp.MustCompile(`{{.RoyaltyAddress}}`)
 )
 
 const (
-	filenameIPackNFT = "IPackNFT.cdc"
-	filenamePackNFT  = "PackNFT.cdc"
-	filenamePDS      = "PDS.cdc"
+	filenameIPackNFT      = "IPackNFT.cdc"
+	filenamePackNFT       = "PackNFT.cdc"
+	filenameAllDayPackNFT = "PackNFT_AllDay.cdc"
+	filenamePDS           = "PDS.cdc"
 )
 
 // IPackNFT returns the IPackNFT contract.
@@ -42,6 +46,21 @@ func PackNFT(nftAddress, iPackNFTAddress flow.Address) []byte {
 
 	code = placeholderNonFungibleToken.ReplaceAllString(code, nftAddress.String())
 	code = placeholderIPackNFT.ReplaceAllString(code, iPackNFTAddress.String())
+
+	return []byte(code)
+}
+
+// AllDayPackNFT returns the AllDayPackNFT contract.
+//
+// The returned contract will import the NonFungibleToken contract from the specified address.
+func AllDayPackNFT(nftAddress, ftAddress, iPackNFTAddress, metaDataViewAddress, packNFTAddress flow.Address) []byte {
+	code := assets.MustAssetString(filenameAllDayPackNFT)
+
+	code = placeholderNonFungibleToken.ReplaceAllString(code, nftAddress.String())
+	code = placeholderIPackNFT.ReplaceAllString(code, iPackNFTAddress.String())
+	code = placeholderFungibleToken.ReplaceAllString(code, ftAddress.String())
+	code = placeholderMetadataViews.ReplaceAllString(code, metaDataViewAddress.String())
+	code = placeholderRoyaltyAddress.ReplaceAllString(code, packNFTAddress.String())
 
 	return []byte(code)
 }

@@ -34,6 +34,7 @@ func deployPDSContracts(
 
 	// 1. Deploy utility contracts
 	nftAddress := deploy(t, b, "NonFungibleToken", contracts.NonFungibleToken())
+
 	metadataAddress := deploy(t, b, "MetadataViews", contracts.MetadataViews(flow.HexToAddress(emulatorFTAddress), nftAddress))
 	exampleNFTAddress := deploy(
 		t, b,
@@ -52,7 +53,10 @@ func deployPDSContracts(
 	// 2. Deploy Pack NFT contract
 	deployPackNftContract(t, b, nftAddress, iPackNFTAddress, exampleNFTAddress, exampleNFTSigner)
 
-	// 3. Deploy PDS contract
+	// 3. Deploy AllDay Pack NFT contract
+	deployAllDayPackNftContract(t, b, nftAddress, ftAddress, iPackNFTAddress, metadataAddress)
+
+	// 4. Deploy PDS contract
 	pdsAddress := deployPDSContract(t, b, nftAddress, iPackNFTAddress, pdsAccountKey, pdsSigner)
 
 	return nftAddress, metadataAddress, exampleNFTAddress, iPackNFTAddress, pdsAddress
@@ -88,6 +92,44 @@ func deployPackNftContract(t *testing.T, b *emulator.Blockchain, nftAddress, iPa
 
 	_, err = b.CommitBlock()
 	require.NoError(t, err)
+}
+
+func deployAllDayPackNftContract(t *testing.T, b *emulator.Blockchain, nftAddress, ftAddress, iPackNFTAddress, metaDataViewAddress flow.Address) flow.Address {
+	accountKeys := test.AccountKeyGenerator()
+
+	// set up PackNFT account
+	AllDayPackNftAccountKey, AllDayPackNftSigner := accountKeys.NewWithSigner()
+	AllDayPackNftAddress, _ := b.CreateAccount([]*flow.AccountKey{AllDayPackNftAccountKey}, nil)
+	PackNftCode := studioPlatformContracts.AllDayPackNFT(nftAddress, ftAddress, iPackNFTAddress, metaDataViewAddress, AllDayPackNftAddress)
+	fundAccount(t, b, AllDayPackNftAddress, defaultAccountFunding)
+
+	packNFTencodedStr := hex.EncodeToString(PackNftCode)
+	txBytes := studioPlatformTemplates.GenerateDeployPackNFTTx(nftAddress, iPackNFTAddress)
+
+	tx1 := createTxWithTemplateAndAuthorizer(b, txBytes, AllDayPackNftAddress)
+	_ = tx1.AddArgument(cadence.String("PackNFT"))
+	_ = tx1.AddArgument(cadence.String(packNFTencodedStr))
+	_ = tx1.AddArgument(cadence.Path{Domain: "storage", Identifier: "PackNFTCollection"})
+	_ = tx1.AddArgument(cadence.Path{Domain: "public", Identifier: "PackNFTCollectionPub"})
+	_ = tx1.AddArgument(cadence.Path{Domain: "public", Identifier: "PackNFTIPackNFTCollectionPub"})
+	_ = tx1.AddArgument(cadence.Path{Domain: "storage", Identifier: "PackNFTOperator"})
+	_ = tx1.AddArgument(cadence.Path{Domain: "private", Identifier: "PackNFTOperatorPriv"})
+	_ = tx1.AddArgument(cadence.String("0.1.0"))
+
+	signer, err := b.ServiceKey().Signer()
+	assert.NoError(t, err)
+
+	signAndSubmit(
+		t, b, tx1,
+		[]flow.Address{b.ServiceKey().Address, AllDayPackNftAddress},
+		[]crypto.Signer{signer, AllDayPackNftSigner},
+		false,
+	)
+
+	_, err = b.CommitBlock()
+	require.NoError(t, err)
+
+	return AllDayPackNftAddress
 }
 
 func deployPDSContract(
