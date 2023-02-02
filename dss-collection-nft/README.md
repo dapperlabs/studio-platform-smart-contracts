@@ -4,7 +4,7 @@
 | Network   | Address |
 | ----------|:-------:|
 | Emulator   |  0xf8d6e0586b0a20c7  |
-| Testnet   |  0x631e88ae7f1d7c20  |
+| Testnet   |  0x860da69cd099c1d2  |
 | Mainnet   |  0x1d7e57aa55817448   |
 
 ## DSSCollection Contract Addresses
