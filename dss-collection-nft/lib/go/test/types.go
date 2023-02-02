@@ -8,6 +8,7 @@ type CollectionGroupData struct {
 	ID          uint64
 	Name        string
 	Description string
+	ProductName string
 	Open        bool
 }
 
@@ -45,7 +46,8 @@ func parseCollectionGroupData(value cadence.Value) CollectionGroupData {
 		fields[0].ToGoValue().(uint64),
 		fields[1].ToGoValue().(string),
 		fields[2].ToGoValue().(string),
-		fields[3].ToGoValue().(bool),
+		fields[3].ToGoValue().(string),
+		fields[4].ToGoValue().(bool),
 	}
 }
 

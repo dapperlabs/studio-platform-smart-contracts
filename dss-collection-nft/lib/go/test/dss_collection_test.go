@@ -56,6 +56,7 @@ func testCreateCollectionGroup(
 	shouldRevert bool,
 	collectionGroupName string,
 ) {
+	productName := "NBA Top Shot"
 	collectionGroupId := createCollectionGroup(
 		t,
 		b,
@@ -63,12 +64,14 @@ func testCreateCollectionGroup(
 		false,
 		collectionGroupName,
 		"All Stars",
+		productName,
 	)
 
 	if !shouldRevert {
 		collectionGroup := getCollectionGroupData(t, b, contracts, collectionGroupId)
 		assert.Equal(t, collectionGroupId, collectionGroup.ID)
 		assert.Equal(t, collectionGroupName, collectionGroup.Name)
+		assert.Equal(t, productName, collectionGroup.ProductName)
 		assert.Equal(t, true, collectionGroup.Open)
 	}
 }
@@ -101,7 +104,8 @@ func testCreateTimeBoundCollectionGroup(
 		false,
 		collectionGroupName,
 		"All Stars Description",
-		2368296360,
+		"NBA Top Shot",
+		2368296360_00000000,
 	)
 	if !shouldRevert {
 		collectionGroup := getCollectionGroupData(t, b, contracts, collectionGroupId)
@@ -138,6 +142,7 @@ func testCloseCollectionGroup(
 		false,
 		"Top Shot All Stars",
 		"All Stars",
+		"NBA Top Shot",
 	)
 
 	closeCollectionGroup(
@@ -184,6 +189,7 @@ func testCreateSlot(
 		false,
 		"NBA All Stars",
 		"All Stars",
+		"NBA Top Shot",
 	)
 
 	slotID := createSlot(
@@ -235,6 +241,7 @@ func testCreateItemInSlot(
 		shouldRevert,
 		"NBA All Stars",
 		"All Stars",
+		"NBA Top Shot",
 	)
 
 	slotID := createSlot(
@@ -294,6 +301,7 @@ func testMintNFT(
 		false,
 		collectionGroupName,
 		"All Stars",
+		"NBA Top Shot",
 	)
 
 	closeCollectionGroup(

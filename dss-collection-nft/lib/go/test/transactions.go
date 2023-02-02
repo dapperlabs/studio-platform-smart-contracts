@@ -52,6 +52,7 @@ func createCollectionGroup(
 	shouldRevert bool,
 	collectionGroupName string,
 	collectionGroupDescription string,
+	productName string,
 ) uint64 {
 	tx := flow.NewTransaction().
 		SetScript(createCollectionGroupTransaction(contracts)).
@@ -61,6 +62,7 @@ func createCollectionGroup(
 		AddAuthorizer(contracts.DSSCollectionAddress)
 	tx.AddArgument(cadence.String(collectionGroupName))
 	tx.AddArgument(cadence.String(collectionGroupDescription))
+	tx.AddArgument(cadence.String(productName))
 
 	signer, _ := b.ServiceKey().Signer()
 	txResult := signAndSubmit(
@@ -81,6 +83,7 @@ func createTimeBoundCollectionGroup(
 	shouldRevert bool,
 	collectionGroupName string,
 	collectionGroupDescription string,
+	productName string,
 	endTime int,
 ) uint64 {
 	tx := flow.NewTransaction().
@@ -91,6 +94,7 @@ func createTimeBoundCollectionGroup(
 		AddAuthorizer(contracts.DSSCollectionAddress)
 	tx.AddArgument(cadence.String(collectionGroupName))
 	tx.AddArgument(cadence.String(collectionGroupDescription))
+	tx.AddArgument(cadence.String(productName))
 	tx.AddArgument(cadence.UFix64(endTime))
 
 	signer, _ := b.ServiceKey().Signer()
