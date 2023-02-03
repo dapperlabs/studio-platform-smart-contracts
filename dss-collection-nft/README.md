@@ -4,7 +4,7 @@
 | Network   | Address |
 | ----------|:-------:|
 | Emulator   |  0xf8d6e0586b0a20c7  |
-| Testnet   |  0x631e88ae7f1d7c20  |
+| Testnet   |  0x860da69cd099c1d2  |
 | Mainnet   |  0x1d7e57aa55817448   |
 
 ## DSSCollection Contract Addresses
@@ -51,9 +51,8 @@ flow transactions send ./transactions/admin/mint_nft.cdc 0xf8d6e0586b0a20c7 1 "h
 // close collection group
 flow transactions send ./transactions/admin/close_collection_group.cdc 1 --signer emulator-account
 
-// add nft to collection group
-flow transactions send ./transactions/admin/add_nft_to_collection_group.cdc 1 1 --signer emulator-account
-
+// add item to slot
+flow transactions send ./transactions/admin/create_item_in_slot.cdc 100 10 "edition.id" 1 --signer emulator-account
 ```
 
 

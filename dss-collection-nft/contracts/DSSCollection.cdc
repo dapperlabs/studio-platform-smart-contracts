@@ -25,6 +25,7 @@ pub contract DSSCollection: NonFungibleToken {
         id: UInt64,
         name: String,
         description: String,
+        productName: String,
         endTime: UFix64?
     )
     pub event CollectionGroupClosed(id: UInt64)
@@ -180,6 +181,7 @@ pub contract DSSCollection: NonFungibleToken {
         pub let id: UInt64
         pub let name: String
         pub let description: String
+        pub let productName: String
         pub let open: Bool
         pub let endTime: UFix64?
 
@@ -188,6 +190,7 @@ pub contract DSSCollection: NonFungibleToken {
                 self.id = collectionGroup.id
                 self.name = collectionGroup.name
                 self.description = collectionGroup.description
+                self.productName = collectionGroup.productName
                 self.open = collectionGroup.open
                 self.endTime = collectionGroup.endTime
             } else {
@@ -202,6 +205,7 @@ pub contract DSSCollection: NonFungibleToken {
         pub let id: UInt64
         pub let name: String
         pub let description: String
+        pub let productName: String
         pub var open: Bool
         pub let endTime: UFix64?
         pub var numMinted: UInt64
@@ -246,6 +250,7 @@ pub contract DSSCollection: NonFungibleToken {
         init (
             name: String,
             description: String,
+            productName: String,
             endTime: UFix64?
         ) {
             pre {
@@ -256,6 +261,7 @@ pub contract DSSCollection: NonFungibleToken {
             self.id = self.uuid
             self.name = name
             self.description = description
+            self.productName = productName
             self.open = true
             self.endTime = endTime
             self.numMinted = 0 as UInt64
@@ -264,6 +270,7 @@ pub contract DSSCollection: NonFungibleToken {
                 id: self.id,
                 name: self.name,
                 description: self.description,
+                productName: self.productName,
                 endTime: self.endTime
             )
         }
@@ -544,11 +551,13 @@ pub contract DSSCollection: NonFungibleToken {
         pub fun createCollectionGroup(
             name: String,
             description: String,
+            productName: String,
             endTime: UFix64?
         ): UInt64 {
             let collectionGroup <- create DSSCollection.CollectionGroup(
                 name: name,
                 description: description,
+                productName: productName,
                 endTime: endTime
             )
             let collectionGroupID = collectionGroup.id

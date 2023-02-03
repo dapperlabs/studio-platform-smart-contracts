@@ -56,6 +56,7 @@ func testCreateCollectionGroup(
 	shouldRevert bool,
 	collectionGroupName string,
 ) {
+	productName := "NBA Top Shot"
 	collectionGroupId := createCollectionGroup(
 		t,
 		b,
@@ -63,8 +64,49 @@ func testCreateCollectionGroup(
 		false,
 		collectionGroupName,
 		"All Stars",
+		productName,
 	)
 
+	if !shouldRevert {
+		collectionGroup := getCollectionGroupData(t, b, contracts, collectionGroupId)
+		assert.Equal(t, collectionGroupId, collectionGroup.ID)
+		assert.Equal(t, collectionGroupName, collectionGroup.Name)
+		assert.Equal(t, productName, collectionGroup.ProductName)
+		assert.Equal(t, true, collectionGroup.Open)
+	}
+}
+
+func TestCreateTimeBoundCollectionGroup(t *testing.T) {
+	b := newEmulator()
+	contracts := DSSCollectionDeployContracts(t, b)
+	t.Run("Should be able to create a new time-bound collection group", func(t *testing.T) {
+		testCreateTimeBoundCollectionGroup(
+			t,
+			b,
+			contracts,
+			false,
+			"Top Shot All Stars",
+		)
+	})
+}
+
+func testCreateTimeBoundCollectionGroup(
+	t *testing.T,
+	b *emulator.Blockchain,
+	contracts Contracts,
+	shouldRevert bool,
+	collectionGroupName string,
+) {
+	collectionGroupId := createTimeBoundCollectionGroup(
+		t,
+		b,
+		contracts,
+		false,
+		collectionGroupName,
+		"All Stars Description",
+		"NBA Top Shot",
+		2368296360_00000000,
+	)
 	if !shouldRevert {
 		collectionGroup := getCollectionGroupData(t, b, contracts, collectionGroupId)
 		assert.Equal(t, collectionGroupId, collectionGroup.ID)
@@ -100,6 +142,7 @@ func testCloseCollectionGroup(
 		false,
 		"Top Shot All Stars",
 		"All Stars",
+		"NBA Top Shot",
 	)
 
 	closeCollectionGroup(
@@ -146,6 +189,7 @@ func testCreateSlot(
 		false,
 		"NBA All Stars",
 		"All Stars",
+		"NBA Top Shot",
 	)
 
 	slotID := createSlot(
@@ -197,6 +241,7 @@ func testCreateItemInSlot(
 		shouldRevert,
 		"NBA All Stars",
 		"All Stars",
+		"NBA Top Shot",
 	)
 
 	slotID := createSlot(
@@ -256,6 +301,7 @@ func testMintNFT(
 		false,
 		collectionGroupName,
 		"All Stars",
+		"NBA Top Shot",
 	)
 
 	closeCollectionGroup(
