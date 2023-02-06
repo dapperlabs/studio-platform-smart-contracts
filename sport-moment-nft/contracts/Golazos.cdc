@@ -585,26 +585,33 @@ pub contract Golazos: NonFungibleToken {
         ///
         pub fun name(): String {
             let editionData = Golazos.getEditionData(id: self.editionID)!
-            let fullName: String = Golazos.PlayData(id: editionData.playID).metadata["PlayerJerseyName"] ?? ""
+            let playerKnownName: String = Golazos.PlayData(id: editionData.playID).metadata["PlayerKnownName"] ?? ""
+            let playerFirstName: String = Golazos.PlayData(id: editionData.playID).metadata["PlayerFirstName"] ?? ""
+            let playerLastName: String = Golazos.PlayData(id: editionData.playID).metadata["PlayerLastName"] ?? ""
             let playType: String = Golazos.PlayData(id: editionData.playID).metadata["PlayType"] ?? ""
-            return fullName
-                .concat(" ")
-                .concat(playType)
+            var playerName = playerKnownName
+            if(playerName == ""){
+                playerName = playerFirstName.concat(" ").concat(playerLastName)
+            }
+            return playType.concat(" by ").concat(playerName)
         }
 
         /// get the description of an nft
         ///
         pub fun description(): String {
             let editionData = Golazos.getEditionData(id: self.editionID)!
-            let setName: String = Golazos.SetData(id: editionData.setID)!.name
-            let serialNumber: String = self.serialNumber.toString()
-            let seriesNumber: String = editionData.seriesID.toString()
-            return "A series "
-                .concat(seriesNumber)
-                .concat(" ")
-                .concat(setName)
-                .concat(" moment with serial number ")
-                .concat(serialNumber)
+            let metadata = Golazos.PlayData(id: editionData.playID).metadata
+            let matchHomeTeam: String = metadata["MatchHomeTeam"] ?? ""
+            let matchAwayTeam: String = metadata["MatchAwayTeam"] ?? ""
+            let matchHomeScore: String = metadata["MatchHomeScore"] ?? ""
+            let matchAwayScore: String = metadata["MatchAwayScore"] ?? ""
+            let matchDay: String = metadata["MatchDay"] ?? ""
+            let matchSeason: String = metadata["MatchSeason"] ?? ""
+
+            return "LaLiga Golazos Moment from ".concat(matchHomeTeam)
+            .concat(" x ").concat(matchAwayTeam).concat(" (").concat(matchHomeScore)
+            .concat("-").concat(matchAwayScore).concat(") on Matchday ")
+            .concat(matchDay).concat(" (").concat(matchSeason).concat(")")
         }
 
         /// get a thumbnail image that represents this nft
