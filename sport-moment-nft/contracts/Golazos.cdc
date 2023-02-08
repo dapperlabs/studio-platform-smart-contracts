@@ -656,7 +656,7 @@ pub contract Golazos: NonFungibleToken {
                 let editionData = Golazos.getEditionData(id: self.editionID)!
                     let editionInfo = MetadataViews.Edition(
                         name: nil,
-                        number: editionData.id,
+                        number: self.serialNumber,
                         max: editionData.maxMintSize
                     )
                     let editionList: [MetadataViews.Edition] = [editionInfo]
