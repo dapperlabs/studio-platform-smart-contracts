@@ -9,13 +9,15 @@ type CollectionGroupData struct {
 	Name        string
 	Description string
 	ProductName string
-	Open        bool
+	Active      bool
 }
 
 type SlotData struct {
 	ID                uint64
 	CollectionGroupID uint64
 	LogicalOperator   string
+	Comparator        string
+	Required          bool
 	TypeName          cadence.Type
 	Items             []Item
 }
@@ -54,7 +56,7 @@ func parseCollectionGroupData(value cadence.Value) CollectionGroupData {
 func parseSlotData(value cadence.Value) SlotData {
 	fields := value.(cadence.Struct).Fields
 	var items []Item
-	for _, val := range fields[4].(cadence.Array).Values {
+	for _, val := range fields[6].(cadence.Array).Values {
 		item := parseItemData(val)
 		items = append(items, item)
 	}
@@ -62,7 +64,9 @@ func parseSlotData(value cadence.Value) SlotData {
 		fields[0].ToGoValue().(uint64),
 		fields[1].ToGoValue().(uint64),
 		fields[2].ToGoValue().(string),
-		fields[3].Type(),
+		fields[3].ToGoValue().(string),
+		fields[4].ToGoValue().(bool),
+		fields[5].Type(),
 		items,
 	}
 	return slotData

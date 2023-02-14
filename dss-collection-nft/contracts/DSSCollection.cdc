@@ -40,6 +40,8 @@ pub contract DSSCollection: NonFungibleToken {
         id: UInt64,
         collectionGroupID: UInt64,
         logicalOperator: String,
+        comparator: String,
+        required: Bool,
         typeName: Type
     )
     pub event CollectionNFTMinted(
@@ -92,6 +94,8 @@ pub contract DSSCollection: NonFungibleToken {
         pub let id: UInt64
         pub let collectionGroupID: UInt64
         pub let logicalOperator: String // (AND / OR)
+        pub let comparator: String // (< / > / =)
+        pub let required: Bool
         pub let typeName: Type // (Type<A.f8d6e0586b0a20c7.ExampleNFT.NFT>()...)
         pub var items: [Item]
 
@@ -100,6 +104,8 @@ pub contract DSSCollection: NonFungibleToken {
                 self.id = slot.id
                 self.collectionGroupID = slot.collectionGroupID
                 self.logicalOperator = slot.logicalOperator
+                self.comparator = slot.comparator
+                self.required = slot.required
                 self.typeName = slot.typeName
                 self.items = slot.items
             } else {
@@ -114,6 +120,8 @@ pub contract DSSCollection: NonFungibleToken {
         pub let id: UInt64
         pub let collectionGroupID: UInt64
         pub let logicalOperator: String // (AND / OR)
+        pub let comparator: String // (< / > / =)
+        pub let required: Bool
         pub let typeName: Type // (Type<A.f8d6e0586b0a20c7.ExampleNFT.NFT>())
         pub var items: [Item]
 
@@ -127,7 +135,7 @@ pub contract DSSCollection: NonFungibleToken {
             pre {
                 DSSCollection.CollectionGroupData(
                     id: self.collectionGroupID
-                ).open: "Collection group not open"
+                ).active: "Collection group inactive"
             }
 
             let item = DSSCollection.Item(
@@ -149,20 +157,27 @@ pub contract DSSCollection: NonFungibleToken {
         init (
             collectionGroupID: UInt64,
             logicalOperator: String,
+            comparator: String,
+            required: Bool,
             typeName: Type
         ) {
             pre {
                 DSSCollection.CollectionGroupData(
                     id: collectionGroupID
-                ).open: "Collection group not open"
+                ).active: "Collection group inactive"
                 DSSCollection.validateLogicalOperator(
                     logicalOperator: logicalOperator
                 ) == true : "Slot submitted with unsupported logical operator"
+                DSSCollection.validateComparator(
+                    comparator: comparator
+                ) == true : "Slot submitted with unsupported comparator"
             }
 
             self.id = self.uuid
             self.collectionGroupID = collectionGroupID
             self.logicalOperator = logicalOperator
+            self.comparator = comparator
+            self.required = required
             self.typeName = typeName
             self.items = []
 
@@ -170,6 +185,8 @@ pub contract DSSCollection: NonFungibleToken {
                 id: self.id,
                 collectionGroupID: self.collectionGroupID,
                 logicalOperator: self.logicalOperator,
+                comparator: self.comparator,
+                required: self.required,
                 typeName: self.typeName
             )
         }
@@ -182,7 +199,7 @@ pub contract DSSCollection: NonFungibleToken {
         pub let name: String
         pub let description: String
         pub let productName: String
-        pub let open: Bool
+        pub let active: Bool
         pub let endTime: UFix64?
 
         init (id: UInt64) {
@@ -191,7 +208,7 @@ pub contract DSSCollection: NonFungibleToken {
                 self.name = collectionGroup.name
                 self.description = collectionGroup.description
                 self.productName = collectionGroup.productName
-                self.open = collectionGroup.open
+                self.active = collectionGroup.active
                 self.endTime = collectionGroup.endTime
             } else {
                 panic("CollectionGroup does not exist")
@@ -206,7 +223,7 @@ pub contract DSSCollection: NonFungibleToken {
         pub let name: String
         pub let description: String
         pub let productName: String
-        pub var open: Bool
+        pub var active: Bool
         pub let endTime: UFix64?
         pub var numMinted: UInt64
 
@@ -214,10 +231,10 @@ pub contract DSSCollection: NonFungibleToken {
         //
         access(contract) fun close() {
             pre {
-                self.open :  "Already closed"
+                self.active :  "Already deactivated"
             }
 
-            self.open = false
+            self.active = false
 
             emit CollectionGroupClosed(id: self.id)
         }
@@ -226,7 +243,7 @@ pub contract DSSCollection: NonFungibleToken {
         //
         pub fun mint(completionAddress: String, level: UInt8): @DSSCollection.NFT {
             pre {
-                !self.open : "Cannot mint an open collection group"
+                !self.active : "Cannot mint an active collection group"
                 DSSCollection.validateTimeBound(
                     endTime: self.endTime
                 ) == true : "Cannot mint a collection group outside of time bounds"
@@ -262,7 +279,7 @@ pub contract DSSCollection: NonFungibleToken {
             self.name = name
             self.description = description
             self.productName = productName
-            self.open = true
+            self.active = true
             self.endTime = endTime
             self.numMinted = 0 as UInt64
 
@@ -308,10 +325,19 @@ pub contract DSSCollection: NonFungibleToken {
         return false
     }
 
-    // Validate logical operator of collection group
+    // Validate logical operator of slot
     //
     pub fun validateLogicalOperator(logicalOperator: String): Bool {
         if logicalOperator == "OR" || logicalOperator == "AND" {
+            return true
+        }
+        return false
+    }
+
+    // Validate comparator of slot
+    //
+    pub fun validateComparator(comparator: String): Bool {
+        if comparator == ">" || comparator == ">" || comparator == "=" {
             return true
         }
         return false
@@ -581,11 +607,15 @@ pub contract DSSCollection: NonFungibleToken {
         pub fun createSlot(
             collectionGroupID: UInt64,
             logicalOperator: String,
+            comparator: String,
+            required: Bool,
             typeName: Type
         ): UInt64 {
             let slot <- create DSSCollection.Slot(
                 collectionGroupID: collectionGroupID,
                 logicalOperator: logicalOperator,
+                comparator: comparator,
+                required: required,
                 typeName: typeName
             )
             let slotID = slot.id

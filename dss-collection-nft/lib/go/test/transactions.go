@@ -141,6 +141,8 @@ func createSlot(
 	shouldRevert bool,
 	collectionGroupID uint64,
 	logicalOperator string,
+	comparator string,
+	required bool,
 ) uint64 {
 	tx := flow.NewTransaction().
 		SetScript(createSlotTransaction(contracts)).
@@ -150,6 +152,8 @@ func createSlot(
 		AddAuthorizer(contracts.DSSCollectionAddress)
 	tx.AddArgument(cadence.UInt64(collectionGroupID))
 	tx.AddArgument(cadence.String(logicalOperator))
+	tx.AddArgument(cadence.String(comparator))
+	tx.AddArgument(cadence.Bool(required))
 
 	signer, _ := b.ServiceKey().Signer()
 	txResult := signAndSubmit(

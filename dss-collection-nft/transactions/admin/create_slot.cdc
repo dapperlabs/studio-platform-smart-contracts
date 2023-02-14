@@ -2,7 +2,7 @@ import DSSCollection from "../../contracts/DSSCollection.cdc"
 import ExampleNFT from 0xEXAMPLENFTADDRESS
 
 
-transaction(collectionGroupID: UInt64, logicalOperator: String) {
+transaction(collectionGroupID: UInt64, logicalOperator: String, comparator: String, required: Bool) {
     let admin: &DSSCollection.Admin
 
     prepare(signer: AuthAccount) {
@@ -15,6 +15,8 @@ transaction(collectionGroupID: UInt64, logicalOperator: String) {
         let id = self.admin.createSlot(
             collectionGroupID: collectionGroupID,
             logicalOperator: logicalOperator,
+            comparator: comparator,
+            required: required,
             typeName: typeName
         )
 
