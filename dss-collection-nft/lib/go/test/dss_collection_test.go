@@ -191,8 +191,6 @@ func testCreateSlot(
 		"All Stars",
 		"NBA Top Shot",
 	)
-
-	comparator := "="
 	required := true
 
 	slotID := createSlot(
@@ -202,7 +200,6 @@ func testCreateSlot(
 		false,
 		collectionGroupID,
 		logicalOperator,
-		comparator,
 		required,
 	)
 
@@ -210,7 +207,6 @@ func testCreateSlot(
 		slot := getSlotData(t, b, contracts, slotID)
 		assert.Equal(t, slotID, slot.ID)
 		assert.Equal(t, logicalOperator, slot.LogicalOperator)
-		assert.Equal(t, comparator, slot.Comparator)
 		assert.Equal(t, required, slot.Required)
 	}
 }
@@ -258,10 +254,10 @@ func testCreateItemInSlot(
 		shouldRevert,
 		collectionGroupID,
 		"OR",
-		"=",
 		true,
 	)
 
+	comparator := "="
 	createItemInSlot(
 		t,
 		b,
@@ -270,6 +266,7 @@ func testCreateItemInSlot(
 		itemID,
 		points,
 		itemType,
+		comparator,
 		slotID,
 	)
 
@@ -280,6 +277,7 @@ func testCreateItemInSlot(
 		assert.Equal(t, itemID, slot.Items[0].ItemID)
 		assert.Equal(t, points, slot.Items[0].Points)
 		assert.Equal(t, itemType, slot.Items[0].ItemType)
+		assert.Equal(t, comparator, slot.Items[0].Comparator)
 	}
 }
 

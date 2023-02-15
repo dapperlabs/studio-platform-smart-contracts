@@ -141,7 +141,6 @@ func createSlot(
 	shouldRevert bool,
 	collectionGroupID uint64,
 	logicalOperator string,
-	comparator string,
 	required bool,
 ) uint64 {
 	tx := flow.NewTransaction().
@@ -152,7 +151,6 @@ func createSlot(
 		AddAuthorizer(contracts.DSSCollectionAddress)
 	tx.AddArgument(cadence.UInt64(collectionGroupID))
 	tx.AddArgument(cadence.String(logicalOperator))
-	tx.AddArgument(cadence.String(comparator))
 	tx.AddArgument(cadence.Bool(required))
 
 	signer, _ := b.ServiceKey().Signer()
@@ -175,6 +173,7 @@ func createItemInSlot(
 	itemID uint64,
 	points uint64,
 	itemType string,
+	comparator string,
 	slotID uint64,
 ) {
 	tx := flow.NewTransaction().
@@ -186,6 +185,7 @@ func createItemInSlot(
 	tx.AddArgument(cadence.UInt64(itemID))
 	tx.AddArgument(cadence.UInt64(points))
 	tx.AddArgument(cadence.String(itemType))
+	tx.AddArgument(cadence.String(comparator))
 	tx.AddArgument(cadence.UInt64(slotID))
 
 	signer, _ := b.ServiceKey().Signer()

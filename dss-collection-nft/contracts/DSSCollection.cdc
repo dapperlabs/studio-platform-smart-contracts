@@ -33,6 +33,7 @@ pub contract DSSCollection: NonFungibleToken {
         itemID: UInt64,
         points: UInt64,
         itemType: String,
+        comparator: String,
         slotID: UInt64,
         collectionGroupID: UInt64
     )
@@ -40,7 +41,6 @@ pub contract DSSCollection: NonFungibleToken {
         id: UInt64,
         collectionGroupID: UInt64,
         logicalOperator: String,
-        comparator: String,
         required: Bool,
         typeName: Type
     )
@@ -76,15 +76,18 @@ pub contract DSSCollection: NonFungibleToken {
         pub let itemID: UInt64 // the id of the edition, tier, play
         pub let points: UInt64 // points for item
         pub let itemType: String // (edition.id, edition.tier, play.id)
+        pub let comparator: String // (< | > | =)
 
         init (
             itemID: UInt64,
             points: UInt64,
-            itemType: String
+            itemType: String,
+            comparator: String
         ) {
             self.itemID = itemID
             self.points = points
             self.itemType = itemType
+            self.comparator = comparator
         }
     }
 
@@ -94,7 +97,6 @@ pub contract DSSCollection: NonFungibleToken {
         pub let id: UInt64
         pub let collectionGroupID: UInt64
         pub let logicalOperator: String // (AND / OR)
-        pub let comparator: String // (< / > / =)
         pub let required: Bool
         pub let typeName: Type // (Type<A.f8d6e0586b0a20c7.ExampleNFT.NFT>()...)
         pub var items: [Item]
@@ -104,7 +106,6 @@ pub contract DSSCollection: NonFungibleToken {
                 self.id = slot.id
                 self.collectionGroupID = slot.collectionGroupID
                 self.logicalOperator = slot.logicalOperator
-                self.comparator = slot.comparator
                 self.required = slot.required
                 self.typeName = slot.typeName
                 self.items = slot.items
@@ -120,7 +121,6 @@ pub contract DSSCollection: NonFungibleToken {
         pub let id: UInt64
         pub let collectionGroupID: UInt64
         pub let logicalOperator: String // (AND / OR)
-        pub let comparator: String // (< / > / =)
         pub let required: Bool
         pub let typeName: Type // (Type<A.f8d6e0586b0a20c7.ExampleNFT.NFT>())
         pub var items: [Item]
@@ -130,18 +130,23 @@ pub contract DSSCollection: NonFungibleToken {
         access(contract) fun createItemInSlot(
             itemID: UInt64,
             points: UInt64,
-            itemType: String
+            itemType: String,
+            comparator: String
         ) {
             pre {
                 DSSCollection.CollectionGroupData(
                     id: self.collectionGroupID
                 ).active: "Collection group inactive"
+                DSSCollection.validateComparator(
+                    comparator: comparator
+                ) == true : "Slot submitted with unsupported comparator"
             }
 
             let item = DSSCollection.Item(
                 itemID: itemID,
                 points: points,
-                itemType: itemType
+                itemType: itemType,
+                comparator: comparator
             )
             self.items.append(item)
 
@@ -149,6 +154,7 @@ pub contract DSSCollection: NonFungibleToken {
                 itemID: itemID,
                 points: points,
                 itemType: itemType,
+                comparator: comparator,
                 slotID: self.id,
                 collectionGroupID: self.collectionGroupID
             )
@@ -157,7 +163,6 @@ pub contract DSSCollection: NonFungibleToken {
         init (
             collectionGroupID: UInt64,
             logicalOperator: String,
-            comparator: String,
             required: Bool,
             typeName: Type
         ) {
@@ -168,15 +173,11 @@ pub contract DSSCollection: NonFungibleToken {
                 DSSCollection.validateLogicalOperator(
                     logicalOperator: logicalOperator
                 ) == true : "Slot submitted with unsupported logical operator"
-                DSSCollection.validateComparator(
-                    comparator: comparator
-                ) == true : "Slot submitted with unsupported comparator"
             }
 
             self.id = self.uuid
             self.collectionGroupID = collectionGroupID
             self.logicalOperator = logicalOperator
-            self.comparator = comparator
             self.required = required
             self.typeName = typeName
             self.items = []
@@ -185,7 +186,6 @@ pub contract DSSCollection: NonFungibleToken {
                 id: self.id,
                 collectionGroupID: self.collectionGroupID,
                 logicalOperator: self.logicalOperator,
-                comparator: self.comparator,
                 required: self.required,
                 typeName: self.typeName
             )
@@ -334,7 +334,7 @@ pub contract DSSCollection: NonFungibleToken {
         return false
     }
 
-    // Validate comparator of slot
+    // Validate comparator of item
     //
     pub fun validateComparator(comparator: String): Bool {
         if comparator == ">" || comparator == "<" || comparator == "=" {
@@ -607,14 +607,12 @@ pub contract DSSCollection: NonFungibleToken {
         pub fun createSlot(
             collectionGroupID: UInt64,
             logicalOperator: String,
-            comparator: String,
             required: Bool,
             typeName: Type
         ): UInt64 {
             let slot <- create DSSCollection.Slot(
                 collectionGroupID: collectionGroupID,
                 logicalOperator: logicalOperator,
-                comparator: comparator,
                 required: required,
                 typeName: typeName
             )
@@ -629,13 +627,15 @@ pub contract DSSCollection: NonFungibleToken {
             itemID: UInt64,
             points: UInt64,
             itemType: String,
+            comparator: String,
             slotID: UInt64
         ) {
             if let slot = &DSSCollection.slotByID[slotID] as &DSSCollection.Slot? {
                 slot.createItemInSlot(
                      itemID: itemID,
                      points: points,
-                     itemType: itemType
+                     itemType: itemType,
+                     comparator: comparator
                 )
                 return
             }
