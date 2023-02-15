@@ -337,7 +337,7 @@ pub contract DSSCollection: NonFungibleToken {
     // Validate comparator of slot
     //
     pub fun validateComparator(comparator: String): Bool {
-        if comparator == ">" || comparator == ">" || comparator == "=" {
+        if comparator == ">" || comparator == "<" || comparator == "=" {
             return true
         }
         return false
