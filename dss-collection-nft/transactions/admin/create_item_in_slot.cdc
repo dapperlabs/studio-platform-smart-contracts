@@ -4,6 +4,7 @@ transaction(
     itemID: UInt64,
     points: UInt64,
     itemType: String,
+    comparator: String,
     slotID: UInt64
 ) {
     let admin: &DSSCollection.Admin
@@ -18,6 +19,7 @@ transaction(
             itemID: itemID,
             points: points,
             itemType: itemType,
+            comparator: comparator,
             slotID: slotID
         )
     }

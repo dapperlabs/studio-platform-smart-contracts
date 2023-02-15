@@ -72,7 +72,7 @@ func testCreateCollectionGroup(
 		assert.Equal(t, collectionGroupId, collectionGroup.ID)
 		assert.Equal(t, collectionGroupName, collectionGroup.Name)
 		assert.Equal(t, productName, collectionGroup.ProductName)
-		assert.Equal(t, true, collectionGroup.Open)
+		assert.Equal(t, true, collectionGroup.Active)
 	}
 }
 
@@ -111,7 +111,7 @@ func testCreateTimeBoundCollectionGroup(
 		collectionGroup := getCollectionGroupData(t, b, contracts, collectionGroupId)
 		assert.Equal(t, collectionGroupId, collectionGroup.ID)
 		assert.Equal(t, collectionGroupName, collectionGroup.Name)
-		assert.Equal(t, true, collectionGroup.Open)
+		assert.Equal(t, true, collectionGroup.Active)
 	}
 }
 
@@ -156,7 +156,7 @@ func testCloseCollectionGroup(
 	if !shouldRevert {
 		collectionGroup := getCollectionGroupData(t, b, contracts, collectionGroupId)
 		assert.Equal(t, collectionGroupId, collectionGroup.ID)
-		assert.Equal(t, false, collectionGroup.Open)
+		assert.Equal(t, false, collectionGroup.Active)
 	}
 }
 
@@ -191,6 +191,7 @@ func testCreateSlot(
 		"All Stars",
 		"NBA Top Shot",
 	)
+	required := true
 
 	slotID := createSlot(
 		t,
@@ -199,12 +200,14 @@ func testCreateSlot(
 		false,
 		collectionGroupID,
 		logicalOperator,
+		required,
 	)
 
 	if !shouldRevert {
 		slot := getSlotData(t, b, contracts, slotID)
 		assert.Equal(t, slotID, slot.ID)
 		assert.Equal(t, logicalOperator, slot.LogicalOperator)
+		assert.Equal(t, required, slot.Required)
 	}
 }
 
@@ -251,8 +254,10 @@ func testCreateItemInSlot(
 		shouldRevert,
 		collectionGroupID,
 		"OR",
+		true,
 	)
 
+	comparator := "="
 	createItemInSlot(
 		t,
 		b,
@@ -261,6 +266,7 @@ func testCreateItemInSlot(
 		itemID,
 		points,
 		itemType,
+		comparator,
 		slotID,
 	)
 
@@ -271,6 +277,7 @@ func testCreateItemInSlot(
 		assert.Equal(t, itemID, slot.Items[0].ItemID)
 		assert.Equal(t, points, slot.Items[0].Points)
 		assert.Equal(t, itemType, slot.Items[0].ItemType)
+		assert.Equal(t, comparator, slot.Items[0].Comparator)
 	}
 }
 

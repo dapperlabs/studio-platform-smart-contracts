@@ -9,21 +9,23 @@ type CollectionGroupData struct {
 	Name        string
 	Description string
 	ProductName string
-	Open        bool
+	Active      bool
 }
 
 type SlotData struct {
 	ID                uint64
 	CollectionGroupID uint64
 	LogicalOperator   string
+	Required          bool
 	TypeName          cadence.Type
 	Items             []Item
 }
 
 type Item struct {
-	ItemID   uint64
-	Points   uint64
-	ItemType string
+	ItemID     uint64
+	Points     uint64
+	ItemType   string
+	Comparator string
 }
 
 type NFTData struct {
@@ -54,7 +56,7 @@ func parseCollectionGroupData(value cadence.Value) CollectionGroupData {
 func parseSlotData(value cadence.Value) SlotData {
 	fields := value.(cadence.Struct).Fields
 	var items []Item
-	for _, val := range fields[4].(cadence.Array).Values {
+	for _, val := range fields[5].(cadence.Array).Values {
 		item := parseItemData(val)
 		items = append(items, item)
 	}
@@ -62,7 +64,8 @@ func parseSlotData(value cadence.Value) SlotData {
 		fields[0].ToGoValue().(uint64),
 		fields[1].ToGoValue().(uint64),
 		fields[2].ToGoValue().(string),
-		fields[3].Type(),
+		fields[3].ToGoValue().(bool),
+		fields[4].Type(),
 		items,
 	}
 	return slotData
@@ -74,6 +77,7 @@ func parseItemData(value cadence.Value) Item {
 		fields[0].ToGoValue().(uint64),
 		fields[1].ToGoValue().(uint64),
 		fields[2].ToGoValue().(string),
+		fields[3].ToGoValue().(string),
 	}
 }
 
