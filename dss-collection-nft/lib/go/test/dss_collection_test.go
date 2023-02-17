@@ -221,7 +221,7 @@ func TestCreateItemInSlot(t *testing.T) {
 			b,
 			contracts,
 			false,
-			100,
+			"100",
 			10,
 			"edition.id",
 		)
@@ -233,7 +233,7 @@ func testCreateItemInSlot(
 	b *emulator.Blockchain,
 	contracts Contracts,
 	shouldRevert bool,
-	itemID uint64,
+	itemID string,
 	points uint64,
 	itemType string,
 ) {
