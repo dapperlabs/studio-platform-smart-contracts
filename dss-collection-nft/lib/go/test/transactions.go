@@ -170,7 +170,7 @@ func createItemInSlot(
 	b *emulator.Blockchain,
 	contracts Contracts,
 	shouldRevert bool,
-	itemID uint64,
+	itemID string,
 	points uint64,
 	itemType string,
 	comparator string,
@@ -182,7 +182,7 @@ func createItemInSlot(
 		SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
 		SetPayer(b.ServiceKey().Address).
 		AddAuthorizer(contracts.DSSCollectionAddress)
-	tx.AddArgument(cadence.UInt64(itemID))
+	tx.AddArgument(cadence.String(itemID))
 	tx.AddArgument(cadence.UInt64(points))
 	tx.AddArgument(cadence.String(itemType))
 	tx.AddArgument(cadence.String(comparator))

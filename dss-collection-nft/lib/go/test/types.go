@@ -22,7 +22,7 @@ type SlotData struct {
 }
 
 type Item struct {
-	ItemID     uint64
+	ItemID     string
 	Points     uint64
 	ItemType   string
 	Comparator string
@@ -74,7 +74,7 @@ func parseSlotData(value cadence.Value) SlotData {
 func parseItemData(value cadence.Value) Item {
 	fields := value.(cadence.Struct).Fields
 	return Item{
-		fields[0].ToGoValue().(uint64),
+		fields[0].ToGoValue().(string),
 		fields[1].ToGoValue().(uint64),
 		fields[2].ToGoValue().(string),
 		fields[3].ToGoValue().(string),

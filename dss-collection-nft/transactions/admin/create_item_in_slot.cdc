@@ -1,7 +1,7 @@
 import DSSCollection from "../../contracts/DSSCollection.cdc"
 
 transaction(
-    itemID: UInt64,
+    itemID: String,
     points: UInt64,
     itemType: String,
     comparator: String,

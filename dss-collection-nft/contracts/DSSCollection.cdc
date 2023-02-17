@@ -30,7 +30,7 @@ pub contract DSSCollection: NonFungibleToken {
     )
     pub event CollectionGroupClosed(id: UInt64)
     pub event ItemCreatedInSlot(
-        itemID: UInt64,
+        itemID: String,
         points: UInt64,
         itemType: String,
         comparator: String,
@@ -73,13 +73,13 @@ pub contract DSSCollection: NonFungibleToken {
     // A public struct to access Item data
     //
     pub struct Item {
-        pub let itemID: UInt64 // the id of the edition, tier, play
+        pub let itemID: String // the id of the edition, tier, play
         pub let points: UInt64 // points for item
         pub let itemType: String // (edition.id, edition.tier, play.id)
         pub let comparator: String // (< | > | =)
 
         init (
-            itemID: UInt64,
+            itemID: String,
             points: UInt64,
             itemType: String,
             comparator: String
@@ -128,7 +128,7 @@ pub contract DSSCollection: NonFungibleToken {
         // Create item in slot
         //
         access(contract) fun createItemInSlot(
-            itemID: UInt64,
+            itemID: String,
             points: UInt64,
             itemType: String,
             comparator: String
@@ -624,7 +624,7 @@ pub contract DSSCollection: NonFungibleToken {
         // Create an Item in slot
         //
         pub fun createItemInSlot(
-            itemID: UInt64,
+            itemID: String,
             points: UInt64,
             itemType: String,
             comparator: String,
