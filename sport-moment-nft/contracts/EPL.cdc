@@ -70,9 +70,9 @@ pub contract EPL: NonFungibleToken {
     // NFT Events
     //
     /// Emitted when a moment nft is minted
-    pub event MomentNFTMinted(id: UInt64, editionID: UInt64, serialNumber: UInt64)
+    pub event MomentNFTMinted(id: UInt64, editionID: UInt64)
     /// Emitted when a moment nft resource is destroyed
-    pub event MomentNFTBurned(id: UInt64,  editionID: UInt64, serialNumber: UInt64)
+    pub event MomentNFTBurned(id: UInt64,  editionID: UInt64)
 
     //------------------------------------------------------------
     // Named values
@@ -572,7 +572,7 @@ pub contract EPL: NonFungibleToken {
         /// Destructor
         ///
         destroy() {
-            emit MomentNFTBurned(id: self.id, editionID: self.editionID, serialNumber: self.serialNumber)
+            emit MomentNFTBurned(id: self.id, editionID: self.editionID)
         }
 
         /// NFT initializer
@@ -591,7 +591,7 @@ pub contract EPL: NonFungibleToken {
             self.serialNumber = serialNumber
             self.mintingDate = getCurrentBlock().timestamp
 
-            emit MomentNFTMinted(id: self.id, editionID: self.editionID, serialNumber: self.serialNumber)
+            emit MomentNFTMinted(id: self.id, editionID: self.editionID)
         }
 
         pub fun assetPath(): String {
