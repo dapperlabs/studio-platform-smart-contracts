@@ -103,7 +103,7 @@ pub contract EnglishPremierLeague: NonFungibleToken {
     access(self) let playByID:          @{UInt64: Play}
     access(self) let editionByID:       @{UInt64: Edition}
 
-    /// Constants
+    /// Contract vars
     pub var royaltyAddress: Address
 
     //------------------------------------------------------------
