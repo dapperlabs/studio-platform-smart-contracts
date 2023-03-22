@@ -309,7 +309,8 @@ pub contract EnglishPremierLeague: NonFungibleToken {
     }
 
     /// A top level Tag with a unique ID
-    //
+    /// A tag is a top level play type and any play can have multiple tags
+    /// Examples include goal, match winner, assist, header, save, brace
     pub resource Tag {
         pub let id: UInt64
         pub let name: String
