@@ -14,23 +14,14 @@ pub contract EnglishPremierLeague: NonFungibleToken {
     /// Contract events
     ///
     pub event ContractInitialized()
-
     pub event Withdraw(id: UInt64, from: Address?)
-
     pub event Deposit(id: UInt64, to: Address?)
-
     pub event SeriesCreated(id: UInt64, name: String)
-
     pub event SeriesClosed(id: UInt64)
-
     pub event SetCreated(id: UInt64, name: String)
-
     pub event SetLocked(setID: UInt64)
-
     pub event PlayCreated(id: UInt64, metadata: {String: String}, tagIds: [UInt64])
-
     pub event TagCreated(id: UInt64, name: String)
-
     pub event EditionCreated(
         id: UInt64,
         seriesID: UInt64,
@@ -39,11 +30,8 @@ pub contract EnglishPremierLeague: NonFungibleToken {
         maxMintSize: UInt64?,
         tier: String,
     )
-
     pub event EditionClosed(id: UInt64)
-
     pub event MomentNFTMinted(id: UInt64, editionID: UInt64)
-
     pub event MomentNFTBurned(id: UInt64,  editionID: UInt64)
 
     /// Named Paths
@@ -87,7 +75,7 @@ pub contract EnglishPremierLeague: NonFungibleToken {
                 self.active = series.active
             } else {
                 self.id = id
-                self.name = name!
+                self.name = name
                 self.active = true
             }
         }
@@ -97,8 +85,8 @@ pub contract EnglishPremierLeague: NonFungibleToken {
 
     /// Series getters
     ///
-    pub fun getSeries(id: UInt64): EnglishPremierLeague.Series {
-        return EnglishPremierLeague.seriesByID[id]!
+    pub fun getSeries(id: UInt64): EnglishPremierLeague.Series? {
+        return EnglishPremierLeague.seriesByID[id]
     }
 
     pub fun getSeriesByName(name: String): EnglishPremierLeague.Series? {
@@ -133,18 +121,18 @@ pub contract EnglishPremierLeague: NonFungibleToken {
                 self.locked = set.locked
             } else {
                 self.id = id
-                self.name = name!
+                self.name = name
                 self.locked = false
             }
         }
 
-        pub fun lock() { self.locked = true }
+        access(contract) fun lock() { self.locked = true }
     }
 
     /// Set getters
     ///
-    pub fun getSet(id: UInt64): EnglishPremierLeague.Set {
-        return EnglishPremierLeague.setByID[id]!
+    pub fun getSet(id: UInt64): EnglishPremierLeague.Set? {
+        return EnglishPremierLeague.setByID[id]
     }
 
     pub fun getSetByName(name: String): EnglishPremierLeague.Set? {
@@ -174,15 +162,15 @@ pub contract EnglishPremierLeague: NonFungibleToken {
                 self.name = tag.name
             } else {
                 self.id = id
-                self.name = name!
+                self.name = name
             }
         }
     }
 
     /// Tag getters
     ///
-    pub fun getTag(id: UInt64): EnglishPremierLeague.Tag {
-        return EnglishPremierLeague.tagByID[id]!
+    pub fun getTag(id: UInt64): EnglishPremierLeague.Tag? {
+        return EnglishPremierLeague.tagByID[id]
     }
 
     /// A top level Play with a unique ID
@@ -207,8 +195,8 @@ pub contract EnglishPremierLeague: NonFungibleToken {
 
     /// Play getters
     ///
-    pub fun getPlay(id: UInt64): EnglishPremierLeague.Play {
-        return EnglishPremierLeague.playByID[id]!
+    pub fun getPlay(id: UInt64): EnglishPremierLeague.Play? {
+        return EnglishPremierLeague.playByID[id]
     }
 
     /// A public struct to access Edition data
@@ -221,11 +209,6 @@ pub contract EnglishPremierLeague: NonFungibleToken {
         pub var maxMintSize: UInt64?
         pub let tier: String
         pub var numMinted: UInt64
-
-       /// member function to check if max edition size has been reached
-        pub fun maxEditionMintSizeReached(): Bool {
-            return self.numMinted == self.maxMintSize
-        }
 
         init (id: UInt64, seriesID: UInt64, setID: UInt64, playID: UInt64, maxMintSize: UInt64?, tier: String) {
             if let edition = EnglishPremierLeague.editionByID[id] {
@@ -244,15 +227,26 @@ pub contract EnglishPremierLeague: NonFungibleToken {
                 self.maxMintSize = maxMintSize
 
                 // If an edition size is not set, it has unlimited minting potential
-                if maxMintSize == 0 {
-                    self.maxMintSize = nil
+                if maxMintSize != nil && maxMintSize! == 0 {
+                   self.maxMintSize = nil
                 } else {
-                    self.maxMintSize = maxMintSize
+                  self.maxMintSize = maxMintSize
                 }
 
                 self.tier = tier
                 self.numMinted = 0 as UInt64
             }
+        }
+
+        pub fun maxEditionMintSizeReached(): Bool {
+            return self.numMinted == self.maxMintSize
+        }
+
+        access(contract) fun incrementNumMinted() {
+            pre {
+                self.numMinted != self.maxMintSize: "max number of minted moments has already been reached"
+            }
+            self.numMinted = self.numMinted + 1
         }
 
         access(contract) fun close() {
@@ -262,31 +256,12 @@ pub contract EnglishPremierLeague: NonFungibleToken {
 
             self.maxMintSize = self.numMinted
         }
-
-        /// Mint a Moment NFT in this edition
-        /// Note that this will panic if the max mint size has already been reached.
-        ///
-        pub fun mint(): @EnglishPremierLeague.NFT {
-            pre {
-                self.numMinted != self.maxMintSize: "max number of minted moments has been reached"
-            }
-
-            // Moments will not include serial numbers.
-            let momentNFT <- create NFT(
-                editionID: self.id,
-                serialNumber: 0
-            )
-
-            self.numMinted = self.numMinted + 1 as UInt64
-
-            return <- momentNFT
-        }
     }
 
     /// Edition getters
     ///
-    pub fun getEdition(id: UInt64): Edition {
-        return EnglishPremierLeague.editionByID[id]!
+    pub fun getEdition(id: UInt64): Edition? {
+        return EnglishPremierLeague.editionByID[id]
     }
 
     /// Validate tags exist
@@ -336,7 +311,7 @@ pub contract EnglishPremierLeague: NonFungibleToken {
 
         pub fun assetPath(): String {
             let editionData = EnglishPremierLeague.getEdition(id: self.editionID)!
-            let playDataID: String = EnglishPremierLeague.getPlay(id: editionData.playID).metadata["PlayDataID"] ?? ""
+            let playDataID: String = EnglishPremierLeague.getPlay(id: editionData.playID)!.metadata["PlayDataID"] ?? ""
             return "https://assets.eplonflow.com/editions/".concat(playDataID).concat("/play_").concat(playDataID)
         }
 
@@ -352,10 +327,10 @@ pub contract EnglishPremierLeague: NonFungibleToken {
         ///
         pub fun name(): String {
             let editionData = EnglishPremierLeague.getEdition(id: self.editionID)!
-            let playerKnownName: String = EnglishPremierLeague.getPlay(id: editionData.playID).metadata["Player Known Name"] ?? ""
-            let playerFirstName: String = EnglishPremierLeague.getPlay(id: editionData.playID).metadata["Player First Name"] ?? ""
-            let playerLastName: String = EnglishPremierLeague.getPlay(id: editionData.playID).metadata["Player Last Name"] ?? ""
-            let playType: String = EnglishPremierLeague.getPlay(id: editionData.playID).metadata["Play Type"] ?? ""
+            let playerKnownName: String = EnglishPremierLeague.getPlay(id: editionData.playID)!.metadata["Player Known Name"] ?? ""
+            let playerFirstName: String = EnglishPremierLeague.getPlay(id: editionData.playID)!.metadata["Player First Name"] ?? ""
+            let playerLastName: String = EnglishPremierLeague.getPlay(id: editionData.playID)!.metadata["Player Last Name"] ?? ""
+            let playType: String = EnglishPremierLeague.getPlay(id: editionData.playID)!.metadata["Play Type"] ?? ""
             var playerName = playerKnownName
             if(playerName == ""){
                 playerName = playerFirstName.concat(" ").concat(playerLastName)
@@ -367,7 +342,7 @@ pub contract EnglishPremierLeague: NonFungibleToken {
         ///
         pub fun description(): String {
             let editionData = EnglishPremierLeague.getEdition(id: self.editionID)!
-            let metadata = EnglishPremierLeague.getPlay(id: editionData.playID).metadata
+            let metadata = EnglishPremierLeague.getPlay(id: editionData.playID)!.metadata
             let matchHomeTeam: String = metadata["Match Home Team"] ?? ""
             let matchAwayTeam: String = metadata["Match Away Team"] ?? ""
             let matchHomeScore: String = metadata["Match Home Score"] ?? ""
@@ -385,7 +360,7 @@ pub contract EnglishPremierLeague: NonFungibleToken {
         ///
         pub fun thumbnail(): MetadataViews.HTTPFile {
             let editionData = EnglishPremierLeague.getEdition(id: self.editionID)!
-            let playDataID: String = EnglishPremierLeague.getPlay(id: editionData.playID).metadata["PlayDataID"] ?? ""
+            let playDataID: String = EnglishPremierLeague.getPlay(id: editionData.playID)!.metadata["PlayDataID"] ?? ""
             if playDataID == "" {
                 return MetadataViews.HTTPFile(url:"https://ipfs.dapperlabs.com/ipfs/QmPvr5zTwji1UGpun57cbj719MUBsB5syjgikbwCMPmruQ")
             }
@@ -787,8 +762,18 @@ pub contract EnglishPremierLeague: NonFungibleToken {
             }
 
             let edition = (&EnglishPremierLeague.editionByID[editionID] as &EnglishPremierLeague.Edition?)!
+            assert(
+                !edition.maxEditionMintSizeReached(),
+                message: "edition has reached capacity"
+            )
 
-            return <- edition.mint()
+            // Moments will not include serial numbers.
+            let momentNFT <- create NFT(
+                editionID: edition.id,
+                serialNumber: 0
+            )
+            edition.incrementNumMinted()
+            return <- momentNFT
         }
 
         /// Royalty Address
