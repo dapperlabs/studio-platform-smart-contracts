@@ -8,45 +8,29 @@ import NonFungibleToken from 0x{{.NonFungibleTokenAddress}}
 import MetadataViews from 0x{{.MetadataViewsAddress}}
 
 /// The English Premier League NFT and metadata contract
-//
+///
 pub contract EnglishPremierLeague: NonFungibleToken {
-    // Contract Events
-    //
+
+    /// Contract events
+    ///
     pub event ContractInitialized()
 
-    // NFT Collection Events
-    //
     pub event Withdraw(id: UInt64, from: Address?)
+
     pub event Deposit(id: UInt64, to: Address?)
 
-    // Series Events
-    //
-    /// Emitted when a new series has been created by an admin
     pub event SeriesCreated(id: UInt64, name: String)
-    /// Emitted when a series is closed by an admin
+
     pub event SeriesClosed(id: UInt64)
 
-    // Set Events
-    //
-    /// Emitted when a new set has been created by an admin
     pub event SetCreated(id: UInt64, name: String)
 
-    /// Emitted when a Set is locked, meaning Editions cannot be created with the set
     pub event SetLocked(setID: UInt64)
 
-    // Play Events
-    //
-    /// Emitted when a new play has been created by an admin
     pub event PlayCreated(id: UInt64, metadata: {String: String}, tagIds: [UInt64])
 
-    // Tag Events
-    //
-    /// Emitted when a new tag has been created by an admin
     pub event TagCreated(id: UInt64, name: String)
 
-    // Edition Events
-    //
-    /// Emitted when a new edition has been created by an admin
     pub event EditionCreated(
         id: UInt64,
         seriesID: UInt64,
@@ -55,19 +39,12 @@ pub contract EnglishPremierLeague: NonFungibleToken {
         maxMintSize: UInt64?,
         tier: String,
     )
-    /// Emitted when an edition is either closed by an admin, or the max amount of moments have been minted
+
     pub event EditionClosed(id: UInt64)
 
-    // NFT Events
-    //
-    /// Emitted when a moment nft is minted
     pub event MomentNFTMinted(id: UInt64, editionID: UInt64)
-    /// Emitted when a moment nft resource is destroyed
-    pub event MomentNFTBurned(id: UInt64,  editionID: UInt64)
 
-    //------------------------------------------------------------
-    // Named values
-    //------------------------------------------------------------
+    pub event MomentNFTBurned(id: UInt64,  editionID: UInt64)
 
     /// Named Paths
     ///
@@ -76,12 +53,9 @@ pub contract EnglishPremierLeague: NonFungibleToken {
     pub let AdminStoragePath:       StoragePath
     pub let MinterPrivatePath:      PrivatePath
 
-    //------------------------------------------------------------
-    // Publicly readable contract state
-    //------------------------------------------------------------
-
-    /// Entity Counts
+    /// Contract variables
     ///
+    pub var royaltyAddress: Address
     pub var totalSupply:        UInt64
     pub var nextSeriesID:       UInt64
     pub var nextSetID:          UInt64
@@ -89,327 +63,157 @@ pub contract EnglishPremierLeague: NonFungibleToken {
     pub var nextPlayID:         UInt64
     pub var nextEditionID:      UInt64
 
-    //------------------------------------------------------------
-    // Internal contract state
-    //------------------------------------------------------------
-
     /// Metadata Dictionaries
     ///
     access(self) let seriesIDByName:    {String: UInt64}
-    access(self) let seriesByID:        @{UInt64: Series}
+    access(self) let seriesByID:        {UInt64: Series}
     access(self) let setIDByName:       {String: UInt64}
-    access(self) let setByID:           @{UInt64: Set}
-    access(self) let tagByID:           @{UInt64: Tag}
-    access(self) let playByID:          @{UInt64: Play}
-    access(self) let editionByID:       @{UInt64: Edition}
-
-    /// Contract vars
-    pub var royaltyAddress: Address
-
-    //------------------------------------------------------------
-    // Series
-    //------------------------------------------------------------
-
-    /// A public struct to access Series data
-    ///
-    pub struct SeriesData {
-        pub let id: UInt64
-        pub let name: String
-        pub let active: Bool
-
-        /// initializer
-        //
-        init (id: UInt64) {
-            let series = (&EnglishPremierLeague.seriesByID[id] as! &EnglishPremierLeague.Series?)!
-            self.id = series.id
-            self.name = series.name
-            self.active = series.active
-        }
-    }
+    access(self) let setByID:           {UInt64: Set}
+    access(self) let tagByID:           {UInt64: Tag}
+    access(self) let playByID:          {UInt64: Play}
+    access(self) let editionByID:       {UInt64: Edition}
 
     /// A top-level Series with a unique ID and name
     ///
-    pub resource Series {
+    pub struct Series {
         pub let id: UInt64
         pub let name: String
         pub var active: Bool
 
-        /// Close this series
-        ///
-        pub fun close() {
-            pre {
-                self.active == true: "series is not active"
+        init (id: UInt64, name: String) {
+            if let series = EnglishPremierLeague.seriesByID[id] {
+                self.id = series.id
+                self.name = series.name
+                self.active = series.active
+            } else {
+                self.id = id
+                self.name = name!
+                self.active = true
             }
-
-            self.active = false
-
-            emit SeriesClosed(id: self.id)
         }
 
-        /// initializer
-        ///
-        init (name: String) {
-            pre {
-                !EnglishPremierLeague.seriesIDByName.containsKey(name): "A Series with that name already exists"
-            }
-            self.id = EnglishPremierLeague.nextSeriesID
-            self.name = name
-            self.active = true
-
-            // Cache the new series's name => ID
-            EnglishPremierLeague.seriesIDByName[name] = self.id
-            // Increment for the nextSeriesID
-            EnglishPremierLeague.nextSeriesID = self.id + 1 as UInt64
-
-            emit SeriesCreated(id: self.id, name: self.name)
-        }
+        pub fun close() { self.active = false }
     }
 
-    /// Get the publicly available data for a Series by id
+    /// Series getters
     ///
-    pub fun getSeriesData(id: UInt64): EnglishPremierLeague.SeriesData {
-        pre {
-            EnglishPremierLeague.seriesByID[id] != nil: "Cannot borrow series, no such id"
-        }
-
-        return EnglishPremierLeague.SeriesData(id: id)
+    pub fun getSeries(id: UInt64): EnglishPremierLeague.Series {
+        return EnglishPremierLeague.seriesByID[id]!
     }
 
-    /// Get the publicly available data for a Series by name
-    ///
-    pub fun getSeriesDataByName(name: String): EnglishPremierLeague.SeriesData? {
+    pub fun getSeriesByName(name: String): EnglishPremierLeague.Series? {
         let id = EnglishPremierLeague.seriesIDByName[name]
 
         if id == nil{
             return nil
         }
 
-        return EnglishPremierLeague.SeriesData(id: id!)
+        return EnglishPremierLeague.getSeries(id: id!)
     }
 
-    /// Get all series names (this will be *long*)
-    ///
     pub fun getAllSeriesNames(): [String] {
         return EnglishPremierLeague.seriesIDByName.keys
     }
 
-    /// Get series id by name
-    ///
     pub fun getSeriesIDByName(name: String): UInt64? {
         return EnglishPremierLeague.seriesIDByName[name]
     }
 
-    //------------------------------------------------------------
-    // Set
-    //------------------------------------------------------------
-
-    /// A public struct to access Set data
+    /// A top-level Set with ID and name
     ///
-    pub struct SetData {
+    pub struct Set {
         pub let id: UInt64
         pub let name: String
-        pub let locked: Bool
-
-        /// initializer
-        ///
-        init (id: UInt64) {
-            let set = (&EnglishPremierLeague.setByID[id] as! &EnglishPremierLeague.Set?)!
-            self.id = id
-            self.name = set.name
-            self.locked = set.locked
-        }
-    }
-
-    /// A top level Set with a unique ID and a name
-    ///
-    pub resource Set {
-        pub let id: UInt64
-        pub let name: String
-
-        // Indicates if the Set is currently locked.
-        // When a Set is created, it is unlocked
-        // and Editions can be created with it.
-        // When a Set is locked, new Editions cannot be created with the Set.
-        // A Set can never be changed from locked to unlocked,
-        // the decision to lock a Set is final.
-        // If a Set is locked, Moments can still be minted from the
-        // Editions already created from the Set.
         pub var locked: Bool
 
-        /// initializer
-        ///
-        init (name: String) {
-            pre {
-                !EnglishPremierLeague.setIDByName.containsKey(name): "A Set with that name already exists"
-            }
-            self.id = EnglishPremierLeague.nextSetID
-            self.name = name
-            self.locked = false
-
-            // Cache the new set's name => ID
-            EnglishPremierLeague.setIDByName[name] = self.id
-            // Increment for the nextSeriesID
-            EnglishPremierLeague.nextSetID = self.id + 1 as UInt64
-
-            emit SetCreated(id: self.id, name: self.name)
-        }
-
-        // lock() locks the Set so that no more Plays can be added to it
-        //
-        // Pre-Conditions:
-        // The Set should not be locked
-        pub fun lock() {
-            if !self.locked {
-                self.locked = true
-                emit SetLocked(setID: self.id)
+        init (id: UInt64, name: String) {
+            if let set = EnglishPremierLeague.setByID[id] {
+                self.id = set.id
+                self.name = set.name
+                self.locked = set.locked
+            } else {
+                self.id = id
+                self.name = name!
+                self.locked = false
             }
         }
+
+        pub fun lock() { self.locked = true }
     }
 
-    /// Get the publicly available data for a Set
+    /// Set getters
     ///
-    pub fun getSetData(id: UInt64): EnglishPremierLeague.SetData? {
-        if EnglishPremierLeague.setByID[id] == nil {
-            return nil
-        }
-        return EnglishPremierLeague.SetData(id: id!)
+    pub fun getSet(id: UInt64): EnglishPremierLeague.Set {
+        return EnglishPremierLeague.setByID[id]!
     }
 
-    /// Get the publicly available data for a Set by name
-    ///
-    pub fun getSetDataByName(name: String): EnglishPremierLeague.SetData? {
-        let id = EnglishPremierLeague.setIDByName[name]
+    pub fun getSetByName(name: String): EnglishPremierLeague.Set? {
+        let id = EnglishPremierLeague.setIDByName[name]!
 
         if id == nil {
             return nil
         }
-        return EnglishPremierLeague.SetData(id: id!)
+
+        return EnglishPremierLeague.setByID[id!]
     }
 
-    /// Get all set names (this will be *long*)
-    ///
     pub fun getAllSetNames(): [String] {
         return EnglishPremierLeague.setIDByName.keys
     }
 
-    //------------------------------------------------------------
-    // Tag
-    //------------------------------------------------------------
-    pub struct TagData {
-        pub let id: UInt64
-        pub let name: String
-
-        /// initializer
-        ///
-        init (id: UInt64) {
-            let tag = (&EnglishPremierLeague.tagByID[id] as! &EnglishPremierLeague.Tag?)!
-            self.id = id
-            self.name = tag.name
-        }
-    }
-
-    /// A top level Tag with a unique ID
-    /// A tag is a top level play type and any play can have multiple tags
+    /// A top-level Tag with ID and name
     /// Examples include goal, match winner, assist, header, save, brace
-    pub resource Tag {
+    ///
+    pub struct Tag {
         pub let id: UInt64
         pub let name: String
 
-        /// initializer
-        ///
-        init (name: String) {
-            self.id = EnglishPremierLeague.nextTagID
-            self.name = name
-
-            EnglishPremierLeague.nextTagID = self.id + 1 as UInt64
-
-            emit TagCreated(id: self.id, name: self.name)
+        init (id: UInt64, name: String) {
+            if let tag = EnglishPremierLeague.tagByID[id] {
+                self.id = tag.id
+                self.name = tag.name
+            } else {
+                self.id = id
+                self.name = name!
+            }
         }
     }
 
-    /// Get the publicly available data for a Tag
+    /// Tag getters
     ///
-    pub fun getTagData(id: UInt64): EnglishPremierLeague.TagData? {
-        if EnglishPremierLeague.tagByID[id] == nil {
-            return nil
-        }
-
-        return EnglishPremierLeague.TagData(id: id!)
+    pub fun getTag(id: UInt64): EnglishPremierLeague.Tag {
+        return EnglishPremierLeague.tagByID[id]!
     }
 
-    //------------------------------------------------------------
-    // Play
-    //------------------------------------------------------------
-
-    /// A public struct to access Play data
+    /// A top level Play with a unique ID
     ///
-    pub struct PlayData {
+    pub struct Play {
         pub let id: UInt64
         pub let metadata: {String: String}
         pub var tagIds: [UInt64]
 
-        /// initializer
-        ///
-        init (id: UInt64) {
-            let play = (&EnglishPremierLeague.playByID[id] as! &EnglishPremierLeague.Play?)!
-            self.id = id
-            self.metadata = play.getMetadata()
-            self.tagIds = play.getTagIds()
-        }
-    }
-
-    /// A top level Play with a unique ID
-    //
-    pub resource Play {
-        pub let id: UInt64
-        access(self) let metadata: {String: String}
-        pub var tagIds: [UInt64]
-
-        /// returns the metadata set for this play
-        pub fun getMetadata(): {String:String} {
-            return self.metadata
-        }
-
-        /// returns the tagIds for this play
-        pub fun getTagIds(): [UInt64] {
-            return self.tagIds
-        }
-
-        /// initializer
-        ///
-        init (metadata: {String: String}, tagIds: [UInt64]) {
-            pre {
-                EnglishPremierLeague.validateTags(
-                    tagIds: tagIds
-                ) == true : "Play contains tag that does not exist."
+        init (id: UInt64, metadata: {String: String}, tagIds: [UInt64]) {
+            if let play = EnglishPremierLeague.playByID[id] {
+                self.id = play.id
+                self.metadata = play.metadata
+                self.tagIds = play.tagIds
+            } else {
+                self.id = id
+                self.metadata = metadata
+                self.tagIds = tagIds
             }
-            self.id = EnglishPremierLeague.nextPlayID
-            self.metadata = metadata
-            self.tagIds = tagIds
-
-            EnglishPremierLeague.nextPlayID = self.id + 1 as UInt64
-
-            emit PlayCreated(id: self.id, metadata: self.metadata, tagIds: self.tagIds)
         }
     }
 
-    /// Get the publicly available data for a Play
+    /// Play getters
     ///
-    pub fun getPlayData(id: UInt64): EnglishPremierLeague.PlayData? {
-        if EnglishPremierLeague.playByID[id] == nil {
-            return nil
-        }
-
-        return EnglishPremierLeague.PlayData(id: id!)
+    pub fun getPlay(id: UInt64): EnglishPremierLeague.Play {
+        return EnglishPremierLeague.playByID[id]!
     }
-
-    //------------------------------------------------------------
-    // Edition
-    //------------------------------------------------------------
 
     /// A public struct to access Edition data
     ///
-    pub struct EditionData {
+    pub struct Edition {
         pub let id: UInt64
         pub let seriesID: UInt64
         pub let setID: UInt64
@@ -419,50 +223,47 @@ pub contract EnglishPremierLeague: NonFungibleToken {
         pub var numMinted: UInt64
 
        /// member function to check if max edition size has been reached
-       pub fun maxEditionMintSizeReached(): Bool {
+        pub fun maxEditionMintSizeReached(): Bool {
             return self.numMinted == self.maxMintSize
         }
 
-        /// initializer
-        ///
-        init (id: UInt64) {
-            let edition = (&EnglishPremierLeague.editionByID[id] as! &EnglishPremierLeague.Edition?)!
-            self.id = id
-            self.seriesID = edition.seriesID
-            self.playID = edition.playID
-            self.setID = edition.setID
-            self.maxMintSize = edition.maxMintSize
-            self.tier = edition.tier
-            self.numMinted = edition.numMinted
+        init (id: UInt64, seriesID: UInt64, setID: UInt64, playID: UInt64, maxMintSize: UInt64?, tier: String) {
+            if let edition = EnglishPremierLeague.editionByID[id] {
+                self.id = edition.id
+                self.seriesID = edition.seriesID
+                self.setID = edition.setID
+                self.playID = edition.playID
+                self.maxMintSize = edition.maxMintSize
+                self.tier = edition.tier
+                self.numMinted = edition.numMinted
+            } else {
+                self.id = id
+                self.seriesID = seriesID
+                self.setID = setID
+                self.playID = playID
+                self.maxMintSize = maxMintSize
+
+                // If an edition size is not set, it has unlimited minting potential
+                if maxMintSize == 0 {
+                    self.maxMintSize = nil
+                } else {
+                    self.maxMintSize = maxMintSize
+                }
+
+                self.tier = tier
+                self.numMinted = 0 as UInt64
+            }
         }
-    }
 
-    /// A top level Edition that contains a Series, Set, and Play
-    ///
-    pub resource Edition {
-        pub let id: UInt64
-        pub let seriesID: UInt64
-        pub let setID: UInt64
-        pub let playID: UInt64
-        pub let tier: String
-        /// Null value indicates that there is unlimited minting potential for the Edition
-        pub var maxMintSize: UInt64?
-        /// Updates each time we mint a new moment for the Edition to keep a running total
-        pub var numMinted: UInt64
-
-        /// Close this edition so that no more Moment NFTs can be minted in it
-        ///
         access(contract) fun close() {
             pre {
                 self.numMinted != self.maxMintSize: "max number of minted moments has already been reached"
             }
 
             self.maxMintSize = self.numMinted
-
-            emit EditionClosed(id: self.id)
         }
 
-        /// Mint a Moment NFT in this edition, with the given minting mintingDate.
+        /// Mint a Moment NFT in this edition
         /// Note that this will panic if the max mint size has already been reached.
         ///
         pub fun mint(): @EnglishPremierLeague.NFT {
@@ -470,78 +271,26 @@ pub contract EnglishPremierLeague: NonFungibleToken {
                 self.numMinted != self.maxMintSize: "max number of minted moments has been reached"
             }
 
-            // Create the Moment NFT, filled out with our information
-            // Base set moments will not include serial numbers.
-            // Future sets may include serial numbers, so leaving data structure in-tact
+            // Moments will not include serial numbers.
             let momentNFT <- create NFT(
                 editionID: self.id,
                 serialNumber: 0
             )
-            EnglishPremierLeague.totalSupply = EnglishPremierLeague.totalSupply + 1
-            // Keep a running total (you'll notice we used this as the serial number)
+
             self.numMinted = self.numMinted + 1 as UInt64
 
             return <- momentNFT
         }
-
-        /// initializer
-        ///
-        init (
-            seriesID: UInt64,
-            setID: UInt64,
-            playID: UInt64,
-            maxMintSize: UInt64?,
-            tier: String,
-        ) {
-            pre {
-                maxMintSize != 0: "max mint size is zero, must either be null or greater than 0"
-                EnglishPremierLeague.seriesByID.containsKey(seriesID): "seriesID does not exist"
-                EnglishPremierLeague.setByID.containsKey(setID): "setID does not exist"
-                EnglishPremierLeague.playByID.containsKey(playID): "playID does not exist"
-                EnglishPremierLeague.getSeriesData(id: seriesID)!.active == true: "cannot create an Edition with a closed Series"
-                EnglishPremierLeague.getSetData(id: setID)!.locked == false: "cannot create an Edition with a locked Set"
-            }
-
-            self.id = EnglishPremierLeague.nextEditionID
-            self.seriesID = seriesID
-            self.setID = setID
-            self.playID = playID
-
-            // If an edition size is not set, it has unlimited minting potential
-            if maxMintSize == 0 {
-                self.maxMintSize = nil
-            } else {
-                self.maxMintSize = maxMintSize
-            }
-
-            self.tier = tier
-            self.numMinted = 0 as UInt64
-
-            EnglishPremierLeague.nextEditionID = EnglishPremierLeague.nextEditionID + 1 as UInt64
-
-            emit EditionCreated(
-                id: self.id,
-                seriesID: self.seriesID,
-                setID: self.setID,
-                playID: self.playID,
-                maxMintSize: self.maxMintSize,
-                tier: self.tier,
-            )
-        }
     }
 
-    /// Get the publicly available data for an Edition
+    /// Edition getters
     ///
-    pub fun getEditionData(id: UInt64): EditionData? {
-        if EnglishPremierLeague.editionByID[id] == nil{
-            return nil
-        }
-
-        return EnglishPremierLeague.EditionData(id: id)
+    pub fun getEdition(id: UInt64): Edition {
+        return EnglishPremierLeague.editionByID[id]!
     }
 
-    // Validate tags exist
-    //
+    /// Validate tags exist
+    ///
     pub fun validateTags(tagIds: [UInt64]): Bool {
         for tagId in tagIds {
             if EnglishPremierLeague.tagByID[tagId] == nil {
@@ -550,10 +299,6 @@ pub contract EnglishPremierLeague: NonFungibleToken {
         }
         return true
     }
-
-    //------------------------------------------------------------
-    // NFT
-    //------------------------------------------------------------
 
     /// A Moment NFT
     ///
@@ -577,7 +322,8 @@ pub contract EnglishPremierLeague: NonFungibleToken {
         ) {
             pre {
                 EnglishPremierLeague.editionByID[editionID] != nil: "no such editionID"
-                EditionData(id: editionID).maxEditionMintSizeReached() != true: "max edition size already reached"
+                (&EnglishPremierLeague.editionByID[editionID] as &EnglishPremierLeague.Edition?)!
+                    .maxEditionMintSizeReached() != true : "max edition size already reached"
             }
 
             self.id = self.uuid
@@ -589,8 +335,8 @@ pub contract EnglishPremierLeague: NonFungibleToken {
         }
 
         pub fun assetPath(): String {
-            let editionData = EnglishPremierLeague.getEditionData(id: self.editionID)!
-            let playDataID: String = EnglishPremierLeague.PlayData(id: editionData.playID).metadata["PlayDataID"] ?? ""
+            let editionData = EnglishPremierLeague.getEdition(id: self.editionID)!
+            let playDataID: String = EnglishPremierLeague.getPlay(id: editionData.playID).metadata["PlayDataID"] ?? ""
             return "https://assets.eplonflow.com/editions/".concat(playDataID).concat("/play_").concat(playDataID)
         }
 
@@ -605,11 +351,11 @@ pub contract EnglishPremierLeague: NonFungibleToken {
         /// get the name of an nft
         ///
         pub fun name(): String {
-            let editionData = EnglishPremierLeague.getEditionData(id: self.editionID)!
-            let playerKnownName: String = EnglishPremierLeague.PlayData(id: editionData.playID).metadata["Player Known Name"] ?? ""
-            let playerFirstName: String = EnglishPremierLeague.PlayData(id: editionData.playID).metadata["Player First Name"] ?? ""
-            let playerLastName: String = EnglishPremierLeague.PlayData(id: editionData.playID).metadata["Player Last Name"] ?? ""
-            let playType: String = EnglishPremierLeague.PlayData(id: editionData.playID).metadata["Play Type"] ?? ""
+            let editionData = EnglishPremierLeague.getEdition(id: self.editionID)!
+            let playerKnownName: String = EnglishPremierLeague.getPlay(id: editionData.playID).metadata["Player Known Name"] ?? ""
+            let playerFirstName: String = EnglishPremierLeague.getPlay(id: editionData.playID).metadata["Player First Name"] ?? ""
+            let playerLastName: String = EnglishPremierLeague.getPlay(id: editionData.playID).metadata["Player Last Name"] ?? ""
+            let playType: String = EnglishPremierLeague.getPlay(id: editionData.playID).metadata["Play Type"] ?? ""
             var playerName = playerKnownName
             if(playerName == ""){
                 playerName = playerFirstName.concat(" ").concat(playerLastName)
@@ -620,8 +366,8 @@ pub contract EnglishPremierLeague: NonFungibleToken {
         /// get the description of an nft
         ///
         pub fun description(): String {
-            let editionData = EnglishPremierLeague.getEditionData(id: self.editionID)!
-            let metadata = EnglishPremierLeague.PlayData(id: editionData.playID).metadata
+            let editionData = EnglishPremierLeague.getEdition(id: self.editionID)!
+            let metadata = EnglishPremierLeague.getPlay(id: editionData.playID).metadata
             let matchHomeTeam: String = metadata["Match Home Team"] ?? ""
             let matchAwayTeam: String = metadata["Match Away Team"] ?? ""
             let matchHomeScore: String = metadata["Match Home Score"] ?? ""
@@ -638,8 +384,8 @@ pub contract EnglishPremierLeague: NonFungibleToken {
         /// get a thumbnail image that represents this nft
         ///
         pub fun thumbnail(): MetadataViews.HTTPFile {
-            let editionData = EnglishPremierLeague.getEditionData(id: self.editionID)!
-            let playDataID: String = EnglishPremierLeague.PlayData(id: editionData.playID).metadata["PlayDataID"] ?? ""
+            let editionData = EnglishPremierLeague.getEdition(id: self.editionID)!
+            let playDataID: String = EnglishPremierLeague.getPlay(id: editionData.playID).metadata["PlayDataID"] ?? ""
             if playDataID == "" {
                 return MetadataViews.HTTPFile(url:"https://ipfs.dapperlabs.com/ipfs/QmPvr5zTwji1UGpun57cbj719MUBsB5syjgikbwCMPmruQ")
             }
@@ -673,7 +419,7 @@ pub contract EnglishPremierLeague: NonFungibleToken {
                     )
 
                 case Type<MetadataViews.Editions>():
-                let editionData = EnglishPremierLeague.getEditionData(id: self.editionID)!
+                let editionData = EnglishPremierLeague.getEdition(id: self.editionID)!
                     let editionInfo = MetadataViews.Edition(
                         name: nil,
                         number: self.serialNumber,
@@ -697,9 +443,9 @@ pub contract EnglishPremierLeague: NonFungibleToken {
                         })
                     )
                 case Type<MetadataViews.Traits>():
-                    let editiondata = EnglishPremierLeague.getEditionData(id: self.editionID)!
-                    let playdata = EnglishPremierLeague.getPlayData(id: editiondata.playID)!
-                    return MetadataViews.dictToTraits(dict: playdata.metadata, excludedNames: nil)
+                    let editiondata = EnglishPremierLeague.getEdition(id: self.editionID)!
+                    let play = EnglishPremierLeague.getPlay(id: editiondata.playID)!
+                    return MetadataViews.dictToTraits(dict: play.metadata, excludedNames: nil)
 
                 case Type<MetadataViews.ExternalURL>():
                     return MetadataViews.ExternalURL("https://eplonflow.com/moments/".concat(self.id.toString()))
@@ -777,10 +523,6 @@ pub contract EnglishPremierLeague: NonFungibleToken {
         }
     }
 
-    //------------------------------------------------------------
-    // Collection
-    //------------------------------------------------------------
-
     /// A public collection interface that allows Moment NFTs to be borrowed
     ///
     pub resource interface MomentNFTCollectionPublic {
@@ -789,14 +531,6 @@ pub contract EnglishPremierLeague: NonFungibleToken {
         pub fun getIDs(): [UInt64]
         pub fun borrowNFT(id: UInt64): &NonFungibleToken.NFT
         pub fun borrowNFTSafe(id: UInt64): &NonFungibleToken.NFT?
-        pub fun borrowMomentNFT(id: UInt64): &EnglishPremierLeague.NFT? {
-            // If the result isn't nil, the id of the returned reference
-            // should be the same as the argument to the function
-            post {
-                (result == nil) || (result?.id == id):
-                    "Cannot borrow Moment NFT reference: The ID of the returned reference is incorrect"
-            }
-        }
     }
 
     /// An NFT Collection
@@ -861,26 +595,15 @@ pub contract EnglishPremierLeague: NonFungibleToken {
         }
 
         /// borrowNFT gets a reference to an NFT in the collection
-        //
+        ///
         pub fun borrowNFT(id: UInt64): &NonFungibleToken.NFT {
             return (&self.ownedNFTs[id] as &NonFungibleToken.NFT?)!
         }
 
         /// borrowNFTSafe gets a reference to an NFT in the collection
-        //
+        ///
         pub fun borrowNFTSafe(id: UInt64): &NonFungibleToken.NFT? {
             return (&self.ownedNFTs[id] as &NonFungibleToken.NFT?)
-        }
-
-        /// borrowMomentNFT gets a reference to an NFT in the collection
-        ///
-        pub fun borrowMomentNFT(id: UInt64): &EnglishPremierLeague.NFT? {
-            if self.ownedNFTs[id] != nil {
-                let ref = (&self.ownedNFTs[id] as auth &NonFungibleToken.NFT?)!
-                return ref as! &EnglishPremierLeague.NFT
-            } else {
-                return nil
-            }
         }
 
         pub fun borrowViewResolver(id: UInt64): &{MetadataViews.Resolver} {
@@ -908,136 +631,108 @@ pub contract EnglishPremierLeague: NonFungibleToken {
         return <- create Collection()
     }
 
-    //------------------------------------------------------------
-    // Admin
-    //------------------------------------------------------------
-
     /// An interface containing the Admin function that allows minting NFTs
     ///
     pub resource interface NFTMinter {
-        // Mint a single NFT
-        // The Edition for the given ID must already exist
-        //
         pub fun mintNFT(editionID: UInt64): @EnglishPremierLeague.NFT
     }
 
     /// A resource that allows managing metadata and minting NFTs
     ///
     pub resource Admin: NFTMinter {
-        /// Borrow a Series
-        ///
-        pub fun borrowSeries(id: UInt64): &EnglishPremierLeague.Series {
-            pre {
-                EnglishPremierLeague.seriesByID[id] != nil: "Cannot borrow series, no such id"
-            }
 
-            return (&EnglishPremierLeague.seriesByID[id] as &EnglishPremierLeague.Series?)!
-        }
-
-        /// Borrow a Set
-        ///
-        pub fun borrowSet(id: UInt64): &EnglishPremierLeague.Set {
-            pre {
-                EnglishPremierLeague.setByID[id] != nil: "Cannot borrow Set, no such id"
-            }
-
-            return (&EnglishPremierLeague.setByID[id] as &EnglishPremierLeague.Set?)!
-        }
-
-        /// Borrow a Play
-        ///
-        pub fun borrowPlay(id: UInt64): &EnglishPremierLeague.Play {
-            pre {
-                EnglishPremierLeague.playByID[id] != nil: "Cannot borrow Play, no such id"
-            }
-
-            return (&EnglishPremierLeague.playByID[id] as &EnglishPremierLeague.Play?)!
-        }
-
-        /// Borrow an Edition
-        ///
-        pub fun borrowEdition(id: UInt64): &EnglishPremierLeague.Edition {
-            pre {
-                EnglishPremierLeague.editionByID[id] != nil: "Cannot borrow edition, no such id"
-            }
-
-            return (&EnglishPremierLeague.editionByID[id] as &EnglishPremierLeague.Edition?)!
-        }
-
-        /// Create a Series
+        /// Series
         ///
         pub fun createSeries(name: String): UInt64 {
-            // Create and store the new series
-            let series <- create EnglishPremierLeague.Series(
+            pre {
+                !EnglishPremierLeague.seriesIDByName.containsKey(name): "A Series with that name already exists"
+            }
+
+            let series = EnglishPremierLeague.Series(
+                id: EnglishPremierLeague.nextSeriesID,
                 name: name,
             )
-            let seriesID = series.id
-            EnglishPremierLeague.seriesByID[series.id] <-! series
-
-            // Return the new ID for convenience
-            return seriesID
-        }
-
-        /// Close a Series
-        ///
-        pub fun closeSeries(id: UInt64): UInt64 {
-            let series = (&EnglishPremierLeague.seriesByID[id] as &EnglishPremierLeague.Series?)!
-            series.close()
+            EnglishPremierLeague.seriesByID[series.id] = series
+            EnglishPremierLeague.seriesIDByName[name] = series.id
+            emit SeriesCreated(id: series.id, name: series.name)
+            EnglishPremierLeague.nextSeriesID = series.id + 1 as UInt64
             return series.id
         }
 
-        /// Create a Set
-        ///
-        pub fun createSet(name: String): UInt64 {
-            // Create and store the new set
-            let set <- create EnglishPremierLeague.Set(
-                name: name,
-            )
-            let setID = set.id
-            EnglishPremierLeague.setByID[set.id] <-! set
+        pub fun closeSeries(id: UInt64): UInt64 {
+            let series = (&EnglishPremierLeague.seriesByID[id] as &EnglishPremierLeague.Series?)!
 
-            // Return the new ID for convenience
-            return setID
+            assert(
+                series.active == true,
+                message: "series is already inactive"
+            )
+
+            series.close()
+            emit SeriesClosed(id: series.id)
+            return series.id
         }
 
-        /// Locks a Set
+        /// Set
         ///
-        pub fun lockSet(id: UInt64): UInt64 {
-            let set = (&EnglishPremierLeague.setByID[id] as &EnglishPremierLeague.Set?)!
-            set.lock()
+        pub fun createSet(name: String): UInt64 {
+            let set = EnglishPremierLeague.Set(
+                id: EnglishPremierLeague.nextSetID,
+                name: name,
+            )
+
+            EnglishPremierLeague.setByID[set.id] = set
+            emit SetCreated(id: set.id, name: set.name)
+            EnglishPremierLeague.nextSetID = set.id + 1 as UInt64
             return set.id
         }
 
-        /// Create a Tag
-        ///
-        pub fun createTag(name: String): UInt64 {
-            // Create and store the new tag
-            let tag <- create EnglishPremierLeague.Tag(
-                name: name
-            )
-            let tagID = tag.id
-            EnglishPremierLeague.tagByID[tag.id] <-! tag
+        pub fun lockSet(id: UInt64) {
+            let set = (&EnglishPremierLeague.setByID[id] as &EnglishPremierLeague.Set?)!
 
-            // Return the new ID for convenience
-            return tagID
+            assert(
+                set.locked == false,
+                message: "set is already locked"
+            )
+            set.lock()
+            emit SetLocked(setID: id)
         }
 
-        /// Create a Play
+        /// Tag
+        ///
+        pub fun createTag(name: String): UInt64 {
+            let tag = EnglishPremierLeague.Tag(
+                id: EnglishPremierLeague.nextTagID,
+                name: name,
+            )
+
+            EnglishPremierLeague.tagByID[tag.id] = tag
+            emit TagCreated(id: tag.id, name: tag.name)
+            EnglishPremierLeague.nextTagID = tag.id + 1 as UInt64
+            return tag.id
+        }
+
+        /// Play
         ///
         pub fun createPlay(metadata: {String: String}, tagIds: [UInt64]): UInt64 {
-            // Create and store the new play
-            let play <- create EnglishPremierLeague.Play(
+            pre {
+                EnglishPremierLeague.validateTags(
+                    tagIds: tagIds
+                ) == true : "Play contains tag that does not exist."
+            }
+
+            let play = EnglishPremierLeague.Play(
+                id: EnglishPremierLeague.nextPlayID,
                 metadata: metadata,
                 tagIds: tagIds
             )
-            let playID = play.id
-            EnglishPremierLeague.playByID[play.id] <-! play
 
-            // Return the new ID for convenience
-            return playID
+            EnglishPremierLeague.playByID[play.id] = play
+            emit PlayCreated(id: play.id, metadata: play.metadata, tagIds: play.tagIds)
+            EnglishPremierLeague.nextPlayID = play.id + 1 as UInt64
+            return play.id
         }
 
-        /// Create an Edition
+        /// Edition
         ///
         pub fun createEdition(
             seriesID: UInt64,
@@ -1045,50 +740,64 @@ pub contract EnglishPremierLeague: NonFungibleToken {
             playID: UInt64,
             maxMintSize: UInt64?,
             tier: String): UInt64 {
-            let edition <- create Edition(
+
+            pre {
+                maxMintSize != 0: "max mint size is zero, must either be null or greater than 0"
+                EnglishPremierLeague.seriesByID.containsKey(seriesID): "seriesID does not exist"
+                EnglishPremierLeague.setByID.containsKey(setID): "setID does not exist"
+                EnglishPremierLeague.playByID.containsKey(playID): "playID does not exist"
+                EnglishPremierLeague.getSeries(id: seriesID)!.active == true: "cannot create an Edition with a closed Series"
+                EnglishPremierLeague.getSet(id: setID)!.locked == false: "cannot create an Edition with a locked Set"
+            }
+
+            let edition = EnglishPremierLeague.Edition(
+                id: EnglishPremierLeague.nextEditionID,
                 seriesID: seriesID,
                 setID: setID,
                 playID: playID,
                 maxMintSize: maxMintSize,
-                tier: tier,
+                tier: tier
             )
-            let editionID = edition.id
-            EnglishPremierLeague.editionByID[edition.id] <-! edition
 
-            return editionID
-        }
-
-        /// Close an Edition
-        ///
-        pub fun closeEdition(id: UInt64): UInt64 {
-            let edition = (&EnglishPremierLeague.editionByID[id] as &EnglishPremierLeague.Edition?)!
-            edition.close()
+            EnglishPremierLeague.editionByID[edition.id] = edition
+            emit EditionCreated(
+                id: edition.id,
+                seriesID: edition.seriesID,
+                setID: edition.setID,
+                playID: edition.playID,
+                maxMintSize: edition.maxMintSize,
+                tier: edition.tier,
+            )
+            EnglishPremierLeague.nextEditionID = edition.id + 1 as UInt64
             return edition.id
         }
 
-        /// Mint a single NFT
-        /// The Edition for the given ID must already exist
-        ///
+
+        pub fun closeEdition(id: UInt64): UInt64 {
+            let edition = (&EnglishPremierLeague.editionByID[id] as &EnglishPremierLeague.Edition?)!
+            edition.close()
+            emit EditionClosed(id: edition.id)
+            return edition.id
+        }
+
         pub fun mintNFT(editionID: UInt64): @EnglishPremierLeague.NFT {
             pre {
                 // Make sure the edition we are creating this NFT in exists
                 EnglishPremierLeague.editionByID.containsKey(editionID): "No such EditionID"
             }
 
-            return <- self.borrowEdition(id: editionID).mint()
+            let edition = (&EnglishPremierLeague.editionByID[editionID] as &EnglishPremierLeague.Edition?)!
+
+            return <- edition.mint()
         }
 
-        /// Sets Royalty Address
+        /// Royalty Address
         ///
         pub fun setRoyaltyAddress(royaltyAddress: Address): Address {
             EnglishPremierLeague.royaltyAddress = royaltyAddress
             return EnglishPremierLeague.royaltyAddress
         }
     }
-
-    //------------------------------------------------------------
-    // Contract lifecycle
-    //------------------------------------------------------------
 
     /// EPL contract initializer
     ///
@@ -1108,13 +817,13 @@ pub contract EnglishPremierLeague: NonFungibleToken {
         self.nextEditionID = 1
 
         // Initialize the metadata lookup dictionaries
-        self.seriesByID <- {}
+        self.seriesByID = {}
         self.seriesIDByName = {}
         self.setIDByName = {}
-        self.setByID <- {}
-        self.tagByID <- {}
-        self.playByID <- {}
-        self.editionByID <- {}
+        self.setByID = {}
+        self.tagByID = {}
+        self.playByID = {}
+        self.editionByID = {}
 
         self.royaltyAddress = 0xf8d6e0586b0a20c7
 
