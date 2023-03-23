@@ -550,7 +550,7 @@ pub contract EnglishPremierLeague: NonFungibleToken {
         /// withdraw removes an NFT from the collection and moves it to the caller
         ///
         pub fun withdraw(withdrawID: UInt64): @NonFungibleToken.NFT {
-            let token <- self.ownedNFTs.remove(key: withdrawID) ?? panic("missing NFT")
+            let token <- self.ownedNFTs.remove(key: withdrawID) ?? panic("Could not find a moment with the given ID in the EPL collection")
 
             emit Withdraw(id: token.id, from: self.owner?.address)
 
