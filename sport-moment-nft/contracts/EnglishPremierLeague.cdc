@@ -31,8 +31,8 @@ pub contract EnglishPremierLeague: NonFungibleToken {
         tier: String,
     )
     pub event EditionClosed(id: UInt64)
-    pub event MomentNFTMinted(id: UInt64, editionID: UInt64)
-    pub event MomentNFTBurned(id: UInt64,  editionID: UInt64)
+    pub event MomentNFTMinted(id: UInt64, editionID: UInt64, serialNumber: UInt64)
+    pub event MomentNFTBurned(id: UInt64,  editionID: UInt64, serialNumber: UInt64)
 
     /// Named Paths
     ///
@@ -282,18 +282,20 @@ pub contract EnglishPremierLeague: NonFungibleToken {
         pub let editionID: UInt64
         pub let serialNumber: UInt64
         pub let mintingDate: UFix64
+        pub let ext: {String: AnyStruct}
 
         /// Destructor
         ///
         destroy() {
-            emit MomentNFTBurned(id: self.id, editionID: self.editionID)
+            emit MomentNFTBurned(id: self.id, editionID: self.editionID, serialNumber: self.serialNumber)
         }
 
         /// NFT initializer
         ///
         init(
             editionID: UInt64,
-            serialNumber: UInt64
+            serialNumber: UInt64,
+            ext: {String: AnyStruct}
         ) {
             pre {
                 EnglishPremierLeague.editionByID[editionID] != nil: "no such editionID"
@@ -305,8 +307,13 @@ pub contract EnglishPremierLeague: NonFungibleToken {
             self.editionID = editionID
             self.serialNumber = serialNumber
             self.mintingDate = getCurrentBlock().timestamp
+            self.ext = ext
 
-            emit MomentNFTMinted(id: self.id, editionID: self.editionID)
+            emit MomentNFTMinted(
+                id: self.id,
+                editionID: self.editionID,
+                serialNumber: self.serialNumber
+            )
         }
 
         pub fun assetPath(): String {
@@ -609,7 +616,7 @@ pub contract EnglishPremierLeague: NonFungibleToken {
     /// An interface containing the Admin function that allows minting NFTs
     ///
     pub resource interface NFTMinter {
-        pub fun mintNFT(editionID: UInt64): @EnglishPremierLeague.NFT
+        pub fun mintNFT(editionID: UInt64, ext: {String: AnyStruct}): @EnglishPremierLeague.NFT
     }
 
     /// A resource that allows managing metadata and minting NFTs
@@ -755,7 +762,7 @@ pub contract EnglishPremierLeague: NonFungibleToken {
             return edition.id
         }
 
-        pub fun mintNFT(editionID: UInt64): @EnglishPremierLeague.NFT {
+        pub fun mintNFT(editionID: UInt64, ext: {String: AnyStruct}): @EnglishPremierLeague.NFT {
             pre {
                 // Make sure the edition we are creating this NFT in exists
                 EnglishPremierLeague.editionByID.containsKey(editionID): "No such EditionID"
@@ -770,7 +777,8 @@ pub contract EnglishPremierLeague: NonFungibleToken {
             // Moments will not include serial numbers.
             let momentNFT <- create NFT(
                 editionID: edition.id,
-                serialNumber: 0
+                serialNumber: 0,
+                ext: ext
             )
             edition.incrementNumMinted()
             return <- momentNFT
