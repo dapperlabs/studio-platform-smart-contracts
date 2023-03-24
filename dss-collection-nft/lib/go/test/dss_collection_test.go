@@ -192,6 +192,7 @@ func testCreateSlot(
 		"NBA Top Shot",
 	)
 	required := true
+	batchKey := "123-345"
 
 	slotID := createSlot(
 		t,
@@ -201,6 +202,7 @@ func testCreateSlot(
 		collectionGroupID,
 		logicalOperator,
 		required,
+		batchKey,
 	)
 
 	if !shouldRevert {
@@ -246,6 +248,7 @@ func testCreateItemInSlot(
 		"All Stars",
 		"NBA Top Shot",
 	)
+	batchKey := "123-456"
 
 	slotID := createSlot(
 		t,
@@ -255,6 +258,7 @@ func testCreateItemInSlot(
 		collectionGroupID,
 		"OR",
 		true,
+		batchKey,
 	)
 
 	comparator := "="

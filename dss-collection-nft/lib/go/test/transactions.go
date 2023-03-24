@@ -142,6 +142,7 @@ func createSlot(
 	collectionGroupID uint64,
 	logicalOperator string,
 	required bool,
+	batchKey string,
 ) uint64 {
 	tx := flow.NewTransaction().
 		SetScript(createSlotTransaction(contracts)).
@@ -152,6 +153,7 @@ func createSlot(
 	tx.AddArgument(cadence.UInt64(collectionGroupID))
 	tx.AddArgument(cadence.String(logicalOperator))
 	tx.AddArgument(cadence.Bool(required))
+	tx.AddArgument(cadence.String(batchKey))
 
 	signer, _ := b.ServiceKey().Signer()
 	txResult := signAndSubmit(

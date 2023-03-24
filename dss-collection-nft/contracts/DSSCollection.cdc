@@ -42,7 +42,8 @@ pub contract DSSCollection: NonFungibleToken {
         collectionGroupID: UInt64,
         logicalOperator: String,
         required: Bool,
-        typeName: Type
+        typeName: Type,
+        batchKey: String
     )
     pub event CollectionNFTMinted(
         id: UInt64,
@@ -124,6 +125,7 @@ pub contract DSSCollection: NonFungibleToken {
         pub let required: Bool
         pub let typeName: Type // (Type<A.f8d6e0586b0a20c7.ExampleNFT.NFT>())
         pub var items: [Item]
+        pub var batchKey: String // off-chain key for slot
 
         // Create item in slot
         //
@@ -164,7 +166,8 @@ pub contract DSSCollection: NonFungibleToken {
             collectionGroupID: UInt64,
             logicalOperator: String,
             required: Bool,
-            typeName: Type
+            typeName: Type,
+            batchKey: String
         ) {
             pre {
                 DSSCollection.CollectionGroupData(
@@ -180,6 +183,7 @@ pub contract DSSCollection: NonFungibleToken {
             self.logicalOperator = logicalOperator
             self.required = required
             self.typeName = typeName
+            self.batchKey = batchKey
             self.items = []
 
             emit SlotCreated(
@@ -187,7 +191,8 @@ pub contract DSSCollection: NonFungibleToken {
                 collectionGroupID: self.collectionGroupID,
                 logicalOperator: self.logicalOperator,
                 required: self.required,
-                typeName: self.typeName
+                typeName: self.typeName,
+                batchKey: self.batchKey
             )
         }
     }
@@ -608,13 +613,15 @@ pub contract DSSCollection: NonFungibleToken {
             collectionGroupID: UInt64,
             logicalOperator: String,
             required: Bool,
-            typeName: Type
+            typeName: Type,
+            batchKey: String
         ): UInt64 {
             let slot <- create DSSCollection.Slot(
                 collectionGroupID: collectionGroupID,
                 logicalOperator: logicalOperator,
                 required: required,
-                typeName: typeName
+                typeName: typeName,
+                batchKey: batchKey
             )
             let slotID = slot.id
             DSSCollection.slotByID[slot.id] <-! slot
