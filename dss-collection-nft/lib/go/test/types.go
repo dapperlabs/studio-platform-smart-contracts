@@ -10,6 +10,7 @@ type CollectionGroupData struct {
 	Description string
 	ProductName string
 	Active      bool
+	Metadata    map[string]string
 }
 
 type SlotData struct {
@@ -19,6 +20,7 @@ type SlotData struct {
 	Required          bool
 	TypeName          cadence.Type
 	Items             []Item
+	Metadata          map[string]string
 }
 
 type Item struct {
@@ -50,6 +52,7 @@ func parseCollectionGroupData(value cadence.Value) CollectionGroupData {
 		fields[2].ToGoValue().(string),
 		fields[3].ToGoValue().(string),
 		fields[4].ToGoValue().(bool),
+		cadenceStringDictToGo(fields[6].(cadence.Dictionary)),
 	}
 }
 
@@ -67,6 +70,7 @@ func parseSlotData(value cadence.Value) SlotData {
 		fields[3].ToGoValue().(bool),
 		fields[4].Type(),
 		items,
+		cadenceStringDictToGo(fields[6].(cadence.Dictionary)),
 	}
 	return slotData
 }

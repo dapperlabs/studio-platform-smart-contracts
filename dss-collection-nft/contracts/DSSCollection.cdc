@@ -26,7 +26,8 @@ pub contract DSSCollection: NonFungibleToken {
         name: String,
         description: String,
         productName: String,
-        endTime: UFix64?
+        endTime: UFix64?,
+        metadata: {String: String}
     )
     pub event CollectionGroupClosed(id: UInt64)
     pub event ItemCreatedInSlot(
@@ -42,7 +43,8 @@ pub contract DSSCollection: NonFungibleToken {
         collectionGroupID: UInt64,
         logicalOperator: String,
         required: Bool,
-        typeName: Type
+        typeName: Type,
+        metadata: {String: String}
     )
     pub event CollectionNFTMinted(
         id: UInt64,
@@ -100,6 +102,7 @@ pub contract DSSCollection: NonFungibleToken {
         pub let required: Bool
         pub let typeName: Type // (Type<A.f8d6e0586b0a20c7.ExampleNFT.NFT>()...)
         pub var items: [Item]
+        pub let metadata: {String: String}
 
         init (id: UInt64) {
             if let slot = &DSSCollection.slotByID[id] as &DSSCollection.Slot? {
@@ -109,6 +112,7 @@ pub contract DSSCollection: NonFungibleToken {
                 self.required = slot.required
                 self.typeName = slot.typeName
                 self.items = slot.items
+                self.metadata = slot.metadata
             } else {
                 panic("Slot does not exist")
             }
@@ -124,6 +128,7 @@ pub contract DSSCollection: NonFungibleToken {
         pub let required: Bool
         pub let typeName: Type // (Type<A.f8d6e0586b0a20c7.ExampleNFT.NFT>())
         pub var items: [Item]
+        pub let metadata: {String: String}
 
         // Create item in slot
         //
@@ -164,7 +169,8 @@ pub contract DSSCollection: NonFungibleToken {
             collectionGroupID: UInt64,
             logicalOperator: String,
             required: Bool,
-            typeName: Type
+            typeName: Type,
+            metadata: {String: String}
         ) {
             pre {
                 DSSCollection.CollectionGroupData(
@@ -180,6 +186,7 @@ pub contract DSSCollection: NonFungibleToken {
             self.logicalOperator = logicalOperator
             self.required = required
             self.typeName = typeName
+            self.metadata = metadata
             self.items = []
 
             emit SlotCreated(
@@ -187,7 +194,8 @@ pub contract DSSCollection: NonFungibleToken {
                 collectionGroupID: self.collectionGroupID,
                 logicalOperator: self.logicalOperator,
                 required: self.required,
-                typeName: self.typeName
+                typeName: self.typeName,
+                metadata: self.metadata
             )
         }
     }
@@ -201,6 +209,7 @@ pub contract DSSCollection: NonFungibleToken {
         pub let productName: String
         pub let active: Bool
         pub let endTime: UFix64?
+        pub let metadata: {String: String}
 
         init (id: UInt64) {
             if let collectionGroup = &DSSCollection.collectionGroupByID[id] as &DSSCollection.CollectionGroup? {
@@ -210,6 +219,7 @@ pub contract DSSCollection: NonFungibleToken {
                 self.productName = collectionGroup.productName
                 self.active = collectionGroup.active
                 self.endTime = collectionGroup.endTime
+                self.metadata = collectionGroup.metadata
             } else {
                 panic("CollectionGroup does not exist")
             }
@@ -226,6 +236,7 @@ pub contract DSSCollection: NonFungibleToken {
         pub var active: Bool
         pub let endTime: UFix64?
         pub var numMinted: UInt64
+        pub let metadata: {String: String}
 
         // Close this collection group
         //
@@ -268,7 +279,8 @@ pub contract DSSCollection: NonFungibleToken {
             name: String,
             description: String,
             productName: String,
-            endTime: UFix64?
+            endTime: UFix64?,
+            metadata: {String: String}
         ) {
             pre {
                 DSSCollection.validateTimeBound(
@@ -282,13 +294,15 @@ pub contract DSSCollection: NonFungibleToken {
             self.active = true
             self.endTime = endTime
             self.numMinted = 0 as UInt64
+            self.metadata = metadata
 
             emit CollectionGroupCreated(
                 id: self.id,
                 name: self.name,
                 description: self.description,
                 productName: self.productName,
-                endTime: self.endTime
+                endTime: self.endTime,
+                metadata: self.metadata
             )
         }
     }
@@ -578,13 +592,15 @@ pub contract DSSCollection: NonFungibleToken {
             name: String,
             description: String,
             productName: String,
-            endTime: UFix64?
+            endTime: UFix64?,
+            metadata: {String: String}
         ): UInt64 {
             let collectionGroup <- create DSSCollection.CollectionGroup(
                 name: name,
                 description: description,
                 productName: productName,
-                endTime: endTime
+                endTime: endTime,
+                metadata: metadata
             )
             let collectionGroupID = collectionGroup.id
             DSSCollection.collectionGroupByID[collectionGroup.id] <-! collectionGroup
@@ -608,13 +624,15 @@ pub contract DSSCollection: NonFungibleToken {
             collectionGroupID: UInt64,
             logicalOperator: String,
             required: Bool,
-            typeName: Type
+            typeName: Type,
+            metadata: {String: String}
         ): UInt64 {
             let slot <- create DSSCollection.Slot(
                 collectionGroupID: collectionGroupID,
                 logicalOperator: logicalOperator,
                 required: required,
-                typeName: typeName
+                typeName: typeName,
+                metadata: metadata
             )
             let slotID = slot.id
             DSSCollection.slotByID[slot.id] <-! slot

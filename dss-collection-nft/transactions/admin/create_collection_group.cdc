@@ -1,7 +1,7 @@
 import DSSCollection from "../../contracts/DSSCollection.cdc"
 
 
-transaction(name: String, description: String, productName: String) {
+transaction(name: String, description: String, productName: String, metadata: {String: String}) {
     let admin: &DSSCollection.Admin
 
     prepare(signer: AuthAccount) {
@@ -14,7 +14,8 @@ transaction(name: String, description: String, productName: String) {
             name: name,
             description: description,
             productName: productName,
-            endTime: nil
+            endTime: nil,
+            metadata: metadata
         )
 
         log("====================================")

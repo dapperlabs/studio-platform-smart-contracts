@@ -53,6 +53,7 @@ func createCollectionGroup(
 	collectionGroupName string,
 	collectionGroupDescription string,
 	productName string,
+	metadata map[string]string,
 ) uint64 {
 	tx := flow.NewTransaction().
 		SetScript(createCollectionGroupTransaction(contracts)).
@@ -63,6 +64,7 @@ func createCollectionGroup(
 	tx.AddArgument(cadence.String(collectionGroupName))
 	tx.AddArgument(cadence.String(collectionGroupDescription))
 	tx.AddArgument(cadence.String(productName))
+	tx.AddArgument(metadataDict(metadata))
 
 	signer, _ := b.ServiceKey().Signer()
 	txResult := signAndSubmit(
@@ -85,6 +87,7 @@ func createTimeBoundCollectionGroup(
 	collectionGroupDescription string,
 	productName string,
 	endTime int,
+	metadata map[string]string,
 ) uint64 {
 	tx := flow.NewTransaction().
 		SetScript(createTimeBoundCollectionGroupTransaction(contracts)).
@@ -96,6 +99,7 @@ func createTimeBoundCollectionGroup(
 	tx.AddArgument(cadence.String(collectionGroupDescription))
 	tx.AddArgument(cadence.String(productName))
 	tx.AddArgument(cadence.UFix64(endTime))
+	tx.AddArgument(metadataDict(metadata))
 
 	signer, _ := b.ServiceKey().Signer()
 	txResult := signAndSubmit(
@@ -142,6 +146,7 @@ func createSlot(
 	collectionGroupID uint64,
 	logicalOperator string,
 	required bool,
+	metadata map[string]string,
 ) uint64 {
 	tx := flow.NewTransaction().
 		SetScript(createSlotTransaction(contracts)).
@@ -152,6 +157,7 @@ func createSlot(
 	tx.AddArgument(cadence.UInt64(collectionGroupID))
 	tx.AddArgument(cadence.String(logicalOperator))
 	tx.AddArgument(cadence.Bool(required))
+	tx.AddArgument(metadataDict(metadata))
 
 	signer, _ := b.ServiceKey().Signer()
 	txResult := signAndSubmit(

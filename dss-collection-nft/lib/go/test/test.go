@@ -322,3 +322,15 @@ func getNFTData(
 
 	return parseNFTProperties(result)
 }
+
+func metadataDict(dict map[string]string) cadence.Dictionary {
+	pairs := []cadence.KeyValuePair{}
+
+	for key, value := range dict {
+		k, _ := cadence.NewString(key)
+		v, _ := cadence.NewString(value)
+		pairs = append(pairs, cadence.KeyValuePair{Key: k, Value: v})
+	}
+
+	return cadence.NewDictionary(pairs)
+}
