@@ -2,7 +2,7 @@ import DSSCollection from "../../contracts/DSSCollection.cdc"
 import ExampleNFT from 0xEXAMPLENFTADDRESS
 
 
-transaction(collectionGroupID: UInt64, logicalOperator: String, required: Bool, batchKey: String) {
+transaction(collectionGroupID: UInt64, logicalOperator: String, required: Bool, metadata: {String: String}) {
     let admin: &DSSCollection.Admin
 
     prepare(signer: AuthAccount) {
@@ -17,7 +17,7 @@ transaction(collectionGroupID: UInt64, logicalOperator: String, required: Bool, 
             logicalOperator: logicalOperator,
             required: required,
             typeName: typeName,
-            batchKey: batchKey
+            metadata: metadata
         )
 
         log("====================================")

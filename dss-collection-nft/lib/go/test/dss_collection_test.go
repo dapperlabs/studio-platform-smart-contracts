@@ -65,6 +65,7 @@ func testCreateCollectionGroup(
 		collectionGroupName,
 		"All Stars",
 		productName,
+		map[string]string{"key": "META"},
 	)
 
 	if !shouldRevert {
@@ -106,6 +107,7 @@ func testCreateTimeBoundCollectionGroup(
 		"All Stars Description",
 		"NBA Top Shot",
 		2368296360_00000000,
+		map[string]string{"key": "META"},
 	)
 	if !shouldRevert {
 		collectionGroup := getCollectionGroupData(t, b, contracts, collectionGroupId)
@@ -143,6 +145,7 @@ func testCloseCollectionGroup(
 		"Top Shot All Stars",
 		"All Stars",
 		"NBA Top Shot",
+		map[string]string{"key": "META"},
 	)
 
 	closeCollectionGroup(
@@ -190,9 +193,9 @@ func testCreateSlot(
 		"NBA All Stars",
 		"All Stars",
 		"NBA Top Shot",
+		map[string]string{"key": "META"},
 	)
 	required := true
-	batchKey := "123-345"
 
 	slotID := createSlot(
 		t,
@@ -202,7 +205,7 @@ func testCreateSlot(
 		collectionGroupID,
 		logicalOperator,
 		required,
-		batchKey,
+		map[string]string{"key": "META"},
 	)
 
 	if !shouldRevert {
@@ -247,8 +250,8 @@ func testCreateItemInSlot(
 		"NBA All Stars",
 		"All Stars",
 		"NBA Top Shot",
+		map[string]string{"key": "META"},
 	)
-	batchKey := "123-456"
 
 	slotID := createSlot(
 		t,
@@ -258,7 +261,7 @@ func testCreateItemInSlot(
 		collectionGroupID,
 		"OR",
 		true,
-		batchKey,
+		map[string]string{"key": "META"},
 	)
 
 	comparator := "="
@@ -313,6 +316,7 @@ func testMintNFT(
 		collectionGroupName,
 		"All Stars",
 		"NBA Top Shot",
+		map[string]string{"key": "META"},
 	)
 
 	closeCollectionGroup(
