@@ -2,6 +2,7 @@ package test
 
 import (
 	emulator "github.com/onflow/flow-emulator"
+	"github.com/onflow/flow-go-sdk"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
@@ -493,4 +494,136 @@ func createTestEditions(t *testing.T, b *emulator.Blockchain, contracts Contract
 			false,
 		)
 	})
+}
+
+func TestMomentNFTs(t *testing.T) {
+	b := newEmulator()
+	contracts := EPLDeployContracts(t, b)
+	userAddress, userSigner := createAccount(t, b)
+	setupEPLAccount(t, b, userAddress, userSigner, contracts)
+
+	createTestEditions(t, b, contracts)
+
+	t.Run("Should be able to mint a new MomentNFT from an edition that has a maxMintSize", func(t *testing.T) {
+		testMintMomentNFT(
+			t,
+			b,
+			contracts,
+			uint64(1),
+			userAddress,
+			uint64(0),
+			false,
+		)
+	})
+
+	t.Run("Should be able to mint a second new MomentNFT from an edition that has a maxmintSize", func(t *testing.T) {
+		testMintMomentNFT(
+			t,
+			b,
+			contracts,
+			uint64(1),
+			userAddress,
+			uint64(0),
+			false,
+		)
+	})
+
+	t.Run("Should be able to mint a new MomentNFT from an edition with no max mint size", func(t *testing.T) {
+		testMintMomentNFT(
+			t,
+			b,
+			contracts,
+			uint64(2),
+			userAddress,
+			uint64(0),
+			false,
+		)
+	})
+
+	t.Run("Should be able to mint a second new MomentNFT from an edition with no max mint size", func(t *testing.T) {
+		testMintMomentNFT(
+			t,
+			b,
+			contracts,
+			uint64(2),
+			userAddress,
+			uint64(0),
+			false,
+		)
+	})
+
+	t.Run("Should not be able to mint an edition that has reached max minting size", func(t *testing.T) {
+		testMintMomentNFT(
+			t,
+			b,
+			contracts,
+			uint64(1),
+			userAddress,
+			uint64(0),
+			true,
+		)
+	})
+
+	t.Run("Should not be able to mint an edition that is already closed", func(t *testing.T) {
+		testMintMomentNFT(
+			t,
+			b,
+			contracts,
+			uint64(3),
+			userAddress,
+			uint64(0),
+			true,
+		)
+	})
+}
+
+func testMintMomentNFT(
+	t *testing.T,
+	b *emulator.Blockchain,
+	contracts Contracts,
+	editionID uint64,
+	userAddress flow.Address,
+	shouldBeSerialNumber uint64,
+	shouldRevert bool,
+) {
+	// Make sure the total supply of NFTs is tracked correctly
+	previousSupply := getMomentNFTSupply(t, b, contracts)
+
+	nftID := mintMomentNFT(
+		t,
+		b,
+		contracts,
+		userAddress,
+		editionID,
+		shouldRevert,
+	)
+
+	newSupply := getMomentNFTSupply(t, b, contracts)
+	if !shouldRevert {
+		assert.Equal(t, previousSupply+uint64(1), newSupply)
+
+		nftProperties := getMomentNFTProperties(
+			t,
+			b,
+			contracts,
+			userAddress,
+			nftID,
+		)
+		assert.Equal(t, editionID, nftProperties.EditionID)
+		assert.Equal(t, shouldBeSerialNumber, nftProperties.SerialNumber)
+		assert.Equal(t, shouldBeSerialNumber, nftProperties.SerialNumber)
+
+		displayView := getEPLNFTDisplayMetadataView(
+			t,
+			b,
+			contracts,
+			userAddress,
+			nftID,
+		)
+		assert.Contains(t, displayView.Description, "English Premier League")
+		assert.Equal(t, "https://ipfs.dapperlabs.com/ipfs/QmPvr5zTwji1UGpun57cbj719MUBsB5syjgikbwCMPmruQ", displayView.ImageURL)
+
+	} else {
+		assert.Equal(t, previousSupply, newSupply)
+	}
 }

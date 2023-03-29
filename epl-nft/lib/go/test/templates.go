@@ -26,19 +26,16 @@ const (
 	IsAccountSetupScriptPath = ScriptsRootPath + "/is_account_setup.cdc"
 
 	// NFTs
-	MintNFTTxPath              = TransactionsRootPath + "/admin/mint_nft.cdc"
-	ReadNftSupplyScriptPath    = ScriptsRootPath + "/total_supply.cdc"
-	ReadNftPropertiesTxPath    = ScriptsRootPath + "/get_nft.cdc"
-	EPLDisplayMetadataViewPath = ScriptsRootPath + "/metadata_display_view.cdc"
+	EPLMintMomentNFTPath           = TransactionsRootPath + "/admin/mint_nft.cdc"
+	EPLDisplayMetadataViewPath     = ScriptsRootPath + "/metadata_display_view.cdc"
+	EPLReadMomentNFTSupplyPath     = ScriptsRootPath + "/get_total_nft_supply.cdc"
+	EPLReadMomentNFTPropertiesPath = ScriptsRootPath + "/get_nft_properties.cdc"
 
 	// MetadataViews
 	MetadataViewsContractsBaseURL = "https://raw.githubusercontent.com/onflow/flow-nft/master/contracts/"
 	MetadataViewsInterfaceFile    = "MetadataViews.cdc"
 	MetadataFTReplaceAddress      = `"./utility/FungibleToken.cdc"`
 	MetadataNFTReplaceAddress     = `"./NonFungibleToken.cdc"`
-
-	// FungibleToken
-	FTPath = "../../../contracts/FungibleToken.cdc"
 
 	// Series
 	EPLCreateSeriesPath   = TransactionsRootPath + "/admin/create_series.cdc"
@@ -105,7 +102,7 @@ func LoadEPLContract(nftAddress flow.Address, metadataViewsAddress flow.Address)
 	return code
 }
 
-func setupAccountTransaction(contracts Contracts) []byte {
+func loadEPLSetupAccountTransaction(contracts Contracts) []byte {
 	return replaceAddresses(
 		readFile(SetupAccountTxPath),
 		contracts,
@@ -206,6 +203,27 @@ func loadEPLReadEditionByIDScript(contracts Contracts) []byte {
 func loadEPLCloseEditionTransaction(contracts Contracts) []byte {
 	return replaceAddresses(
 		readFile(EPLCloseEditionPath),
+		contracts,
+	)
+}
+
+func loadEPLReadMomentNFTSupplyScript(contracts Contracts) []byte {
+	return replaceAddresses(
+		readFile(EPLReadMomentNFTSupplyPath),
+		contracts,
+	)
+}
+
+func loadEPLReadMomentNFTPropertiesScript(contracts Contracts) []byte {
+	return replaceAddresses(
+		readFile(EPLReadMomentNFTPropertiesPath),
+		contracts,
+	)
+}
+
+func loadEPLMintMomentNFTTransaction(contracts Contracts) []byte {
+	return replaceAddresses(
+		readFile(EPLMintMomentNFTPath),
 		contracts,
 	)
 }

@@ -81,6 +81,33 @@ func getEditionData(
 	return parseEdition(result)
 }
 
+func getMomentNFTSupply(
+	t *testing.T,
+	b *emulator.Blockchain,
+	contracts Contracts,
+) uint64 {
+	script := loadEPLReadMomentNFTSupplyScript(contracts)
+	result := executeScriptAndCheck(t, b, script, [][]byte{})
+
+	return result.ToGoValue().(uint64)
+}
+
+func getMomentNFTProperties(
+	t *testing.T,
+	b *emulator.Blockchain,
+	contracts Contracts,
+	collectionAddress flow.Address,
+	nftID uint64,
+) NFTData {
+	script := loadEPLReadMomentNFTPropertiesScript(contracts)
+	result := executeScriptAndCheck(t, b, script, [][]byte{
+		jsoncdc.MustEncode(cadence.BytesToAddress(collectionAddress.Bytes())),
+		jsoncdc.MustEncode(cadence.UInt64(nftID)),
+	})
+
+	return parseNFTProperties(result)
+}
+
 func getEPLNFTDisplayMetadataView(
 	t *testing.T,
 	b *emulator.Blockchain,

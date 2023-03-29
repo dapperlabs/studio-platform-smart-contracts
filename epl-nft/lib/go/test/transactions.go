@@ -2,6 +2,7 @@ package test
 
 import (
 	"github.com/stretchr/testify/require"
+	"strings"
 	"testing"
 
 	"github.com/onflow/cadence"
@@ -270,4 +271,39 @@ func closeEdition(
 		[]crypto.Signer{signer, contracts.EPLSigner},
 		shouldRevert,
 	)
+}
+
+func mintMomentNFT(
+	t *testing.T,
+	b *emulator.Blockchain,
+	contracts Contracts,
+	recipientAddress flow.Address,
+	editionID uint64,
+	shouldRevert bool,
+) uint64 {
+	tx := flow.NewTransaction().
+		SetScript(loadEPLMintMomentNFTTransaction(contracts)).
+		SetGasLimit(100).
+		SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
+		SetPayer(b.ServiceKey().Address).
+		AddAuthorizer(contracts.EPLAddress)
+	tx.AddArgument(cadence.BytesToAddress(recipientAddress.Bytes()))
+	tx.AddArgument(cadence.NewUInt64(editionID))
+
+	signer, err := b.ServiceKey().Signer()
+	require.NoError(t, err)
+
+	result := signAndSubmit(
+		t, b, tx,
+		[]flow.Address{b.ServiceKey().Address, contracts.EPLAddress},
+		[]crypto.Signer{signer, contracts.EPLSigner},
+		shouldRevert,
+	)
+	nftID := uint64(0)
+	for _, event := range result.Events {
+		if strings.Contains(event.Type, "EnglishPremierLeague.MomentNFTMinted") {
+			nftID = uint64(event.Value.Fields[0].(cadence.UInt64))
+		}
+	}
+	return nftID
 }

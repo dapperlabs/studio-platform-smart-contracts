@@ -233,7 +233,7 @@ func setupEPLAccount(
 	contracts Contracts,
 ) {
 	tx := flow.NewTransaction().
-		SetScript(setupAccountTransaction(contracts)).
+		SetScript(loadEPLSetupAccountTransaction(contracts)).
 		SetGasLimit(100).
 		SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
 		SetPayer(b.ServiceKey().Address).

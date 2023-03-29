@@ -357,7 +357,7 @@ pub contract EnglishPremierLeague: NonFungibleToken {
             let matchDay: String = metadata["Match Day"] ?? ""
             let matchSeason: String = metadata["Match Season"] ?? ""
 
-            return "EnglishPremierLeague Moment from ".concat(matchHomeTeam)
+            return "English Premier League Moment from ".concat(matchHomeTeam)
             .concat(" x ").concat(matchAwayTeam).concat(" (").concat(matchHomeScore)
             .concat("-").concat(matchAwayScore).concat(") on Matchday ")
             .concat(matchDay).concat(" (").concat(matchSeason).concat(")")
@@ -513,6 +513,12 @@ pub contract EnglishPremierLeague: NonFungibleToken {
         pub fun getIDs(): [UInt64]
         pub fun borrowNFT(id: UInt64): &NonFungibleToken.NFT
         pub fun borrowNFTSafe(id: UInt64): &NonFungibleToken.NFT?
+        pub fun borrowMomentNFT(id: UInt64): &EnglishPremierLeague.NFT? {
+            post {
+                (result == nil) || (result?.id == id):
+                    "Cannot borrow Moment NFT reference: The ID of the returned reference is incorrect"
+            }
+        }
     }
 
     /// An NFT Collection
@@ -586,6 +592,17 @@ pub contract EnglishPremierLeague: NonFungibleToken {
         ///
         pub fun borrowNFTSafe(id: UInt64): &NonFungibleToken.NFT? {
             return (&self.ownedNFTs[id] as &NonFungibleToken.NFT?)
+        }
+
+        /// borrowMomentNFT gets a reference to an NFT in the collection
+        ///
+        pub fun borrowMomentNFT(id: UInt64): &EnglishPremierLeague.NFT? {
+            if self.ownedNFTs[id] != nil {
+                let ref = (&self.ownedNFTs[id] as auth &NonFungibleToken.NFT?)!
+                return ref as! &EnglishPremierLeague.NFT
+            } else {
+                return nil
+            }
         }
 
         pub fun borrowViewResolver(id: UInt64): &{MetadataViews.Resolver} {
@@ -781,6 +798,7 @@ pub contract EnglishPremierLeague: NonFungibleToken {
                 ext: ext
             )
             edition.incrementNumMinted()
+            EnglishPremierLeague.totalSupply = EnglishPremierLeague.totalSupply + 1
             return <- momentNFT
         }
 

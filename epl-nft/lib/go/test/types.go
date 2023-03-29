@@ -115,6 +115,15 @@ func parseMetadataDisplayView(value cadence.Value) DisplayView {
 	}
 }
 
+func parseNFTProperties(value cadence.Value) NFTData {
+	array := value.(cadence.Array).Values
+	return NFTData{
+		array[0].ToGoValue().(uint64),
+		array[1].ToGoValue().(uint64),
+		array[2].ToGoValue().(uint64),
+	}
+}
+
 func cadenceStringDictToGo(cadenceDict cadence.Dictionary) map[string]string {
 	goDict := make(map[string]string)
 	for _, pair := range cadenceDict.Pairs {
