@@ -1,4 +1,4 @@
-import EnglishPremierLeague from "../../contracts/EnglishPremierLeague.cdc"
+import EnglishPremierLeague from "./EnglishPremierLeague.cdc"
 
 transaction(name: String) {
     let admin: &EnglishPremierLeague.Admin

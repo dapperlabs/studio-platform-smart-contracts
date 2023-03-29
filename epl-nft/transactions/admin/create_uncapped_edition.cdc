@@ -1,4 +1,4 @@
-import EnglishPremierLeague from "../../contracts/EnglishPremierLeague.cdc"
+import EnglishPremierLeague from "./EnglishPremierLeague.cdc"
 
 transaction(seriesID: UInt64, setID: UInt64, playID: UInt64, tier: String) {
     let admin: &EnglishPremierLeague.Admin

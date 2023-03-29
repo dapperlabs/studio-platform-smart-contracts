@@ -3,9 +3,9 @@
     Author: Jeremy Ahrens jer.ahrens@dapperlabs.com
 */
 
-import FungibleToken from 0x{{.FungibleTokenAddress}}
-import NonFungibleToken from 0x{{.NonFungibleTokenAddress}}
-import MetadataViews from 0x{{.MetadataViewsAddress}}
+import FungibleToken from "./FungibleToken.cdc"
+import NonFungibleToken from "./NonFungibleToken.cdc"
+import MetadataViews from 0xMETADATAVIEWSADDRESS
 
 /// The English Premier League NFT and metadata contract
 ///

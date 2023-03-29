@@ -1,4 +1,4 @@
-import EnglishPremierLeague from "../../contracts/EnglishPremierLeague.cdc"
+import EnglishPremierLeague from "./EnglishPremierLeague.cdc"
 
 transaction(metadata: {String: String}, tagIds: [UInt64]) {
     let admin: &EnglishPremierLeague.Admin

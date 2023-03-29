@@ -1,5 +1,5 @@
-import NonFungibleToken from "../../contracts/NonFungibleToken.cdc"
-import EnglishPremierLeague from "../../contracts/EnglishPremierLeague.cdc"
+import NonFungibleToken from "./NonFungibleToken.cdc"
+import EnglishPremierLeague from "./EnglishPremierLeague.cdc"
 
 transaction(recipientAddress: Address, editionID: UInt64) {
 
