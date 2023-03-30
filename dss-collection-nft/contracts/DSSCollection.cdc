@@ -374,7 +374,7 @@ pub contract DSSCollection: NonFungibleToken {
         return false
     }
 
-    // Get the completed collection for a given collection group ID and address
+    // Get the nftIds for each completed collection for a given address
     //
     pub fun getCompletedCollectionIDs(address: Address): [CollectionCompletedWith]? {
         return DSSCollection.completedCollections[address]
@@ -588,10 +588,10 @@ pub contract DSSCollection: NonFungibleToken {
     // A resource that allows managing metadata and minting NFTs
     //
     pub resource Admin: NFTMinter {
-        // Complete a collection group for a given user with a list of NFT IDs
+        // Record the nftIds that were used to complete a CollectionGroup
+        //
         pub fun completedCollectionGroup(collectionGroupID: UInt64, userAddress: Address, nftIDs: [UInt64]) {
             let collection = CollectionCompletedWith(collectionGroupID: collectionGroupID, nftIDs: nftIDs)
-            // Update the completed collections mapping
             if DSSCollection.completedCollections[userAddress] == nil {
                 DSSCollection.completedCollections[userAddress] = [collection]
             } else {
