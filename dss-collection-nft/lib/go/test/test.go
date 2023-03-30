@@ -1,10 +1,11 @@
 package test
 
 import (
-	jsoncdc "github.com/onflow/cadence/encoding/json"
-	"github.com/onflow/flow-emulator/types"
 	"io/ioutil"
 	"testing"
+
+	jsoncdc "github.com/onflow/cadence/encoding/json"
+	"github.com/onflow/flow-emulator/types"
 
 	"github.com/onflow/cadence"
 	emulator "github.com/onflow/flow-emulator"
@@ -262,6 +263,31 @@ func setupDSSCollectionAccount(
 ) {
 	tx := flow.NewTransaction().
 		SetScript(setupAccountTransaction(contracts)).
+		SetGasLimit(100).
+		SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
+		SetPayer(b.ServiceKey().Address).
+		AddAuthorizer(userAddress)
+
+	signer, err := b.ServiceKey().Signer()
+	assert.NoError(t, err)
+
+	signAndSubmit(
+		t, b, tx,
+		[]flow.Address{b.ServiceKey().Address, userAddress},
+		[]crypto.Signer{signer, userSigner},
+		false,
+	)
+}
+
+func setupExampleNFT(
+	t *testing.T,
+	b *emulator.Blockchain,
+	userAddress sdk.Address,
+	userSigner crypto.Signer,
+	contracts Contracts,
+) {
+	tx := flow.NewTransaction().
+		SetScript(setupExampleNFTTransaction(contracts)).
 		SetGasLimit(100).
 		SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
 		SetPayer(b.ServiceKey().Address).

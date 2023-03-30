@@ -7,6 +7,7 @@ import (
 	emulator "github.com/onflow/flow-emulator"
 	fttemplates "github.com/onflow/flow-ft/lib/go/templates"
 	"github.com/onflow/flow-go-sdk"
+	sdk "github.com/onflow/flow-go-sdk"
 	"github.com/onflow/flow-go-sdk/crypto"
 )
 
@@ -234,4 +235,92 @@ func mintNFT(
 
 	nftId := txResult.Events[0].Value.Fields[0].ToGoValue().(uint64)
 	return nftId
+}
+
+func mintExampleNFT(
+	t *testing.T,
+	b *emulator.Blockchain,
+	contracts Contracts,
+	shouldRevert bool,
+	recipientAddress string,
+) uint64 {
+	tx := flow.NewTransaction().
+		SetScript(mintExampleNFTTransaction(contracts)).
+		SetGasLimit(100).
+		SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
+		SetPayer(b.ServiceKey().Address).
+		AddAuthorizer(contracts.DSSCollectionAddress)
+	tx.AddArgument(cadence.Address(flow.HexToAddress(recipientAddress)))
+
+	signer, _ := b.ServiceKey().Signer()
+	txResult := signAndSubmit(
+		t, b, tx,
+		[]flow.Address{b.ServiceKey().Address, contracts.DSSCollectionAddress},
+		[]crypto.Signer{signer, contracts.DSSCollectionSigner},
+		shouldRevert,
+	)
+
+	nftId := txResult.Events[0].Value.Fields[0].ToGoValue().(uint64)
+	return nftId
+}
+
+func completedCollectionGroup(
+	t *testing.T,
+	b *emulator.Blockchain,
+	contracts Contracts,
+	shouldRevert bool,
+	collectionID uint64,
+	userAddress string,
+	nftIDs []uint64,
+) {
+	tx := flow.NewTransaction().
+		SetScript(setCompletedCollectionGroup(contracts)).
+		SetGasLimit(100).
+		SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
+		SetPayer(b.ServiceKey().Address).
+		AddAuthorizer(contracts.DSSCollectionAddress)
+
+	tx.AddArgument(cadence.UInt64(collectionID))
+	tx.AddArgument(cadence.Address(flow.HexToAddress(userAddress)))
+
+	cadenceNftIDs := make([]cadence.Value, len(nftIDs))
+	for i, nftID := range nftIDs {
+		cadenceNftIDs[i] = cadence.UInt64(nftID)
+	}
+	tx.AddArgument(cadence.NewArray(cadenceNftIDs))
+	signer, _ := b.ServiceKey().Signer()
+	signAndSubmit(
+		t, b, tx,
+		[]flow.Address{b.ServiceKey().Address, contracts.DSSCollectionAddress},
+		[]crypto.Signer{signer, contracts.DSSCollectionSigner},
+		shouldRevert,
+	)
+}
+
+func transferNFT(
+	t *testing.T,
+	b *emulator.Blockchain,
+	contracts Contracts,
+	shouldRevert bool,
+	userAddress sdk.Address,
+	userSigner crypto.Signer,
+	toAddress string,
+	nftID uint64,
+) {
+	tx := flow.NewTransaction().
+		SetScript(transferNFTTransaction(contracts)).
+		SetGasLimit(100).
+		SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
+		SetPayer(b.ServiceKey().Address).
+		AddAuthorizer(userAddress)
+	tx.AddArgument(cadence.UInt64(nftID))
+	tx.AddArgument(cadence.Address(flow.HexToAddress(toAddress)))
+
+	signer, _ := b.ServiceKey().Signer()
+	signAndSubmit(
+		t, b, tx,
+		[]flow.Address{b.ServiceKey().Address, userAddress},
+		[]crypto.Signer{signer, userSigner},
+		shouldRevert,
+	)
 }

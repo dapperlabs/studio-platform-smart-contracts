@@ -66,11 +66,28 @@ pub contract DSSCollection: NonFungibleToken {
     // Entity Counts
     //
     pub var totalSupply:    UInt64
+    pub var collectionGroupNFTCount: {UInt64: UInt64}
+
 
     // Lists in contract
     //
     access(self) let collectionGroupByID: @{UInt64: CollectionGroup}
     access(self) let slotByID: @{UInt64: Slot}
+
+    // A public struct to stores the nftIDs used to complete a collection group
+    //
+    pub struct CollectionCompletedWith {
+        pub var collectionGroupID: UInt64
+        pub var nftIDs: [UInt64]
+
+        init(collectionGroupID: UInt64, nftIDs: [UInt64]) {
+            self.collectionGroupID = collectionGroupID
+            self.nftIDs = nftIDs
+        }
+    }
+
+    pub var completedCollections: {Address: [CollectionCompletedWith]}
+
 
     // A public struct to access Item data
     //
@@ -357,6 +374,12 @@ pub contract DSSCollection: NonFungibleToken {
         return false
     }
 
+    // Get the completed collection for a given collection group ID and address
+    //
+    pub fun getCompletedCollectionIDs(address: Address): [CollectionCompletedWith]? {
+        return DSSCollection.completedCollections[address]
+    }
+
     // A DSSCollection NFT
     //
     pub resource NFT: NonFungibleToken.INFT, MetadataViews.Resolver {
@@ -565,6 +588,16 @@ pub contract DSSCollection: NonFungibleToken {
     // A resource that allows managing metadata and minting NFTs
     //
     pub resource Admin: NFTMinter {
+        // Complete a collection group for a given user with a list of NFT IDs
+        pub fun completedCollectionGroup(collectionGroupID: UInt64, userAddress: Address, nftIDs: [UInt64]) {
+            let collection = CollectionCompletedWith(collectionGroupID: collectionGroupID, nftIDs: nftIDs)
+            // Update the completed collections mapping
+            if DSSCollection.completedCollections[userAddress] == nil {
+                DSSCollection.completedCollections[userAddress] = [collection]
+            } else {
+                DSSCollection.completedCollections[userAddress]!.append(collection)
+            }
+        }
 
         // Borrow a Collection Group
         //
@@ -668,7 +701,14 @@ pub contract DSSCollection: NonFungibleToken {
                 // Make sure the collection group exists
                 DSSCollection.collectionGroupByID.containsKey(collectionGroupID): "No such CollectionGroupID"
             }
-            return <- self.borrowCollectionGroup(id: collectionGroupID).mint(completionAddress: completionAddress, level: level)
+
+            let nft <- self.borrowCollectionGroup(id: collectionGroupID).mint(completionAddress: completionAddress, level: level)
+
+            // Increment the count of minted NFTs for the Collection Group ID
+            let currentCount = DSSCollection.collectionGroupNFTCount[collectionGroupID] ?? 0
+            DSSCollection.collectionGroupNFTCount[collectionGroupID] = currentCount + 1
+
+            return <- nft
         }
     }
 
@@ -685,8 +725,10 @@ pub contract DSSCollection: NonFungibleToken {
         self.totalSupply = 0
 
         // Initialize the metadata lookup dictionaries
+        self.collectionGroupNFTCount = {}
         self.collectionGroupByID <- {}
         self.slotByID <- {}
+        self.completedCollections = {}
 
         // Create an Admin resource and save it to storage
         let admin <- create Admin()

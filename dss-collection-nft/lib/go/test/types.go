@@ -63,6 +63,7 @@ func parseSlotData(value cadence.Value) SlotData {
 		item := parseItemData(val)
 		items = append(items, item)
 	}
+
 	slotData := SlotData{
 		fields[0].ToGoValue().(uint64),
 		fields[1].ToGoValue().(uint64),
