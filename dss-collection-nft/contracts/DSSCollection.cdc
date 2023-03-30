@@ -54,6 +54,12 @@ pub contract DSSCollection: NonFungibleToken {
         completionDate: UFix64,
         level: UInt8
     )
+    pub event CollectionNFTCompletedWith(
+        collectionGroupID: UInt64,
+        completionAddress: String,
+        completionNftIds: [UInt64]
+    )
+
     pub event CollectionNFTBurned(id: UInt64)
 
     // Named Paths
@@ -68,6 +74,8 @@ pub contract DSSCollection: NonFungibleToken {
     pub var totalSupply:    UInt64
     pub var collectionGroupNFTCount: {UInt64: UInt64}
 
+    // Placeholder for future updates
+    pub let extCollectionGroup: {String: AnyStruct}
 
     // Lists in contract
     //
@@ -597,6 +605,12 @@ pub contract DSSCollection: NonFungibleToken {
             } else {
                 DSSCollection.completedCollections[userAddress]!.append(collection)
             }
+
+            emit CollectionNFTCompletedWith(
+                collectionGroupID: collectionGroupID,
+                completionAddress: userAddress.toString(),
+                completionNftIds: nftIDs
+            )
         }
 
         // Borrow a Collection Group
@@ -729,6 +743,7 @@ pub contract DSSCollection: NonFungibleToken {
         self.collectionGroupByID <- {}
         self.slotByID <- {}
         self.completedCollections = {}
+        self.extCollectionGroup = {}
 
         // Create an Admin resource and save it to storage
         let admin <- create Admin()

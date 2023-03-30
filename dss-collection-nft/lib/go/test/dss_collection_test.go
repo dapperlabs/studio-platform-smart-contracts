@@ -393,6 +393,7 @@ func testOwnershipCheck(
 		collectionGroupName,
 		"All Stars",
 		"NBA Top Shot",
+		map[string]string{"key": "META"},
 	)
 
 	closeCollectionGroup(
@@ -507,6 +508,7 @@ func testCompletionCount(
 		collectionGroupName,
 		"All Stars",
 		"NBA Top Shot",
+		map[string]string{"key": "META"},
 	)
 
 	closeCollectionGroup(
