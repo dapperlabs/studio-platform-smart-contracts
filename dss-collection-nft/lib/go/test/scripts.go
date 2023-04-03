@@ -36,3 +36,36 @@ func getDSSCollectionNFTDisplayMetadataView(
 
 	return parseMetadataDisplayView(result)
 }
+
+func getCollectionGroupNFTCount(
+	t *testing.T,
+	b *emulator.Blockchain,
+	contracts Contracts,
+	collectionGroupID uint64,
+) uint64 {
+	script := getCollectionGroupNFTCountScript(contracts)
+	result := executeScriptAndCheck(t, b, script, [][]byte{
+		jsoncdc.MustEncode(cadence.UInt64(collectionGroupID)),
+	})
+
+	nftCount := result.ToGoValue().(uint64)
+	return nftCount
+}
+
+func checkCollectionOwnership(
+	t *testing.T,
+	b *emulator.Blockchain,
+	contracts Contracts,
+	isAuthorized bool,
+	userAddress string,
+	collectionGroupID uint64,
+) bool {
+	script := getCheckCollectionOwnershipScript(contracts)
+	address := flow.HexToAddress(userAddress)
+	result := executeScriptAndCheck(t, b, script, [][]byte{
+		jsoncdc.MustEncode(cadence.Address(address)),
+		jsoncdc.MustEncode(cadence.UInt64(collectionGroupID)),
+	})
+
+	return result.ToGoValue().(bool)
+}

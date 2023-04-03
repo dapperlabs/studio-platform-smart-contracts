@@ -1,10 +1,11 @@
 package test
 
 import (
-	emulator "github.com/onflow/flow-emulator"
-	"github.com/stretchr/testify/assert"
 	"strconv"
 	"testing"
+
+	emulator "github.com/onflow/flow-emulator"
+	"github.com/stretchr/testify/assert"
 )
 
 // ------------------------------------------------------------
@@ -361,5 +362,197 @@ func testMintNFT(
 		assert.Contains(t, displayView.Name, strconv.Itoa(nftLevel))
 		assert.Contains(t, displayView.Description, userAddress.String())
 		assert.NotNil(t, displayView.ImageURL)
+	}
+}
+
+func TestOwnershipCheck(t *testing.T) {
+	b := newEmulator()
+	contracts := DSSCollectionDeployContracts(t, b)
+	t.Run("Should be able to determine if a account still owns the NFTs that completed a CG", func(t *testing.T) {
+		testOwnershipCheck(
+			t,
+			b,
+			contracts,
+			false,
+		)
+	})
+}
+
+func testOwnershipCheck(
+	t *testing.T,
+	b *emulator.Blockchain,
+	contracts Contracts,
+	shouldRevert bool,
+) {
+	collectionGroupName := "Top Shot All Stars"
+	collectionGroupId := createCollectionGroup(
+		t,
+		b,
+		contracts,
+		false,
+		collectionGroupName,
+		"All Stars",
+		"NBA Top Shot",
+		map[string]string{"key": "META"},
+	)
+
+	closeCollectionGroup(
+		t,
+		b,
+		contracts,
+		false,
+		collectionGroupId,
+	)
+
+	userAddress, userSigner := createAccount(t, b)
+	setupDSSCollectionAccount(t, b, userAddress, userSigner, contracts)
+	setupExampleNFT(t, b, userAddress, userSigner, contracts)
+
+	user2Address, user2Signer := createAccount(t, b)
+	setupExampleNFT(t, b, user2Address, user2Signer, contracts)
+
+	nftLevel := 5
+
+	mintNFT(
+		t,
+		b,
+		contracts,
+		false,
+		userAddress.String(),
+		collectionGroupId,
+		userAddress.String(),
+		uint8(nftLevel),
+	)
+
+	exampleNftID := mintExampleNFT(
+		t,
+		b,
+		contracts,
+		false,
+		userAddress.String(),
+	)
+
+	completedCollectionGroup(
+		t,
+		b,
+		contracts,
+		false,
+		collectionGroupId,
+		userAddress.String(),
+		[]uint64{exampleNftID},
+	)
+
+	if !shouldRevert {
+		ownershipCheck := checkCollectionOwnership(
+			t,
+			b,
+			contracts,
+			false,
+			userAddress.String(),
+			collectionGroupId,
+		)
+
+		assert.True(t, ownershipCheck)
+
+		// Transfer NFT to 0x0 address before checking ownership
+		transferNFT(
+			t,
+			b,
+			contracts,
+			false,
+			userAddress,
+			user2Signer,
+			user2Address.String(),
+			uint64(exampleNftID),
+		)
+
+		// Ownership void after NFT has been moved
+		ownershipCheck2 := checkCollectionOwnership(
+			t,
+			b,
+			contracts,
+			false,
+			userAddress.String(),
+			collectionGroupId,
+		)
+
+		assert.False(t, ownershipCheck2)
+	}
+}
+
+func TestCompletionCount(t *testing.T) {
+	b := newEmulator()
+	contracts := DSSCollectionDeployContracts(t, b)
+	t.Run("Should be able to return the number of completion NFTs minted for a given collectionId", func(t *testing.T) {
+		testCompletionCount(
+			t,
+			b,
+			contracts,
+			false,
+		)
+	})
+}
+
+func testCompletionCount(
+	t *testing.T,
+	b *emulator.Blockchain,
+	contracts Contracts,
+	shouldRevert bool,
+) {
+	collectionGroupName := "Top Shot All Stars"
+	collectionGroupId := createCollectionGroup(
+		t,
+		b,
+		contracts,
+		false,
+		collectionGroupName,
+		"All Stars",
+		"NBA Top Shot",
+		map[string]string{"key": "META"},
+	)
+
+	closeCollectionGroup(
+		t,
+		b,
+		contracts,
+		false,
+		collectionGroupId,
+	)
+
+	userAddress, userSigner := createAccount(t, b)
+	setupDSSCollectionAccount(t, b, userAddress, userSigner, contracts)
+
+	user2Address, user2Signer := createAccount(t, b)
+	setupDSSCollectionAccount(t, b, user2Address, user2Signer, contracts)
+
+	nftLevel := 5
+
+	mintNFT(
+		t,
+		b,
+		contracts,
+		false,
+		userAddress.String(),
+		collectionGroupId,
+		userAddress.String(),
+		uint8(nftLevel),
+	)
+
+	mintNFT(
+		t,
+		b,
+		contracts,
+		false,
+		userAddress.String(),
+		collectionGroupId,
+		user2Address.String(),
+		uint8(nftLevel),
+	)
+
+	if !shouldRevert {
+		expectedNFTCount := uint64(2)
+		nftCount := getCollectionGroupNFTCount(t, b, contracts, collectionGroupId)
+
+		assert.Equal(t, expectedNFTCount, nftCount)
 	}
 }
