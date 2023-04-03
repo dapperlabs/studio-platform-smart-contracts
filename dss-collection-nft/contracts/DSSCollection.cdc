@@ -292,7 +292,8 @@ pub contract DSSCollection: NonFungibleToken {
                 collectionGroupID: self.id,
                 serialNumber: self.numMinted + 1,
                 completionAddress: completionAddress,
-                level: level
+                level: level,
+                extensionData: {},
             )
             DSSCollection.totalSupply = DSSCollection.totalSupply + 1
             self.numMinted = self.numMinted + 1 as UInt64
@@ -398,6 +399,9 @@ pub contract DSSCollection: NonFungibleToken {
         pub let completionAddress: String
         pub let level: UInt8
 
+        // Placeholder for future updates
+        pub let extensionData: {String: AnyStruct}
+
         pub fun name(): String {
             let collectionGroupData: DSSCollection.CollectionGroupData
                 = DSSCollection.getCollectionGroupData(id: self.collectionGroupID)
@@ -444,7 +448,8 @@ pub contract DSSCollection: NonFungibleToken {
             collectionGroupID: UInt64,
             serialNumber: UInt64,
             completionAddress: String,
-            level: UInt8
+            level: UInt8,
+            extensionData: {String: AnyStruct},
         ) {
             pre {
                 DSSCollection.collectionGroupByID[collectionGroupID] != nil: "no such collectionGroupID"
@@ -456,6 +461,7 @@ pub contract DSSCollection: NonFungibleToken {
             self.completionDate = getCurrentBlock().timestamp
             self.completionAddress = completionAddress
             self.level = level
+            self.extensionData = extensionData
 
             emit CollectionNFTMinted(
                 id: self.id,
