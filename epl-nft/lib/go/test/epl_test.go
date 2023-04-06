@@ -375,9 +375,11 @@ func testCreateEdition(
 		assert.Equal(t, setID, edition.SetID)
 		assert.Equal(t, playID, edition.PlayID)
 		assert.Equal(t, tier, edition.Tier)
-		//if maxMintSize != nil {
-		//	assert.Equal(t, &maxMintSize, &edition.MaxMintSize)
-		//}
+		if maxMintSize != nil {
+			assert.Equal(t, &maxMintSize, &edition.MaxMintSize)
+		} else {
+			assert.Equal(t, uint64(0), *edition.MaxMintSize)
+		}
 	}
 }
 
