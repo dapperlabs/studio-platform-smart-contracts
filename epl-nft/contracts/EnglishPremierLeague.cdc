@@ -33,6 +33,7 @@ pub contract EnglishPremierLeague: NonFungibleToken {
     pub event EditionClosed(id: UInt64)
     pub event MomentNFTMinted(id: UInt64, editionID: UInt64, serialNumber: UInt64)
     pub event MomentNFTBurned(id: UInt64,  editionID: UInt64, serialNumber: UInt64)
+    pub event PackPurchase(purchaseAddress: Address, packID: UInt64)
 
     /// Named Paths
     ///
@@ -224,7 +225,6 @@ pub contract EnglishPremierLeague: NonFungibleToken {
                 self.seriesID = seriesID
                 self.setID = setID
                 self.playID = playID
-                self.maxMintSize = maxMintSize
 
                 // If an edition size is not set, it has unlimited minting potential
                 if maxMintSize != nil && maxMintSize! == 0 {
@@ -317,9 +317,7 @@ pub contract EnglishPremierLeague: NonFungibleToken {
         }
 
         pub fun assetPath(): String {
-            let editionData = EnglishPremierLeague.getEdition(id: self.editionID)!
-            let playDataID: String = EnglishPremierLeague.getPlay(id: editionData.playID)!.metadata["PlayDataID"] ?? ""
-            return "https://assets.eplonflow.com/editions/".concat(playDataID).concat("/play_").concat(playDataID)
+            return "https://assets.eplonflow.com/editions/".concat(self.editionID.toString()).concat("/")
         }
 
         pub fun getImage(imageType: String): String {
@@ -334,10 +332,10 @@ pub contract EnglishPremierLeague: NonFungibleToken {
         ///
         pub fun name(): String {
             let editionData = EnglishPremierLeague.getEdition(id: self.editionID)!
-            let playerKnownName: String = EnglishPremierLeague.getPlay(id: editionData.playID)!.metadata["Player Known Name"] ?? ""
-            let playerFirstName: String = EnglishPremierLeague.getPlay(id: editionData.playID)!.metadata["Player First Name"] ?? ""
-            let playerLastName: String = EnglishPremierLeague.getPlay(id: editionData.playID)!.metadata["Player Last Name"] ?? ""
-            let playType: String = EnglishPremierLeague.getPlay(id: editionData.playID)!.metadata["Play Type"] ?? ""
+            let playerKnownName: String = EnglishPremierLeague.getPlay(id: editionData.playID)!.metadata["PlayerKnownName"] ?? ""
+            let playerFirstName: String = EnglishPremierLeague.getPlay(id: editionData.playID)!.metadata["PlayerFirstName"] ?? ""
+            let playerLastName: String = EnglishPremierLeague.getPlay(id: editionData.playID)!.metadata["PlayerLastName"] ?? ""
+            let playType: String = EnglishPremierLeague.getPlay(id: editionData.playID)!.metadata["PlayType"] ?? ""
             var playerName = playerKnownName
             if(playerName == ""){
                 playerName = playerFirstName.concat(" ").concat(playerLastName)
@@ -350,12 +348,12 @@ pub contract EnglishPremierLeague: NonFungibleToken {
         pub fun description(): String {
             let editionData = EnglishPremierLeague.getEdition(id: self.editionID)!
             let metadata = EnglishPremierLeague.getPlay(id: editionData.playID)!.metadata
-            let matchHomeTeam: String = metadata["Match Home Team"] ?? ""
-            let matchAwayTeam: String = metadata["Match Away Team"] ?? ""
-            let matchHomeScore: String = metadata["Match Home Score"] ?? ""
-            let matchAwayScore: String = metadata["Match Away Score"] ?? ""
-            let matchDay: String = metadata["Match Day"] ?? ""
-            let matchSeason: String = metadata["Match Season"] ?? ""
+            let matchHomeTeam: String = metadata["MatchHomeTeam"] ?? ""
+            let matchAwayTeam: String = metadata["MatchAwayTeam"] ?? ""
+            let matchHomeScore: String = metadata["MatchHomeScore"] ?? ""
+            let matchAwayScore: String = metadata["MatchAwayScore"] ?? ""
+            let matchDay: String = metadata["MatchDay"] ?? ""
+            let matchSeason: String = metadata["MatchSeason"] ?? ""
 
             return "English Premier League Moment from ".concat(matchHomeTeam)
             .concat(" x ").concat(matchAwayTeam).concat(" (").concat(matchHomeScore)
@@ -800,6 +798,12 @@ pub contract EnglishPremierLeague: NonFungibleToken {
             edition.incrementNumMinted()
             EnglishPremierLeague.totalSupply = EnglishPremierLeague.totalSupply + 1
             return <- momentNFT
+        }
+
+        /// Purchase Pack
+        ///
+        pub fun purchasePack(purchaseAddress: Address, packID: UInt64) {
+            emit PackPurchase(purchaseAddress: purchaseAddress, packID: packID)
         }
 
         /// Royalty Address
