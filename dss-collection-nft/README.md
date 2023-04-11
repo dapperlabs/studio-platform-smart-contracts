@@ -11,7 +11,7 @@
 | Network   | Address |                                                                                     |
 | ----------|:-------:|-------------------------------------------------------------------------------------|
 | Testnet   |  0x9dae79d85e17d382   | [Flow View Source](https://flow-view-source.com/testnet/) |
-| Mainnet   |  XXXX   | [Flow View Source](https://flow-view-source.com/mainnet/) |
+| Mainnet   |  0xec55c6f3dae179c8   | [Flow View Source](https://flow-view-source.com/mainnet/) |
 
 
 ## Transactions
