@@ -45,6 +45,7 @@ const (
 	SetupExampleNFTxPath                 = TransactionsRootPath + "/user/setup_example_nft.cdc"
 	TransferNFTTxPath                    = TransactionsRootPath + "/user/transfer_nft.cdc"
 	MintNFTTxPath                        = TransactionsRootPath + "/admin/mint_nft.cdc"
+	MintNFTTAndRecordxPath               = TransactionsRootPath + "/admin/mint_and_record.cdc"
 	MintExampleNFTTxPath                 = TransactionsRootPath + "/admin/mint_example_nft.cdc"
 	CompletedCollectionGroupTxPath       = TransactionsRootPath + "/admin/set_completed_collection_group.cdc"
 	ReadNftSupplyScriptPath              = ScriptsRootPath + "/total_supply.cdc"
@@ -196,6 +197,13 @@ func setCompletedCollectionGroup(contracts Contracts) []byte {
 func mintDSSCollectionTransaction(contracts Contracts) []byte {
 	return replaceAddresses(
 		readFile(MintNFTTxPath),
+		contracts,
+	)
+}
+
+func mintDSSCollectionAndRecordTransaction(contracts Contracts) []byte {
+	return replaceAddresses(
+		readFile(MintNFTTAndRecordxPath),
 		contracts,
 	)
 }

@@ -413,17 +413,6 @@ func testOwnershipCheck(
 
 	nftLevel := 5
 
-	mintNFT(
-		t,
-		b,
-		contracts,
-		false,
-		userAddress.String(),
-		collectionGroupId,
-		userAddress.String(),
-		uint8(nftLevel),
-	)
-
 	exampleNftID := mintExampleNFT(
 		t,
 		b,
@@ -432,13 +421,15 @@ func testOwnershipCheck(
 		userAddress.String(),
 	)
 
-	completedCollectionGroup(
+	mintNFTAndRecordCompletedWith(
 		t,
 		b,
 		contracts,
 		false,
+		userAddress.String(),
 		collectionGroupId,
 		userAddress.String(),
+		uint8(nftLevel),
 		[]uint64{exampleNftID},
 	)
 
