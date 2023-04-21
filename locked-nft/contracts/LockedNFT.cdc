@@ -16,9 +16,9 @@ pub contract LockedNFT {
         pub let owner: Address
         pub let lockedAt: UInt64
         pub let lockedUntil: UInt64
-        pub let nftType: Type
+        pub let nftType: String
 
-        init (id: UInt64, owner: Address, lockedAt: UInt64, duration: UInt64, nftType: Type) {
+        init (id: UInt64, owner: Address, duration: UInt64, nftType: String) {
             if let lockedToken = LockedNFT.lockedTokens[id] {
                 self.owner = lockedToken.owner
                 self.lockedAt = lockedToken.lockedAt
@@ -31,6 +31,10 @@ pub contract LockedNFT {
                 self.nftType = nftType
             }
         }
+    }
+
+    pub fun getLockedToken(id: UInt64): LockedNFT.LockedData? {
+        return LockedNFT.lockedTokens[id]
     }
 
     pub fun canUnlockToken(id: UInt64): Bool {
@@ -75,9 +79,8 @@ pub contract LockedNFT {
             let lockedData = LockedNFT.LockedData(
                 id: id,
                 owner: self.owner!.address,
-                lockedAt: UInt64(getCurrentBlock().timestamp),
-                lockedUntil: UInt64(getCurrentBlock().timestamp) + duration,
-                nftType: oldToken.getType()
+                duration: duration,
+                nftType: oldToken.getType().identifier
             )
             LockedNFT.lockedTokens[id] = lockedData
             LockedNFT.totalLockedTokens = LockedNFT.totalLockedTokens + 1
