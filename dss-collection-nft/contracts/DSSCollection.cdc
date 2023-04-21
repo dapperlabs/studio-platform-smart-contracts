@@ -277,16 +277,22 @@ pub contract DSSCollection: NonFungibleToken {
 
         // Mint a DSSCollection NFT in this group
         //
-        pub fun mint(completionAddress: String, level: UInt8): @DSSCollection.NFT {
+        pub fun mint(completionAddress: String, level: UInt8, recipientAddress: Address): @DSSCollection.NFT {
             pre {
                 !self.active : "Cannot mint an active collection group"
                 DSSCollection.validateTimeBound(
                     endTime: self.endTime
                 ) == true : "Cannot mint a collection group outside of time bounds"
                 level <= 10: "Token level must be less than 10"
-                self.metadata[completionAddress] != "REDEEMED": "user has a reward token"
             }
 
+            if let completedNFTs: [DSSCollection.CollectionCompletedWith] = DSSCollection.getCompletedCollectionIDs(address: recipientAddress) {
+                for completedCollectionWith in completedNFTs {
+                    if completedCollectionWith.collectionGroupID == self.id {
+                        panic("user has a reward token")
+                    }
+                }
+            }
 
             // Create the DSSCollection NFT, filled out with our information
             //
@@ -299,7 +305,6 @@ pub contract DSSCollection: NonFungibleToken {
             )
             DSSCollection.totalSupply = DSSCollection.totalSupply + 1
             self.numMinted = self.numMinted + 1 as UInt64
-            self.metadata[completionAddress] = "REDEEMED"
 
             return <- dssCollectionNFT
         }
@@ -599,7 +604,7 @@ pub contract DSSCollection: NonFungibleToken {
     // An interface containing the Admin function that allows minting NFTs
     //
     pub resource interface NFTMinter {
-        pub fun mintNFT(collectionGroupID: UInt64, completionAddress: String, level: UInt8): @DSSCollection.NFT
+        pub fun mintNFT(collectionGroupID: UInt64, completionAddress: String, level: UInt8, recipientAddress: Address): @DSSCollection.NFT
     }
 
     // A resource that allows managing metadata and minting NFTs
@@ -719,13 +724,13 @@ pub contract DSSCollection: NonFungibleToken {
         // Mint a single NFT
         // The CollectionGroup for the given ID must already exist
         //
-        pub fun mintNFT(collectionGroupID: UInt64, completionAddress: String, level: UInt8): @DSSCollection.NFT {
+        pub fun mintNFT(collectionGroupID: UInt64, completionAddress: String, level: UInt8, recipientAddress: Address): @DSSCollection.NFT {
             pre {
                 // Make sure the collection group exists
                 DSSCollection.collectionGroupByID.containsKey(collectionGroupID): "No such CollectionGroupID"
             }
 
-            let nft <- self.borrowCollectionGroup(id: collectionGroupID).mint(completionAddress: completionAddress, level: level)
+            let nft <- self.borrowCollectionGroup(id: collectionGroupID).mint(completionAddress: completionAddress, level: level, recipientAddress: recipientAddress)
 
             // Increment the count of minted NFTs for the Collection Group ID
             let currentCount = DSSCollection.collectionGroupNFTCount[collectionGroupID] ?? 0

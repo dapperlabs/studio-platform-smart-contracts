@@ -534,7 +534,7 @@ func testCompletionCount(
 		b,
 		contracts,
 		false,
-		userAddress.String(),
+		user2Address.String(),
 		collectionGroupId,
 		user2Address.String(),
 		uint8(nftLevel),
@@ -597,7 +597,7 @@ func testDuplicateRewardGuard(
 
 	nftLevel := 5
 
-	mintNFT(
+	mintNFTAndRecordCompletedWith(
 		t,
 		b,
 		contracts,
@@ -606,6 +606,7 @@ func testDuplicateRewardGuard(
 		collectionGroupId,
 		userAddress.String(),
 		uint8(nftLevel),
+		[]uint64{0},
 	)
 
 	// Will panic since userAddress already minted above

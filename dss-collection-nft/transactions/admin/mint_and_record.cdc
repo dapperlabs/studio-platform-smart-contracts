@@ -32,7 +32,8 @@ transaction(
         let nft <- self.minter.mintNFT(
             collectionGroupID: collectionGroupID,
             completionAddress: completionAddress,
-            level: level
+            level: level,
+            recipientAddress: recipientAddress,
         )
         self.recipient.deposit(token: <- (nft as @NonFungibleToken.NFT))
 
