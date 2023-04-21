@@ -284,7 +284,9 @@ pub contract DSSCollection: NonFungibleToken {
                     endTime: self.endTime
                 ) == true : "Cannot mint a collection group outside of time bounds"
                 level <= 10: "Token level must be less than 10"
+                self.metadata[completionAddress] != "REDEEMED": "user has a reward token"
             }
+
 
             // Create the DSSCollection NFT, filled out with our information
             //
@@ -297,6 +299,7 @@ pub contract DSSCollection: NonFungibleToken {
             )
             DSSCollection.totalSupply = DSSCollection.totalSupply + 1
             self.numMinted = self.numMinted + 1 as UInt64
+            self.metadata[completionAddress] = "REDEEMED"
 
             return <- dssCollectionNFT
         }
