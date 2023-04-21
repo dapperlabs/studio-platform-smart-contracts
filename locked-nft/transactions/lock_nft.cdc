@@ -1,9 +1,9 @@
-import NonFungibleToken from 0xf8d6e0586b0a20c7
-import LockedNFT from 0xf8d6e0586b0a20c7
-import ExampleNFT from 0xf8d6e0586b0a20c7
+import NonFungibleToken from "../contracts/NonFungibleToken.cdc"
+import LockedNFT from "../contracts/LockedNFT.cdc"
+import ExampleNFT from 0xEXAMPLENFTADDRESS
 
 
-transaction(nftID: UInt64) {
+transaction(nftID: UInt64, duration: UInt64) {
     let exampleCollectionRef: &ExampleNFT.Collection
     let signerAddress: Address
 
@@ -18,6 +18,6 @@ transaction(nftID: UInt64) {
             let lockRef = getAccount(self.signerAddress)
                 .getCapability(LockedNFT.CollectionPublicPath).borrow<&{LockedNFT.LockedCollection}>()!
 
-            lockRef.lock(token: <- self.exampleCollectionRef.withdraw(withdrawID: nftID), duration: 500)
+            lockRef.lock(token: <- self.exampleCollectionRef.withdraw(withdrawID: nftID), duration: duration)
     }
 }

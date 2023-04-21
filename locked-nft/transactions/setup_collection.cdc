@@ -1,5 +1,5 @@
-import NonFungibleToken from 0xf8d6e0586b0a20c7
-import LockedNFT from 0xf8d6e0586b0a20c7
+import NonFungibleToken from "../contracts/NonFungibleToken.cdc"
+import LockedNFT from "../contracts/LockedNFT.cdc"
 
 transaction {
     prepare(signer: AuthAccount) {

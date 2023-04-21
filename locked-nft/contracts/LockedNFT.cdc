@@ -3,7 +3,12 @@ import NonFungibleToken from "./NonFungibleToken.cdc"
 pub contract LockedNFT {
 
     pub event ContractInitialized()
-    pub event NFTLocked(id: UInt64, to: Address?)
+    pub event NFTLocked(
+        id: UInt64,
+        to: Address?,
+        lockedAt: UInt64,
+        lockedUntil: UInt64
+    )
     pub event NFTUnlocked(id: UInt64, from: Address?)
 
     pub let CollectionStoragePath:  StoragePath
@@ -75,12 +80,17 @@ pub contract LockedNFT {
         pub fun lock(token: @NonFungibleToken.NFT, duration: UInt64) {
             let id: UInt64 = token.id
             let oldToken <- self.lockedNFTs[id] <- token
-            emit NFTLocked(id: id, to: self.owner?.address)
             let lockedData = LockedNFT.LockedData(
                 id: id,
                 owner: self.owner!.address,
                 duration: duration,
                 nftType: oldToken.getType().identifier
+            )
+            emit NFTLocked(
+                id: id,
+                to: self.owner?.address,
+                lockedAt: lockedData.lockedAt,
+                lockedUntil: lockedData.lockedUntil
             )
             LockedNFT.lockedTokens[id] = lockedData
             LockedNFT.totalLockedTokens = LockedNFT.totalLockedTokens + 1

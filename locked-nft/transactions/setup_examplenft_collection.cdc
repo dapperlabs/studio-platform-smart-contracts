@@ -1,5 +1,6 @@
-import NonFungibleToken from 0xf8d6e0586b0a20c7
-import ExampleNFT from 0xf8d6e0586b0a20c7
+import NonFungibleToken from "../../contracts/NonFungibleToken.cdc"
+import ExampleNFT from 0xEXAMPLENFTADDRESS
+
 
 transaction {
     prepare(signer: AuthAccount) {

@@ -1,6 +1,7 @@
 package test
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/onflow/cadence"
@@ -70,4 +71,64 @@ func mintExampleNFT(
 
 	nftId := txResult.Events[0].Value.Fields[0].ToGoValue().(uint64)
 	return nftId
+}
+
+func lockNFT(
+	t *testing.T,
+	b *emulator.Blockchain,
+	contracts Contracts,
+	shouldRevert bool,
+	userAddress flow.Address,
+	userSigner crypto.Signer,
+	nftId uint64,
+	duration uint64,
+) (uint64, uint64) {
+	tx := flow.NewTransaction().
+		SetScript(lockNFTTransaction(contracts)).
+		SetGasLimit(100).
+		SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
+		SetPayer(b.ServiceKey().Address).
+		AddAuthorizer(userAddress)
+	tx.AddArgument(cadence.UInt64(nftId))
+	tx.AddArgument(cadence.UInt64(duration))
+
+	signer, _ := b.ServiceKey().Signer()
+	txResult := signAndSubmit(
+		t, b, tx,
+		[]flow.Address{b.ServiceKey().Address, userAddress},
+		[]crypto.Signer{signer, userSigner},
+		shouldRevert,
+	)
+
+	lockedAt := txResult.Events[1].Value.Fields[2].ToGoValue().(uint64)
+	lockedUntil := txResult.Events[1].Value.Fields[3].ToGoValue().(uint64)
+
+	return lockedAt, lockedUntil
+}
+
+func unlockNFT(
+	t *testing.T,
+	b *emulator.Blockchain,
+	contracts Contracts,
+	shouldRevert bool,
+	userAddress flow.Address,
+	userSigner crypto.Signer,
+	nftId uint64,
+) {
+	tx := flow.NewTransaction().
+		SetScript(unlockNFTTransaction(contracts)).
+		SetGasLimit(100).
+		SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
+		SetPayer(b.ServiceKey().Address).
+		AddAuthorizer(userAddress)
+	tx.AddArgument(cadence.UInt64(nftId))
+
+	signer, _ := b.ServiceKey().Signer()
+	txResult := signAndSubmit(
+		t, b, tx,
+		[]flow.Address{b.ServiceKey().Address, userAddress},
+		[]crypto.Signer{signer, userSigner},
+		shouldRevert,
+	)
+	fmt.Println(txResult)
 }

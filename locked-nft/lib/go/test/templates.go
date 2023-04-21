@@ -29,8 +29,8 @@ const (
 	IsAccountSetupScriptPath = ScriptsRootPath + "/is_account_setup.cdc"
 
 	// NFTs
-	SetupExampleNFTxPath = TransactionsRootPath + "/user/setup_example_nft.cdc"
-	MintExampleNFTTxPath = TransactionsRootPath + "/examplenft/mint_nft.cdc"
+	SetupExampleNFTxPath = TransactionsRootPath + "/setup_examplenft_collection.cdc"
+	MintExampleNFTTxPath = TransactionsRootPath + "/mint_nft.cdc"
 
 	// MetadataViews
 	MetadataViewsContractsBaseURL = "https://raw.githubusercontent.com/onflow/flow-nft/master/contracts/"
@@ -40,6 +40,8 @@ const (
 
 	// LockedNFT
 	GetLockedTokenByIDScriptPath = ScriptsRootPath + "/get_locked_token.cdc"
+	LockNFTTxPath                = TransactionsRootPath + "/lock_nft.cdc"
+	UnlockNFTTxPath              = TransactionsRootPath + "/unlock_nft.cdc"
 )
 
 // ------------------------------------------------------------
@@ -114,6 +116,20 @@ func isAccountSetupScript(contracts Contracts) []byte {
 func mintExampleNFTTransaction(contracts Contracts) []byte {
 	return replaceAddresses(
 		readFile(MintExampleNFTTxPath),
+		contracts,
+	)
+}
+
+func lockNFTTransaction(contracts Contracts) []byte {
+	return replaceAddresses(
+		readFile(LockNFTTxPath),
+		contracts,
+	)
+}
+
+func unlockNFTTransaction(contracts Contracts) []byte {
+	return replaceAddresses(
+		readFile(UnlockNFTTxPath),
 		contracts,
 	)
 }
