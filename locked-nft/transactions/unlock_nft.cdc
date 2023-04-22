@@ -2,8 +2,7 @@ import NonFungibleToken from "../contracts/NonFungibleToken.cdc"
 import LockedNFT from "../contracts/LockedNFT.cdc"
 import ExampleNFT from 0xEXAMPLENFTADDRESS
 
-
-transaction(nftID: UInt64) {
+transaction(key: String) {
     let unlockRef: &LockedNFT.Collection
     let signerAddress: Address
 
@@ -18,6 +17,6 @@ transaction(nftID: UInt64) {
         let depositRef = getAccount(self.signerAddress)
             .getCapability(ExampleNFT.CollectionPublicPath).borrow<&{NonFungibleToken.CollectionPublic}>()!
 
-        depositRef.deposit(token: <- self.unlockRef.unlock(id: nftID))
+        depositRef.deposit(token: <- self.unlockRef.unlock(key: key))
     }
 }
