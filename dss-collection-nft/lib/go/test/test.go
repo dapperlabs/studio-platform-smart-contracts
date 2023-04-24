@@ -34,6 +34,7 @@ var (
 type Contracts struct {
 	NFTAddress           flow.Address
 	MetadataViewsAddress flow.Address
+	AddressUtils         flow.Address
 	DSSCollectionAddress flow.Address
 	DSSCollectionSigner  crypto.Signer
 	ExampleNFTAddress    flow.Address
@@ -62,6 +63,48 @@ func DSSCollectionDeployContracts(t *testing.T, b *emulator.Blockchain) Contract
 
 	nftAddress := deployNFTContract(t, b)
 	metadataCode := LoadMetadataViews(ftAddress, nftAddress)
+	arrayUtilsCode := LoadArrayUtils()
+
+	arrayUtilsAddr, err := b.CreateAccount(nil, []sdktemplates.Contract{
+		{
+			Name:   "ArrayUtils",
+			Source: string(arrayUtilsCode),
+		},
+	})
+	if !assert.NoError(t, err) {
+		t.Log(err.Error())
+	}
+	_, err = b.CommitBlock()
+	assert.NoError(t, err)
+
+	stringUtilsCode := LoadStringUtils(arrayUtilsAddr)
+
+	stringUtilsAddr, err := b.CreateAccount(nil, []sdktemplates.Contract{
+		{
+			Name:   "StringUtils",
+			Source: string(stringUtilsCode),
+		},
+	})
+	if !assert.NoError(t, err) {
+		t.Log(err.Error())
+	}
+	_, err = b.CommitBlock()
+	assert.NoError(t, err)
+
+	addressUtilsCode := LoadAddressUtils(stringUtilsAddr)
+
+	addressUtilsAddr, err := b.CreateAccount(nil, []sdktemplates.Contract{
+		{
+			Name:   "AddressUtils",
+			Source: string(addressUtilsCode),
+		},
+	})
+	if !assert.NoError(t, err) {
+		t.Log(err.Error())
+	}
+	_, err = b.CommitBlock()
+	assert.NoError(t, err)
+
 	metadataViewsAddr, err := b.CreateAccount(nil, []sdktemplates.Contract{
 		{
 			Name:   "MetadataViews",
@@ -75,7 +118,7 @@ func DSSCollectionDeployContracts(t *testing.T, b *emulator.Blockchain) Contract
 	assert.NoError(t, err)
 
 	DSSCollectionAccountKey, DSSCollectionSigner := accountKeys.NewWithSigner()
-	DSSCollectionCode := LoadDSSCollectionContract(nftAddress, metadataViewsAddr)
+	DSSCollectionCode := LoadDSSCollectionContract(nftAddress, metadataViewsAddr, addressUtilsAddr)
 
 	ExampleNFTCode := LoadExampleNFTContract(nftAddress, metadataViewsAddr)
 
@@ -139,6 +182,7 @@ func DSSCollectionDeployContracts(t *testing.T, b *emulator.Blockchain) Contract
 	return Contracts{
 		nftAddress,
 		metadataViewsAddr,
+		addressUtilsAddr,
 		DSSCollectionAddress,
 		DSSCollectionSigner,
 		DSSCollectionAddress,

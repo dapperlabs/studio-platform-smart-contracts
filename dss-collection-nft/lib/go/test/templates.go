@@ -16,11 +16,15 @@ const (
 	DSSCollectionAddressPlaceholder = "\"[^\"]*DSSCollection.cdc\""
 	metadataViewsAddressPlaceholder = "0xMETADATAVIEWSADDRESS"
 	exampleNFTAddressPlaceholder    = "0xEXAMPLENFTADDRESS"
+	addressUtilsPlaceholder         = "0xADDRESSUTILS"
 )
 
 const (
 	DSSCollectionPath    = "../../../contracts/DSSCollection.cdc"
 	ExampleNFTPath       = "../../../contracts/ExampleNFT.cdc"
+	ArrayUtilsPath       = "../../../contracts/flow-utils/ArrayUtils.cdc"
+	StringUtilsPath      = "../../../contracts/flow-utils/StringUtils.cdc"
+	AddressUtilsPath     = "../../../contracts/flow-utils/AddressUtils.cdc"
 	TransactionsRootPath = "../../../transactions"
 	ScriptsRootPath      = "../../../scripts"
 
@@ -57,6 +61,10 @@ const (
 	MetadataViewsInterfaceFile    = "MetadataViews.cdc"
 	MetadataFTReplaceAddress      = `"./utility/FungibleToken.cdc"`
 	MetadataNFTReplaceAddress     = `"./NonFungibleToken.cdc"`
+
+	// flow-utils
+	StringUtilsAUReplaceAddress = `"./ArrayUtils.cdc"`
+	StringUtilsSUReplaceAddress = `"./StringUtils.cdc"`
 )
 
 // ------------------------------------------------------------
@@ -70,7 +78,6 @@ func rX(code []byte, contracts Contracts) []byte {
 	code = DSSCollectionRe.ReplaceAll(code, []byte("0x"+contracts.DSSCollectionAddress.String()))
 
 	code = []byte(strings.ReplaceAll(string(code), metadataViewsAddressPlaceholder, "0x"+contracts.MetadataViewsAddress.String()))
-
 	return code
 }
 
@@ -87,13 +94,13 @@ func replaceAddresses(code []byte, contracts Contracts) []byte {
 	return code
 }
 
-func LoadDSSCollectionContract(nftAddress flow.Address, metadataViewsAddress flow.Address) []byte {
+func LoadDSSCollectionContract(nftAddress flow.Address, metadataViewsAddress flow.Address, addressUtilsAddr flow.Address) []byte {
 	code := readFile(DSSCollectionPath)
 
 	nftRe := regexp.MustCompile(nftAddressPlaceholder)
 	code = nftRe.ReplaceAll(code, []byte("0x"+nftAddress.String()))
 	code = []byte(strings.ReplaceAll(string(code), metadataViewsAddressPlaceholder, "0x"+metadataViewsAddress.String()))
-
+	code = []byte(strings.ReplaceAll(string(code), addressUtilsPlaceholder, "0x"+addressUtilsAddr.String()))
 	return code
 }
 
@@ -243,6 +250,24 @@ func DownloadFile(url string) ([]byte, error) {
 func LoadMetadataViews(ftAddress flow.Address, nftAddress flow.Address) []byte {
 	code, _ := DownloadFile(MetadataViewsContractsBaseURL + MetadataViewsInterfaceFile)
 	code = []byte(strings.Replace(strings.Replace(string(code), MetadataFTReplaceAddress, "0x"+ftAddress.String(), 1), MetadataNFTReplaceAddress, "0x"+nftAddress.String(), 1))
+
+	return code
+}
+
+func LoadArrayUtils() []byte {
+	return readFile(ArrayUtilsPath)
+}
+
+func LoadStringUtils(auAddress flow.Address) []byte {
+	code := readFile(StringUtilsPath)
+	code = []byte(strings.Replace(string(code), StringUtilsAUReplaceAddress, "0x"+auAddress.String(), 1))
+
+	return code
+}
+
+func LoadAddressUtils(suAddress flow.Address) []byte {
+	code := readFile(AddressUtilsPath)
+	code = []byte(strings.Replace(string(code), StringUtilsSUReplaceAddress, "0x"+suAddress.String(), 1))
 
 	return code
 }
