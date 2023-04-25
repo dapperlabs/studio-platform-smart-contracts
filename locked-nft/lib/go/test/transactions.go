@@ -58,14 +58,14 @@ func mintExampleNFT(
 		SetGasLimit(100).
 		SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
 		SetPayer(b.ServiceKey().Address).
-		AddAuthorizer(contracts.LockedNFTAddress)
+		AddAuthorizer(contracts.NFTLockerAddress)
 	tx.AddArgument(cadence.Address(flow.HexToAddress(recipientAddress)))
 
 	signer, _ := b.ServiceKey().Signer()
 	txResult := signAndSubmit(
 		t, b, tx,
-		[]flow.Address{b.ServiceKey().Address, contracts.LockedNFTAddress},
-		[]crypto.Signer{signer, contracts.LockedNFTSigner},
+		[]flow.Address{b.ServiceKey().Address, contracts.NFTLockerAddress},
+		[]crypto.Signer{signer, contracts.NFTLockerSigner},
 		shouldRevert,
 	)
 

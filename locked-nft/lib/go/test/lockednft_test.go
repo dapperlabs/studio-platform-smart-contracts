@@ -11,14 +11,14 @@ import (
 // ------------------------------------------------------------
 func TestDSSCollectionDeployContracts(t *testing.T) {
 	b := newEmulator()
-	LockedNFTDeployContracts(t, b)
+	NFTLockerDeployContracts(t, b)
 }
 
 func TestDSSCollectionSetupAccount(t *testing.T) {
 	b := newEmulator()
-	contracts := LockedNFTDeployContracts(t, b)
+	contracts := NFTLockerDeployContracts(t, b)
 	userAddress, userSigner := createAccount(t, b)
-	setupLockedNFTAccount(t, b, userAddress, userSigner, contracts)
+	setupNFTLockerAccount(t, b, userAddress, userSigner, contracts)
 
 	t.Run("Account should be set up", func(t *testing.T) {
 		isAccountSetUp := isAccountSetup(
@@ -33,7 +33,7 @@ func TestDSSCollectionSetupAccount(t *testing.T) {
 
 func TestLockNFT(t *testing.T) {
 	b := newEmulator()
-	contracts := LockedNFTDeployContracts(t, b)
+	contracts := NFTLockerDeployContracts(t, b)
 	t.Run("Should be able to mint and lock an nft", func(t *testing.T) {
 		testLockNFT(
 			t,
@@ -52,7 +52,7 @@ func testLockNFT(
 ) {
 	var duration uint64 = 10
 	userAddress, userSigner := createAccount(t, b)
-	setupLockedNFTAccount(t, b, userAddress, userSigner, contracts)
+	setupNFTLockerAccount(t, b, userAddress, userSigner, contracts)
 	setupExampleNFT(t, b, userAddress, userSigner, contracts)
 
 	exampleNftID := mintExampleNFT(
@@ -79,7 +79,7 @@ func testLockNFT(
 
 func TestUnlockNFT(t *testing.T) {
 	b := newEmulator()
-	contracts := LockedNFTDeployContracts(t, b)
+	contracts := NFTLockerDeployContracts(t, b)
 	t.Run("Should be able to mint and lock an nft", func(t *testing.T) {
 		testUnlockNFT(
 			t,
@@ -96,7 +96,7 @@ func testUnlockNFT(
 ) {
 	var duration uint64 = 200
 	userAddress, userSigner := createAccount(t, b)
-	setupLockedNFTAccount(t, b, userAddress, userSigner, contracts)
+	setupNFTLockerAccount(t, b, userAddress, userSigner, contracts)
 	setupExampleNFT(t, b, userAddress, userSigner, contracts)
 
 	exampleNftID := mintExampleNFT(

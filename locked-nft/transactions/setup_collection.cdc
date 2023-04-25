@@ -1,15 +1,15 @@
 import NonFungibleToken from "../contracts/NonFungibleToken.cdc"
-import LockedNFT from "../contracts/LockedNFT.cdc"
+import NFTLocker from "../contracts/NFTLocker.cdc"
 
 transaction {
     prepare(signer: AuthAccount) {
-        if signer.borrow<&LockedNFT.Collection>(from: LockedNFT.CollectionStoragePath) == nil {
+        if signer.borrow<&NFTLocker.Collection>(from: NFTLocker.CollectionStoragePath) == nil {
 
-            let collection <- LockedNFT.createEmptyCollection()
-            signer.save(<-collection, to: LockedNFT.CollectionStoragePath)
-            signer.link<&LockedNFT.Collection{LockedNFT.LockedCollection}>(
-                LockedNFT.CollectionPublicPath,
-                target: LockedNFT.CollectionStoragePath
+            let collection <- NFTLocker.createEmptyCollection()
+            signer.save(<-collection, to: NFTLocker.CollectionStoragePath)
+            signer.link<&NFTLocker.Collection{NFTLocker.LockedCollection}>(
+                NFTLocker.CollectionPublicPath,
+                target: NFTLocker.CollectionStoragePath
             )
         }
     }

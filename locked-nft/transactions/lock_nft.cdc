@@ -1,23 +1,22 @@
 import NonFungibleToken from "../contracts/NonFungibleToken.cdc"
-import LockedNFT from "../contracts/LockedNFT.cdc"
+import NFTLocker from "../contracts/NFTLocker.cdc"
 import ExampleNFT from 0xEXAMPLENFTADDRESS
 
 
 transaction(nftID: UInt64, duration: UInt64) {
     let exampleCollectionRef: &ExampleNFT.Collection
-    let signerAddress: Address
+    let lockRef: &NFTLocker.Collection
 
     prepare(signer: AuthAccount) {
         self.exampleCollectionRef = signer
             .borrow<&ExampleNFT.Collection>(from: ExampleNFT.CollectionStoragePath)
             ?? panic("Could not borrow a reference to the owner's collection")
-        self.signerAddress = signer.address
+        self.lockRef = signer
+            .borrow<&NFTLocker.Collection>(from: NFTLocker.CollectionStoragePath)
+            ?? panic("Account does not store an object at the specified path")
     }
 
     execute {
-            let lockRef = getAccount(self.signerAddress)
-                .getCapability(LockedNFT.CollectionPublicPath).borrow<&{LockedNFT.LockedCollection}>()!
-
-            lockRef.lock(token: <- self.exampleCollectionRef.withdraw(withdrawID: nftID), duration: duration)
+            self.lockRef.lock(token: <- self.exampleCollectionRef.withdraw(withdrawID: nftID), duration: duration)
     }
 }

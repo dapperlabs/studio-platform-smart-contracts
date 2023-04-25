@@ -13,13 +13,13 @@ import (
 
 const (
 	nftAddressPlaceholder           = "\"[^\"]*NonFungibleToken.cdc\""
-	LockedNFTAddressPlaceholder     = "\"[^\"]*LockedNFT.cdc\""
+	NFTLockerAddressPlaceholder     = "\"[^\"]*NFTLocker.cdc\""
 	metadataViewsAddressPlaceholder = "0xMETADATAVIEWSADDRESS"
 	exampleNFTAddressPlaceholder    = "0xEXAMPLENFTADDRESS"
 )
 
 const (
-	LockedNFTPath        = "../../../contracts/LockedNFT.cdc"
+	NFTLockerPath        = "../../../contracts/NFTLocker.cdc"
 	ExampleNFTPath       = "../../../contracts/ExampleNFT.cdc"
 	TransactionsRootPath = "../../../transactions"
 	ScriptsRootPath      = "../../../scripts"
@@ -38,7 +38,7 @@ const (
 	MetadataFTReplaceAddress      = `"./utility/FungibleToken.cdc"`
 	MetadataNFTReplaceAddress     = `"./NonFungibleToken.cdc"`
 
-	// LockedNFT
+	// NFTLocker
 	GetLockedTokenByIDScriptPath = ScriptsRootPath + "/get_locked_token.cdc"
 	LockNFTTxPath                = TransactionsRootPath + "/lock_nft.cdc"
 	UnlockNFTTxPath              = TransactionsRootPath + "/unlock_nft.cdc"
@@ -51,8 +51,8 @@ func rX(code []byte, contracts Contracts) []byte {
 	nftRe := regexp.MustCompile(nftAddressPlaceholder)
 	code = nftRe.ReplaceAll(code, []byte("0x"+contracts.NFTAddress.String()))
 
-	LockedNFTRe := regexp.MustCompile(LockedNFTAddressPlaceholder)
-	code = LockedNFTRe.ReplaceAll(code, []byte("0x"+contracts.LockedNFTAddress.String()))
+	NFTLockerRe := regexp.MustCompile(NFTLockerAddressPlaceholder)
+	code = NFTLockerRe.ReplaceAll(code, []byte("0x"+contracts.NFTLockerAddress.String()))
 
 	code = []byte(strings.ReplaceAll(string(code), metadataViewsAddressPlaceholder, "0x"+contracts.MetadataViewsAddress.String()))
 
@@ -63,17 +63,17 @@ func replaceAddresses(code []byte, contracts Contracts) []byte {
 	nftRe := regexp.MustCompile(nftAddressPlaceholder)
 	code = nftRe.ReplaceAll(code, []byte("0x"+contracts.NFTAddress.String()))
 
-	DapperSportRe := regexp.MustCompile(LockedNFTAddressPlaceholder)
-	code = DapperSportRe.ReplaceAll(code, []byte("0x"+contracts.LockedNFTAddress.String()))
+	DapperSportRe := regexp.MustCompile(NFTLockerAddressPlaceholder)
+	code = DapperSportRe.ReplaceAll(code, []byte("0x"+contracts.NFTLockerAddress.String()))
 
 	code = []byte(strings.ReplaceAll(string(code), metadataViewsAddressPlaceholder, "0x"+contracts.MetadataViewsAddress.String()))
-	code = []byte(strings.ReplaceAll(string(code), exampleNFTAddressPlaceholder, "0x"+contracts.LockedNFTAddress.String()))
+	code = []byte(strings.ReplaceAll(string(code), exampleNFTAddressPlaceholder, "0x"+contracts.NFTLockerAddress.String()))
 
 	return code
 }
 
-func LoadLockedNFTContract(nftAddress flow.Address, metadataViewsAddress flow.Address) []byte {
-	code := readFile(LockedNFTPath)
+func LoadNFTLockerContract(nftAddress flow.Address, metadataViewsAddress flow.Address) []byte {
+	code := readFile(NFTLockerPath)
 
 	nftRe := regexp.MustCompile(nftAddressPlaceholder)
 	code = nftRe.ReplaceAll(code, []byte("0x"+nftAddress.String()))

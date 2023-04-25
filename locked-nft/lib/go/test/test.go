@@ -34,8 +34,8 @@ var (
 type Contracts struct {
 	NFTAddress           flow.Address
 	MetadataViewsAddress flow.Address
-	LockedNFTAddress     flow.Address
-	LockedNFTSigner      crypto.Signer
+	NFTLockerAddress     flow.Address
+	NFTLockerSigner      crypto.Signer
 	ExampleNFTAddress    flow.Address
 }
 
@@ -57,7 +57,7 @@ func deployNFTContract(t *testing.T, b *emulator.Blockchain) flow.Address {
 	return nftAddress
 }
 
-func LockedNFTDeployContracts(t *testing.T, b *emulator.Blockchain) Contracts {
+func NFTLockerDeployContracts(t *testing.T, b *emulator.Blockchain) Contracts {
 	accountKeys := test.AccountKeyGenerator()
 
 	nftAddress := deployNFTContract(t, b)
@@ -74,24 +74,24 @@ func LockedNFTDeployContracts(t *testing.T, b *emulator.Blockchain) Contracts {
 	_, err = b.CommitBlock()
 	assert.NoError(t, err)
 
-	LockedNFTAccountKey, LockedNFTSigner := accountKeys.NewWithSigner()
-	LockedNFTCode := LoadLockedNFTContract(nftAddress, metadataViewsAddr)
+	NFTLockerAccountKey, NFTLockerSigner := accountKeys.NewWithSigner()
+	NFTLockerCode := LoadNFTLockerContract(nftAddress, metadataViewsAddr)
 
 	ExampleNFTCode := LoadExampleNFTContract(nftAddress, metadataViewsAddr)
 
-	LockedNFTAddress, err := b.CreateAccount(
-		[]*flow.AccountKey{LockedNFTAccountKey},
+	NFTLockerAddress, err := b.CreateAccount(
+		[]*flow.AccountKey{NFTLockerAccountKey},
 		nil,
 	)
 	require.NoError(t, err)
 
-	fundAccount(t, b, LockedNFTAddress, defaultAccountFunding)
+	fundAccount(t, b, NFTLockerAddress, defaultAccountFunding)
 
 	tx1 := sdktemplates.AddAccountContract(
-		LockedNFTAddress,
+		NFTLockerAddress,
 		sdktemplates.Contract{
-			Name:   "LockedNFT",
-			Source: string(LockedNFTCode),
+			Name:   "NFTLocker",
+			Source: string(NFTLockerCode),
 		},
 	)
 
@@ -101,7 +101,7 @@ func LockedNFTDeployContracts(t *testing.T, b *emulator.Blockchain) Contracts {
 		SetPayer(b.ServiceKey().Address)
 
 	tx2 := sdktemplates.AddAccountContract(
-		LockedNFTAddress,
+		NFTLockerAddress,
 		sdktemplates.Contract{
 			Name:   "ExampleNFT",
 			Source: string(ExampleNFTCode),
@@ -118,8 +118,8 @@ func LockedNFTDeployContracts(t *testing.T, b *emulator.Blockchain) Contracts {
 
 	signAndSubmit(
 		t, b, tx1,
-		[]flow.Address{b.ServiceKey().Address, LockedNFTAddress},
-		[]crypto.Signer{signer, LockedNFTSigner},
+		[]flow.Address{b.ServiceKey().Address, NFTLockerAddress},
+		[]crypto.Signer{signer, NFTLockerSigner},
 		false,
 	)
 
@@ -128,8 +128,8 @@ func LockedNFTDeployContracts(t *testing.T, b *emulator.Blockchain) Contracts {
 
 	signAndSubmit(
 		t, b, tx2,
-		[]flow.Address{b.ServiceKey().Address, LockedNFTAddress},
-		[]crypto.Signer{signer, LockedNFTSigner},
+		[]flow.Address{b.ServiceKey().Address, NFTLockerAddress},
+		[]crypto.Signer{signer, NFTLockerSigner},
 		false,
 	)
 
@@ -139,9 +139,9 @@ func LockedNFTDeployContracts(t *testing.T, b *emulator.Blockchain) Contracts {
 	return Contracts{
 		nftAddress,
 		metadataViewsAddr,
-		LockedNFTAddress,
-		LockedNFTSigner,
-		LockedNFTAddress,
+		NFTLockerAddress,
+		NFTLockerSigner,
+		NFTLockerAddress,
 	}
 }
 
@@ -254,7 +254,7 @@ func createAccount(t *testing.T, b *emulator.Blockchain) (sdk.Address, crypto.Si
 	return address, signer
 }
 
-func setupLockedNFTAccount(
+func setupNFTLockerAccount(
 	t *testing.T,
 	b *emulator.Blockchain,
 	userAddress sdk.Address,

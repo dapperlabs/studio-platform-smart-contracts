@@ -1,6 +1,6 @@
 import NonFungibleToken from "./NonFungibleToken.cdc"
 
-pub contract LockedNFT {
+pub contract NFTLocker {
 
     pub event ContractInitialized()
     pub event NFTLocked(
@@ -27,11 +27,11 @@ pub contract LockedNFT {
         pub let lockedAt: UInt64
         pub let lockedUntil: UInt64
         pub let duration: UInt64
-        pub let nftType: String
+        pub let nftType: Type
 
-        init (id: UInt64, owner: Address, duration: UInt64, nftType: String) {
-            let key = LockedNFT.getLockedTokenKey(id: id, nftType: nftType)
-            if let lockedToken = LockedNFT.lockedTokens[key] {
+        init (id: UInt64, owner: Address, duration: UInt64, nftType: Type) {
+            let key = NFTLocker.getLockedTokenKey(id: id, nftType: nftType)
+            if let lockedToken = NFTLocker.lockedTokens[key] {
                 self.id = id
                 self.owner = lockedToken.owner
                 self.lockedAt = lockedToken.lockedAt
@@ -49,16 +49,18 @@ pub contract LockedNFT {
         }
     }
 
-    pub fun getLockedToken(key: String): LockedNFT.LockedData? {
-        return LockedNFT.lockedTokens[key]
+    pub fun getNFTLockerDetails(id: UInt64, nftType: Type): NFTLocker.LockedData? {
+        let key: String = NFTLocker.getLockedTokenKey(id: id, nftType: nftType)
+        return NFTLocker.lockedTokens[key]
     }
 
-    pub fun getLockedTokenKey(id: UInt64, nftType: String): String {
-        return id.toString().concat("-").concat(nftType)
+    pub fun getLockedTokenKey(id: UInt64, nftType: Type): String {
+        return nftType.identifier.concat(".").concat(id.toString())
     }
 
-    pub fun canUnlockToken(key: String): Bool {
-        if let lockedToken = LockedNFT.lockedTokens[key] {
+    pub fun canUnlockToken(id: UInt64, nftType: Type): Bool {
+        let key: String = NFTLocker.getLockedTokenKey(id: id, nftType: nftType)
+        if let lockedToken = NFTLocker.lockedTokens[key] {
             if lockedToken.lockedUntil < UInt64(getCurrentBlock().timestamp) {
                 return true
             }
@@ -70,24 +72,28 @@ pub contract LockedNFT {
     pub resource interface LockedCollection {
         pub fun getIDs(): [String]
         pub fun borrowNFT(key: String): &NonFungibleToken.NFT
+    }
+
+    pub resource interface LockProvider {
         pub fun lock(token: @NonFungibleToken.NFT, duration: UInt64)
-        pub fun unlock(key: String): @NonFungibleToken.NFT
+        pub fun unlock(id: UInt64, nftType: Type): @NonFungibleToken.NFT
     }
 
     pub resource Collection: LockedCollection {
         pub var lockedNFTs: @{String: NonFungibleToken.NFT}
 
-        pub fun unlock(key: String): @NonFungibleToken.NFT {
+        pub fun unlock(id: UInt64, nftType: Type): @NonFungibleToken.NFT {
             pre {
-                LockedNFT.canUnlockToken(
-                    key: key
+                NFTLocker.canUnlockToken(
+                    id: id,
+                    nftType: nftType
                 ) == true : "locked duration has not been met"
             }
 
-            let lockedData = LockedNFT.getLockedToken(key: key)
+            let key: String = NFTLocker.getLockedTokenKey(id: id, nftType: nftType)
             let token <- self.lockedNFTs.remove(key: key) ?? panic("Missing NFT")
-            LockedNFT.lockedTokens.remove(key: key)
-            LockedNFT.totalLockedTokens = LockedNFT.totalLockedTokens - 1
+            NFTLocker.lockedTokens.remove(key: key)
+            NFTLocker.totalLockedTokens = NFTLocker.totalLockedTokens - 1
 
             emit NFTUnlocked(
                 id: token.id,
@@ -99,10 +105,10 @@ pub contract LockedNFT {
 
         pub fun lock(token: @NonFungibleToken.NFT, duration: UInt64) {
             let id: UInt64 = token.id
-            let nftType: String = token.getType().identifier
-            let key: String = LockedNFT.getLockedTokenKey(id: id, nftType: nftType)
+            let nftType: Type = token.getType()
+            let key: String = NFTLocker.getLockedTokenKey(id: id, nftType: nftType)
             let oldToken <- self.lockedNFTs[key] <- token
-            let lockedData = LockedNFT.LockedData(
+            let lockedData = NFTLocker.LockedData(
                 id: id,
                 owner: self.owner!.address,
                 duration: duration,
@@ -115,8 +121,8 @@ pub contract LockedNFT {
                 lockedUntil: lockedData.lockedUntil,
                 duration: lockedData.duration
             )
-            LockedNFT.lockedTokens[key] = lockedData
-            LockedNFT.totalLockedTokens = LockedNFT.totalLockedTokens + 1
+            NFTLocker.lockedTokens[key] = lockedData
+            NFTLocker.totalLockedTokens = NFTLocker.totalLockedTokens + 1
 
             destroy oldToken
         }
@@ -143,8 +149,8 @@ pub contract LockedNFT {
     }
 
     init() {
-        self.CollectionStoragePath = /storage/LockedNFTCollection
-        self.CollectionPublicPath = /public/LockedNFTCollection
+        self.CollectionStoragePath = /storage/NFTLockerCollection
+        self.CollectionPublicPath = /public/NFTLockerCollection
 
         self.totalLockedTokens = 0
         self.lockedTokens = {}
