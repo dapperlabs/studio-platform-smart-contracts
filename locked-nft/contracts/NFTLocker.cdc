@@ -3,16 +3,20 @@ import NonFungibleToken from "./NonFungibleToken.cdc"
 pub contract NFTLocker {
 
     pub event ContractInitialized()
+    pub event Withdraw(id: UInt64, from: Address?)
+    pub event Deposit(id: UInt64, to: Address?)
     pub event NFTLocked(
         id: UInt64,
         to: Address?,
         lockedAt: UInt64,
         lockedUntil: UInt64,
-        duration: UInt64
+        duration: UInt64,
+        nftType: Type
     )
     pub event NFTUnlocked(
         id: UInt64,
-        from: Address?
+        from: Address?,
+        nftType: Type
     )
 
     pub let CollectionStoragePath:  StoragePath
@@ -98,8 +102,11 @@ pub contract NFTLocker {
 
             emit NFTUnlocked(
                 id: token.id,
-                from: self.owner?.address
+                from: self.owner?.address,
+                nftType: nftType
             )
+
+            emit Withdraw(id: token.id, from: self.owner?.address)
 
             return <-token
         }
@@ -131,8 +138,11 @@ pub contract NFTLocker {
                 to: self.owner?.address,
                 lockedAt: lockedData.lockedAt,
                 lockedUntil: lockedData.lockedUntil,
-                duration: lockedData.duration
+                duration: lockedData.duration,
+                nftType: nftType
             )
+
+            emit Deposit(id: id, to: self.owner?.address)
 
             destroy oldToken
         }
