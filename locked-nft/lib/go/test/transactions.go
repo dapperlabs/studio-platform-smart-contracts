@@ -100,8 +100,12 @@ func lockNFT(
 		shouldRevert,
 	)
 
-	lockedAt := txResult.Events[1].Value.Fields[2].ToGoValue().(uint64)
-	lockedUntil := txResult.Events[1].Value.Fields[3].ToGoValue().(uint64)
+	var lockedAt, lockedUntil uint64
+
+	if len(txResult.Events) >= 2 {
+		lockedAt = txResult.Events[1].Value.Fields[2].ToGoValue().(uint64)
+		lockedUntil = txResult.Events[1].Value.Fields[3].ToGoValue().(uint64)
+	}
 
 	return lockedAt, lockedUntil
 }

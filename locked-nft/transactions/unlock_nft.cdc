@@ -2,7 +2,7 @@ import NonFungibleToken from "../contracts/NonFungibleToken.cdc"
 import NFTLocker from "../contracts/NFTLocker.cdc"
 import ExampleNFT from 0xEXAMPLENFTADDRESS
 
-transaction(id: UInt64, nftType: Type) {
+transaction(id: UInt64) {
     let unlockRef: &NFTLocker.Collection
     let depositRef: &ExampleNFT.Collection
 
@@ -17,6 +17,6 @@ transaction(id: UInt64, nftType: Type) {
     }
 
     execute {
-        self.depositRef.deposit(token: <- self.unlockRef.unlock(id: id, nftType: nftType))
+        self.depositRef.deposit(token: <- self.unlockRef.unlock(id: id, nftType: Type<@ExampleNFT.NFT>()))
     }
 }
