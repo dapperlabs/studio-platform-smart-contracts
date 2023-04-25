@@ -19,7 +19,7 @@ pub contract NFTLocker {
     pub let CollectionPublicPath:   PublicPath
 
     pub var totalLockedTokens:      UInt64
-    access(self) let lockedTokens:  {String: LockedData}
+    access(self) let lockedTokens:  {Type: {UInt64: LockedData}}
 
     pub struct LockedData {
         pub let id: UInt64
@@ -31,7 +31,7 @@ pub contract NFTLocker {
 
         init (id: UInt64, owner: Address, duration: UInt64, nftType: Type) {
             let key = NFTLocker.getLockedTokenKey(id: id, nftType: nftType)
-            if let lockedToken = NFTLocker.lockedTokens[key] {
+            if let lockedToken = (NFTLocker.lockedTokens[nftType]!)[id] {
                 self.id = id
                 self.owner = lockedToken.owner
                 self.lockedAt = lockedToken.lockedAt
@@ -50,8 +50,7 @@ pub contract NFTLocker {
     }
 
     pub fun getNFTLockerDetails(id: UInt64, nftType: Type): NFTLocker.LockedData? {
-        let key: String = NFTLocker.getLockedTokenKey(id: id, nftType: nftType)
-        return NFTLocker.lockedTokens[key]
+        return (NFTLocker.lockedTokens[nftType]!)[id]!
     }
 
     pub fun getLockedTokenKey(id: UInt64, nftType: Type): String {
@@ -59,8 +58,7 @@ pub contract NFTLocker {
     }
 
     pub fun canUnlockToken(id: UInt64, nftType: Type): Bool {
-        let key: String = NFTLocker.getLockedTokenKey(id: id, nftType: nftType)
-        if let lockedToken = NFTLocker.lockedTokens[key] {
+        if let lockedToken = (NFTLocker.lockedTokens[nftType]!)[id] {
             if lockedToken.lockedUntil < UInt64(getCurrentBlock().timestamp) {
                 return true
             }
@@ -92,7 +90,10 @@ pub contract NFTLocker {
 
             let key: String = NFTLocker.getLockedTokenKey(id: id, nftType: nftType)
             let token <- self.lockedNFTs.remove(key: key) ?? panic("Missing NFT")
-            NFTLocker.lockedTokens.remove(key: key)
+
+            if let lockedToken = NFTLocker.lockedTokens[nftType] {
+                lockedToken.remove(key: id)
+            }
             NFTLocker.totalLockedTokens = NFTLocker.totalLockedTokens - 1
 
             emit NFTUnlocked(
@@ -108,12 +109,23 @@ pub contract NFTLocker {
             let nftType: Type = token.getType()
             let key: String = NFTLocker.getLockedTokenKey(id: id, nftType: nftType)
             let oldToken <- self.lockedNFTs[key] <- token
+
+            if NFTLocker.lockedTokens[nftType] == nil {
+                NFTLocker.lockedTokens[nftType] = {}
+            }
+
+            let nestedLock = NFTLocker.lockedTokens[nftType] ?? {}
             let lockedData = NFTLocker.LockedData(
                 id: id,
                 owner: self.owner!.address,
                 duration: duration,
                 nftType: nftType
             )
+            nestedLock[id] = lockedData
+            NFTLocker.lockedTokens[nftType] = nestedLock
+
+            NFTLocker.totalLockedTokens = NFTLocker.totalLockedTokens + 1
+
             emit NFTLocked(
                 id: id,
                 to: self.owner?.address,
@@ -121,8 +133,6 @@ pub contract NFTLocker {
                 lockedUntil: lockedData.lockedUntil,
                 duration: lockedData.duration
             )
-            NFTLocker.lockedTokens[key] = lockedData
-            NFTLocker.totalLockedTokens = NFTLocker.totalLockedTokens + 1
 
             destroy oldToken
         }
