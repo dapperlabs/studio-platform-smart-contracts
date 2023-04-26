@@ -2,7 +2,6 @@ import NonFungibleToken from "./NonFungibleToken.cdc"
 
 pub contract NFTLocker {
 
-    pub event ContractInitialized()
     pub event Withdraw(id: UInt64, from: Address?)
     pub event Deposit(id: UInt64, to: Address?)
     pub event NFTLocked(
@@ -81,7 +80,7 @@ pub contract NFTLocker {
         pub fun unlock(id: UInt64, nftType: Type): @NonFungibleToken.NFT
     }
 
-    pub resource Collection: LockedCollection {
+    pub resource Collection: LockedCollection, LockProvider {
         pub var lockedNFTs: @{String: NonFungibleToken.NFT}
 
         pub fun unlock(id: UInt64, nftType: Type): @NonFungibleToken.NFT {
@@ -174,7 +173,5 @@ pub contract NFTLocker {
 
         self.totalLockedTokens = 0
         self.lockedTokens = {}
-
-        emit ContractInitialized()
     }
 }
