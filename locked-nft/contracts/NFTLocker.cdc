@@ -33,7 +33,6 @@ pub contract NFTLocker {
         pub let nftType: Type
 
         init (id: UInt64, owner: Address, duration: UInt64, nftType: Type) {
-            let key = NFTLocker.getLockedTokenKey(id: id, nftType: nftType)
             if let lockedToken = (NFTLocker.lockedTokens[nftType]!)[id] {
                 self.id = id
                 self.owner = lockedToken.owner
