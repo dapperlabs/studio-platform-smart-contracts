@@ -33,7 +33,7 @@ pub contract EnglishPremierLeague: NonFungibleToken {
     pub event EditionClosed(id: UInt64)
     pub event MomentNFTMinted(id: UInt64, editionID: UInt64, serialNumber: UInt64)
     pub event MomentNFTBurned(id: UInt64,  editionID: UInt64, serialNumber: UInt64)
-    pub event PackPurchase(purchaseAddress: Address, packID: UInt64)
+    pub event PackPurchase(purchaseAddress: Address, refID: String)
 
     /// Named Paths
     ///
@@ -802,8 +802,8 @@ pub contract EnglishPremierLeague: NonFungibleToken {
 
         /// Purchase Pack
         ///
-        pub fun purchasePack(purchaseAddress: Address, packID: UInt64) {
-            emit PackPurchase(purchaseAddress: purchaseAddress, packID: packID)
+        pub fun purchasePack(purchaseAddress: Address, refID: String) {
+            emit PackPurchase(purchaseAddress: purchaseAddress, refID: refID)
         }
 
         /// Royalty Address

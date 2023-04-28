@@ -1,6 +1,6 @@
 import EnglishPremierLeague from "./EnglishPremierLeague.cdc"
 
-transaction(purchaseAddress: Address, packID: UInt64) {
+transaction(purchaseAddress: Address, refID: String) {
     let admin: &EnglishPremierLeague.Admin
 
     prepare(signer: AuthAccount) {
@@ -11,7 +11,7 @@ transaction(purchaseAddress: Address, packID: UInt64) {
     execute {
         self.admin.purchasePack(
             purchaseAddress: purchaseAddress,
-            packID: packID
+            refID: refID
         )
     }
 }
