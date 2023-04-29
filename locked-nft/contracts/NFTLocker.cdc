@@ -1,5 +1,10 @@
 import NonFungibleToken from "./NonFungibleToken.cdc"
 
+
+/// A contract to lock NFT for a given duration
+/// Locked NFT are stored in a user owned collection
+/// The collection owner can unlock the NFT after duration has been exceeded
+///
 pub contract NFTLocker {
 
     /// Contract events
