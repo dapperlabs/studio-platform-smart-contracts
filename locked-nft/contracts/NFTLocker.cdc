@@ -117,7 +117,7 @@ pub contract NFTLocker {
 
             let oldToken <- self.lockedNFTs.insert(key: nftType, <-{id: <- token})
 
-            let nestedLock = NFTLocker.lockedTokens[nftType] ?? {}
+            let nestedLock = NFTLocker.lockedTokens[nftType]!
             let lockedData = NFTLocker.LockedData(
                 id: id,
                 owner: self.owner!.address,
