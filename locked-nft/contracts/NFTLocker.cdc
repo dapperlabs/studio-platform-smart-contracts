@@ -55,10 +55,6 @@ pub contract NFTLocker {
         return (NFTLocker.lockedTokens[nftType]!)[id]!
     }
 
-    pub fun getLockedTokenKey(id: UInt64, nftType: Type): String {
-        return nftType.identifier.concat(".").concat(id.toString())
-    }
-
     pub fun canUnlockToken(id: UInt64, nftType: Type): Bool {
         if let lockedToken = (NFTLocker.lockedTokens[nftType]!)[id] {
             if lockedToken.lockedUntil < UInt64(getCurrentBlock().timestamp) {
@@ -70,8 +66,7 @@ pub contract NFTLocker {
     }
 
     pub resource interface LockedCollection {
-        pub fun getIDs(): [String]
-        pub fun borrowNFT(key: String): &NonFungibleToken.NFT
+        pub fun getIDs(nftType: Type): [UInt64]?
     }
 
     pub resource interface LockProvider {
@@ -80,7 +75,7 @@ pub contract NFTLocker {
     }
 
     pub resource Collection: LockedCollection, LockProvider {
-        pub var lockedNFTs: @{String: NonFungibleToken.NFT}
+        pub var lockedNFTs: @{Type: {UInt64: NonFungibleToken.NFT}}
 
         pub fun unlock(id: UInt64, nftType: Type): @NonFungibleToken.NFT {
             pre {
@@ -90,8 +85,7 @@ pub contract NFTLocker {
                 ) == true : "locked duration has not been met"
             }
 
-            let key: String = NFTLocker.getLockedTokenKey(id: id, nftType: nftType)
-            let token <- self.lockedNFTs.remove(key: key) ?? panic("Missing NFT")
+            let token <- self.lockedNFTs[nftType]?.remove(key: id)!!
 
             if let lockedToken = NFTLocker.lockedTokens[nftType] {
                 lockedToken.remove(key: id)
@@ -112,12 +106,16 @@ pub contract NFTLocker {
         pub fun lock(token: @NonFungibleToken.NFT, duration: UInt64) {
             let id: UInt64 = token.id
             let nftType: Type = token.getType()
-            let key: String = NFTLocker.getLockedTokenKey(id: id, nftType: nftType)
-            let oldToken <- self.lockedNFTs[key] <- token
 
             if NFTLocker.lockedTokens[nftType] == nil {
                 NFTLocker.lockedTokens[nftType] = {}
             }
+
+            if self.lockedNFTs[nftType] == nil {
+                self.lockedNFTs[nftType] <-! {}
+            }
+
+            let oldToken <- self.lockedNFTs.insert(key: nftType, <-{id: <- token})
 
             let nestedLock = NFTLocker.lockedTokens[nftType] ?? {}
             let lockedData = NFTLocker.LockedData(
@@ -145,12 +143,8 @@ pub contract NFTLocker {
             destroy oldToken
         }
 
-        pub fun getIDs(): [String] {
-            return self.lockedNFTs.keys
-        }
-
-        pub fun borrowNFT(key: String): &NonFungibleToken.NFT {
-            return (&self.lockedNFTs[key] as &NonFungibleToken.NFT?)!
+        pub fun getIDs(nftType: Type): [UInt64]? {
+            return self.lockedNFTs[nftType]?.keys
         }
 
         destroy() {
