@@ -2,6 +2,8 @@ import NonFungibleToken from "./NonFungibleToken.cdc"
 
 pub contract NFTLocker {
 
+    /// Contract events
+    ///
     pub event Withdraw(id: UInt64, from: Address?)
     pub event Deposit(id: UInt64, to: Address?)
     pub event NFTLocked(
@@ -18,12 +20,21 @@ pub contract NFTLocker {
         nftType: Type
     )
 
+    /// Named Paths
+    ///
     pub let CollectionStoragePath:  StoragePath
     pub let CollectionPublicPath:   PublicPath
 
+    /// Contract variables
+    ///
     pub var totalLockedTokens:      UInt64
+
+    /// Metadata Dictionaries
+    ///
     access(self) let lockedTokens:  {Type: {UInt64: LockedData}}
 
+    /// Data describing characteristics of the locked NFT
+    ///
     pub struct LockedData {
         pub let id: UInt64
         pub let owner: Address
@@ -55,6 +66,8 @@ pub contract NFTLocker {
         return (NFTLocker.lockedTokens[nftType]!)[id]!
     }
 
+    /// Determine if NFT can be unlocked
+    ///
     pub fun canUnlockToken(id: UInt64, nftType: Type): Bool {
         if let lockedToken = (NFTLocker.lockedTokens[nftType]!)[id] {
             if lockedToken.lockedUntil < UInt64(getCurrentBlock().timestamp) {
@@ -65,18 +78,27 @@ pub contract NFTLocker {
         return false
     }
 
+    /// A public collection interface that returns the ids
+    /// of nft locked for a given type
+    ///
     pub resource interface LockedCollection {
         pub fun getIDs(nftType: Type): [UInt64]?
     }
 
+    /// A public collection interface allowing locking and unlocking of NFT
+    ///
     pub resource interface LockProvider {
         pub fun lock(token: @NonFungibleToken.NFT, duration: UInt64)
         pub fun unlock(id: UInt64, nftType: Type): @NonFungibleToken.NFT
     }
 
+    /// An NFT Collection
+    ///
     pub resource Collection: LockedCollection, LockProvider {
         pub var lockedNFTs: @{Type: {UInt64: NonFungibleToken.NFT}}
 
+        /// Unlock an NFT of a given type
+        ///
         pub fun unlock(id: UInt64, nftType: Type): @NonFungibleToken.NFT {
             pre {
                 NFTLocker.canUnlockToken(
@@ -103,6 +125,8 @@ pub contract NFTLocker {
             return <-token
         }
 
+        /// Lock an NFT of a given type
+        ///
         pub fun lock(token: @NonFungibleToken.NFT, duration: UInt64) {
             let id: UInt64 = token.id
             let nftType: Type = token.getType()
