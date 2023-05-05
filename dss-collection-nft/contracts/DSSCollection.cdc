@@ -5,6 +5,8 @@
 
 import NonFungibleToken from "./NonFungibleToken.cdc"
 import MetadataViews from 0xMETADATAVIEWSADDRESS
+import AddressUtils from 0xADDRESSUTILS
+
 
 // The DSSCollection contract
 //
@@ -284,6 +286,16 @@ pub contract DSSCollection: NonFungibleToken {
                     endTime: self.endTime
                 ) == true : "Cannot mint a collection group outside of time bounds"
                 level <= 10: "Token level must be less than 10"
+            }
+
+            if let recipientAddress: Address = AddressUtils.parseAddress(completionAddress) {
+                if let completedNFTs: [DSSCollection.CollectionCompletedWith] = DSSCollection.getCompletedCollectionIDs(address: recipientAddress) {
+                    for completedCollectionWith in completedNFTs {
+                        if completedCollectionWith.collectionGroupID == self.id {
+                            panic("user has a reward token")
+                        }
+                    }
+                }
             }
 
             // Create the DSSCollection NFT, filled out with our information

@@ -534,7 +534,7 @@ func testCompletionCount(
 		b,
 		contracts,
 		false,
-		userAddress.String(),
+		user2Address.String(),
 		collectionGroupId,
 		user2Address.String(),
 		uint8(nftLevel),
@@ -546,4 +546,79 @@ func testCompletionCount(
 
 		assert.Equal(t, expectedNFTCount, nftCount)
 	}
+}
+
+func TestDuplicateRewardGuard(t *testing.T) {
+	b := newEmulator()
+	contracts := DSSCollectionDeployContracts(t, b)
+	t.Run("Should not be able to mint a reward token to the same address for a given collectionId", func(t *testing.T) {
+		defer func() {
+			if r := recover(); r == nil {
+				assert.Fail(t, "Expected error due to duplicate reward minting")
+			}
+		}()
+		testDuplicateRewardGuard(
+			t,
+			b,
+			contracts,
+			true,
+		)
+	})
+}
+
+func testDuplicateRewardGuard(
+	t *testing.T,
+	b *emulator.Blockchain,
+	contracts Contracts,
+	shouldRevert bool,
+) {
+	collectionGroupName := "Top Shot All Stars"
+	collectionGroupId := createCollectionGroup(
+		t,
+		b,
+		contracts,
+		false,
+		collectionGroupName,
+		"All Stars",
+		"NBA Top Shot",
+		map[string]string{"key": "META"},
+	)
+
+	closeCollectionGroup(
+		t,
+		b,
+		contracts,
+		false,
+		collectionGroupId,
+	)
+
+	userAddress, userSigner := createAccount(t, b)
+	setupDSSCollectionAccount(t, b, userAddress, userSigner, contracts)
+
+	nftLevel := 5
+
+	mintNFTAndRecordCompletedWith(
+		t,
+		b,
+		contracts,
+		false,
+		userAddress.String(),
+		collectionGroupId,
+		userAddress.String(),
+		uint8(nftLevel),
+		[]uint64{0},
+	)
+
+	// Will panic since userAddress already minted above
+	mintNFT(
+		t,
+		b,
+		contracts,
+		true,
+		userAddress.String(),
+		collectionGroupId,
+		userAddress.String(),
+		uint8(nftLevel),
+	)
+
 }

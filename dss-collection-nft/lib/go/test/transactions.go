@@ -216,7 +216,7 @@ func mintNFT(
 ) uint64 {
 	tx := flow.NewTransaction().
 		SetScript(mintDSSCollectionTransaction(contracts)).
-		SetGasLimit(100).
+		SetGasLimit(999).
 		SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
 		SetPayer(b.ServiceKey().Address).
 		AddAuthorizer(contracts.DSSCollectionAddress)
@@ -250,7 +250,7 @@ func mintNFTAndRecordCompletedWith(
 ) uint64 {
 	tx := flow.NewTransaction().
 		SetScript(mintDSSCollectionAndRecordTransaction(contracts)).
-		SetGasLimit(100).
+		SetGasLimit(999).
 		SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
 		SetPayer(b.ServiceKey().Address).
 		AddAuthorizer(contracts.DSSCollectionAddress)
