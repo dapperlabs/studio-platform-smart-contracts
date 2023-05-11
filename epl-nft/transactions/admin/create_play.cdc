@@ -1,6 +1,6 @@
 import EnglishPremierLeague from "./EnglishPremierLeague.cdc"
 
-transaction(metadata: {String: String}, tagIds: [UInt64]) {
+transaction(classification: String, metadata: {String: String}, tagIds: [UInt64]) {
     let admin: &EnglishPremierLeague.Admin
 
     prepare(signer: AuthAccount) {
@@ -10,6 +10,7 @@ transaction(metadata: {String: String}, tagIds: [UInt64]) {
 
     execute {
         let id = self.admin.createPlay(
+            classification: classification,
             metadata: metadata,
             tagIds: tagIds
         )

@@ -184,16 +184,19 @@ func createPlay(
 	t *testing.T,
 	b *emulator.Blockchain,
 	contracts Contracts,
+	classification string,
 	metadata map[string]string,
 	tagIds []uint64,
 	shouldRevert bool,
 ) {
+	cadenceString, _ := cadence.NewString(classification)
 	tx := flow.NewTransaction().
 		SetScript(loadEPLCreatePlayTransaction(contracts)).
 		SetGasLimit(100).
 		SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
 		SetPayer(b.ServiceKey().Address).
 		AddAuthorizer(contracts.EPLAddress)
+	tx.AddArgument(cadenceString)
 	tx.AddArgument(metadataDict(metadata))
 	tx.AddArgument(MapUint64(tagIds))
 

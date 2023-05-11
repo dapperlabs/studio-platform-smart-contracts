@@ -20,7 +20,7 @@ pub contract EnglishPremierLeague: NonFungibleToken {
     pub event SeriesClosed(id: UInt64)
     pub event SetCreated(id: UInt64, name: String)
     pub event SetLocked(setID: UInt64)
-    pub event PlayCreated(id: UInt64, metadata: {String: String}, tagIds: [UInt64])
+    pub event PlayCreated(id: UInt64, classification: String, metadata: {String: String}, tagIds: [UInt64])
     pub event TagCreated(id: UInt64, name: String)
     pub event EditionCreated(
         id: UInt64,
@@ -178,16 +178,19 @@ pub contract EnglishPremierLeague: NonFungibleToken {
     ///
     pub struct Play {
         pub let id: UInt64
+        pub let classification: String
         pub let metadata: {String: String}
         pub var tagIds: [UInt64]
 
-        init (id: UInt64, metadata: {String: String}, tagIds: [UInt64]) {
+        init (id: UInt64, classification: String, metadata: {String: String}, tagIds: [UInt64]) {
             if let play = EnglishPremierLeague.playByID[id] {
                 self.id = play.id
+                self.classification = play.classification
                 self.metadata = play.metadata
                 self.tagIds = play.tagIds
             } else {
                 self.id = id
+                self.classification = classification
                 self.metadata = metadata
                 self.tagIds = tagIds
             }
@@ -710,7 +713,7 @@ pub contract EnglishPremierLeague: NonFungibleToken {
 
         /// Play
         ///
-        pub fun createPlay(metadata: {String: String}, tagIds: [UInt64]): UInt64 {
+        pub fun createPlay(classification: String, metadata: {String: String}, tagIds: [UInt64]): UInt64 {
             pre {
                 EnglishPremierLeague.validateTags(
                     tagIds: tagIds
@@ -719,12 +722,18 @@ pub contract EnglishPremierLeague: NonFungibleToken {
 
             let play = EnglishPremierLeague.Play(
                 id: EnglishPremierLeague.nextPlayID,
+                classification: classification,
                 metadata: metadata,
                 tagIds: tagIds
             )
 
             EnglishPremierLeague.playByID[play.id] = play
-            emit PlayCreated(id: play.id, metadata: play.metadata, tagIds: play.tagIds)
+            emit PlayCreated(
+                id: play.id,
+                classification: play.classification,
+                metadata: play.metadata,
+                tagIds: play.tagIds
+            )
             EnglishPremierLeague.nextPlayID = play.id + 1 as UInt64
             return play.id
         }

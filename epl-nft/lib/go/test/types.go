@@ -22,9 +22,10 @@ type Tag struct {
 }
 
 type Play struct {
-	ID       uint64
-	Metadata map[string]string
-	TagIds   []uint64
+	ID             uint64
+	Classification string
+	Metadata       map[string]string
+	TagIds         []uint64
 }
 
 type Edition struct {
@@ -78,13 +79,14 @@ func parseTag(value cadence.Value) Tag {
 func parsePlay(value cadence.Value) Play {
 	fields := value.(cadence.Struct).Fields
 	var tagIds []uint64
-	for _, val := range fields[2].(cadence.Array).Values {
+	for _, val := range fields[3].(cadence.Array).Values {
 		tagId := val.ToGoValue().(uint64)
 		tagIds = append(tagIds, tagId)
 	}
 	return Play{
 		fields[0].ToGoValue().(uint64),
-		cadenceStringDictToGo(fields[1].(cadence.Dictionary)),
+		fields[1].ToGoValue().(string),
+		cadenceStringDictToGo(fields[2].(cadence.Dictionary)),
 		tagIds,
 	}
 }

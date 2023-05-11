@@ -280,10 +280,12 @@ func TestPlays(t *testing.T) {
 func createTestPlays(t *testing.T, b *emulator.Blockchain, contracts Contracts) {
 	t.Run("Should be able to create a new play", func(t *testing.T) {
 		tagIds := []uint64{1}
+		classification := "assist"
 		testCreatePlay(
 			t,
 			b,
 			contracts,
+			classification,
 			map[string]string{"key1": "Erling", "key2": "Haaland"},
 			tagIds,
 			1,
@@ -293,10 +295,12 @@ func createTestPlays(t *testing.T, b *emulator.Blockchain, contracts Contracts) 
 
 	t.Run("Should be able to create a new play with an incrementing ID from the first", func(t *testing.T) {
 		tagIds := []uint64{2}
+		classification := "assist"
 		testCreatePlay(
 			t,
 			b,
 			contracts,
+			classification,
 			map[string]string{"key1": "Erling", "key2": "Haaland"},
 			tagIds,
 			2,
@@ -309,6 +313,7 @@ func testCreatePlay(
 	t *testing.T,
 	b *emulator.Blockchain,
 	contracts Contracts,
+	classification string,
 	metadata map[string]string,
 	tagIds []uint64,
 	shouldBeID uint64,
@@ -325,6 +330,7 @@ func testCreatePlay(
 		t,
 		b,
 		contracts,
+		classification,
 		metadata,
 		tagIds,
 		false,
@@ -335,6 +341,7 @@ func testCreatePlay(
 		assert.Equal(t, shouldBeID, play.ID)
 		assert.Equal(t, tagIds, play.TagIds)
 		assert.Equal(t, metadata, play.Metadata)
+		assert.Equal(t, classification, play.Classification)
 	}
 }
 
