@@ -26,6 +26,7 @@ pub contract NFTLocker {
     )
     pub event NFTLockExtended(
         id: UInt64,
+        lockedAt: UInt64,
         lockedUntil: UInt64,
         extendedDuration: UInt64,
         nftType: Type
@@ -184,8 +185,13 @@ pub contract NFTLocker {
             let lockedToken = (NFTLocker.lockedTokens[nftType]!)[id]!
             lockedToken.extendLock(extendedDuration: extendedDuration)
 
+            let nestedLock = NFTLocker.lockedTokens[nftType]!
+            nestedLock[id] = lockedToken
+            NFTLocker.lockedTokens[nftType] = nestedLock
+
             emit NFTLockExtended(
                 id: id,
+                lockedAt: lockedToken.lockedAt,
                 lockedUntil: lockedToken.lockedUntil,
                 extendedDuration: extendedDuration,
                 nftType: nftType

@@ -1,7 +1,6 @@
 package test
 
 import (
-	"fmt"
 	emulator "github.com/onflow/flow-emulator"
 	"github.com/stretchr/testify/assert"
 	"testing"
@@ -295,7 +294,7 @@ func testExtendLock(
 
 	assert.Equal(t, lockedAt+duration, lockedUntil)
 
-	lockedData := getLockedTokenData(
+	lockedDataPre := getLockedTokenData(
 		t,
 		b,
 		contracts,
@@ -313,13 +312,13 @@ func testExtendLock(
 		extendedDuration,
 	)
 
-	lockedData = getLockedTokenData(
+	lockedDataPost := getLockedTokenData(
 		t,
 		b,
 		contracts,
 		exampleNftID,
 	)
 
-	fmt.Println("blah")
-	fmt.Println(lockedData)
+	assert.Equal(t, lockedAt+duration+extendedDuration, lockedDataPost.LockedUntil)
+	assert.Less(t, lockedDataPre.LockedUntil, lockedDataPost.LockedUntil)
 }
