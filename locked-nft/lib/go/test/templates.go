@@ -41,6 +41,7 @@ const (
 	// NFTLocker
 	GetLockedTokenByIDScriptPath = ScriptsRootPath + "/get_locked_token.cdc"
 	LockNFTTxPath                = TransactionsRootPath + "/lock_nft.cdc"
+	ExtendLockTxPath             = TransactionsRootPath + "/extend_lock.cdc"
 	UnlockNFTTxPath              = TransactionsRootPath + "/unlock_nft.cdc"
 )
 
@@ -123,6 +124,13 @@ func mintExampleNFTTransaction(contracts Contracts) []byte {
 func lockNFTTransaction(contracts Contracts) []byte {
 	return replaceAddresses(
 		readFile(LockNFTTxPath),
+		contracts,
+	)
+}
+
+func extendLockTransaction(contracts Contracts) []byte {
+	return replaceAddresses(
+		readFile(ExtendLockTxPath),
 		contracts,
 	)
 }

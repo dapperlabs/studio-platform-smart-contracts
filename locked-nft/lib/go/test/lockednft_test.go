@@ -1,6 +1,7 @@
 package test
 
 import (
+	"fmt"
 	emulator "github.com/onflow/flow-emulator"
 	"github.com/stretchr/testify/assert"
 	"testing"
@@ -246,4 +247,79 @@ func testUnlockNFT(
 		userSigner,
 		exampleNftID,
 	)
+}
+
+func TestExtendLock(t *testing.T) {
+	b := newEmulator()
+	contracts := NFTLockerDeployContracts(t, b)
+	t.Run("Should be able to extend the lock of an NFT", func(t *testing.T) {
+		testExtendLock(
+			t,
+			b,
+			contracts,
+			false,
+		)
+	})
+}
+
+func testExtendLock(
+	t *testing.T,
+	b *emulator.Blockchain,
+	contracts Contracts,
+	shouldRevert bool,
+) {
+	var duration uint64 = 10
+	var extendedDuration uint64 = 1000
+	userAddress, userSigner := createAccount(t, b)
+	setupNFTLockerAccount(t, b, userAddress, userSigner, contracts)
+	setupExampleNFT(t, b, userAddress, userSigner, contracts)
+
+	exampleNftID := mintExampleNFT(
+		t,
+		b,
+		contracts,
+		false,
+		userAddress.String(),
+	)
+
+	lockedAt, lockedUntil := lockNFT(
+		t,
+		b,
+		contracts,
+		false,
+		userAddress,
+		userSigner,
+		exampleNftID,
+		duration,
+	)
+
+	assert.Equal(t, lockedAt+duration, lockedUntil)
+
+	lockedData := getLockedTokenData(
+		t,
+		b,
+		contracts,
+		exampleNftID,
+	)
+
+	extendLock(
+		t,
+		b,
+		contracts,
+		false,
+		userAddress,
+		userSigner,
+		exampleNftID,
+		extendedDuration,
+	)
+
+	lockedData = getLockedTokenData(
+		t,
+		b,
+		contracts,
+		exampleNftID,
+	)
+
+	fmt.Println("blah")
+	fmt.Println(lockedData)
 }

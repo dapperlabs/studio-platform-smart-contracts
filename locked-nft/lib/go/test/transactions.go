@@ -136,3 +136,32 @@ func unlockNFT(
 	)
 	fmt.Println(txResult)
 }
+
+func extendLock(
+	t *testing.T,
+	b *emulator.Blockchain,
+	contracts Contracts,
+	shouldRevert bool,
+	userAddress flow.Address,
+	userSigner crypto.Signer,
+	nftId uint64,
+	extendedDuration uint64,
+) {
+	tx := flow.NewTransaction().
+		SetScript(extendLockTransaction(contracts)).
+		SetGasLimit(100).
+		SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
+		SetPayer(b.ServiceKey().Address).
+		AddAuthorizer(userAddress)
+	tx.AddArgument(cadence.UInt64(nftId))
+	tx.AddArgument(cadence.UInt64(extendedDuration))
+
+	signer, _ := b.ServiceKey().Signer()
+	txResult := signAndSubmit(
+		t, b, tx,
+		[]flow.Address{b.ServiceKey().Address, userAddress},
+		[]crypto.Signer{signer, userSigner},
+		shouldRevert,
+	)
+	fmt.Println(txResult)
+}

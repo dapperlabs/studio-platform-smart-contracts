@@ -27,3 +27,15 @@ func readLockedTokenByIDScript(contracts Contracts) []byte {
 		contracts,
 	)
 }
+
+func getLockedTokenData(
+	t *testing.T,
+	b *emulator.Blockchain,
+	contracts Contracts,
+	id uint64,
+) LockedData {
+	script := readLockedTokenByIDScript(contracts)
+	result := executeScriptAndCheck(t, b, script, [][]byte{jsoncdc.MustEncode(cadence.UInt64(id))})
+
+	return parseLockedData(result)
+}
