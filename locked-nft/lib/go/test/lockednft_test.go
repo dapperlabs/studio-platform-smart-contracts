@@ -322,3 +322,112 @@ func testExtendLock(
 	assert.Equal(t, lockedAt+duration+extendedDuration, lockedDataPost.LockedUntil)
 	assert.Less(t, lockedDataPre.LockedUntil, lockedDataPost.LockedUntil)
 }
+
+func TestSwapLock(t *testing.T) {
+	b := newEmulator()
+	contracts := NFTLockerDeployContracts(t, b)
+	t.Run("Should be able to swap the lock of an unlockable NFT", func(t *testing.T) {
+		testSwapLock(
+			t,
+			b,
+			contracts,
+			false,
+		)
+	})
+}
+
+func testSwapLock(
+	t *testing.T,
+	b *emulator.Blockchain,
+	contracts Contracts,
+	shouldRevert bool,
+) {
+	var duration uint64 = 0
+	userAddress, userSigner := createAccount(t, b)
+	setupNFTLockerAccount(t, b, userAddress, userSigner, contracts)
+	setupExampleNFT(t, b, userAddress, userSigner, contracts)
+
+	exampleNft1ID := mintExampleNFT(
+		t,
+		b,
+		contracts,
+		false,
+		userAddress.String(),
+	)
+
+	exampleNft2ID := mintExampleNFT(
+		t,
+		b,
+		contracts,
+		false,
+		userAddress.String(),
+	)
+
+	nftInventoryPre := getNFTInventory(
+		t,
+		b,
+		contracts,
+		userAddress,
+	)
+
+	assert.Equal(t, 2, len(nftInventoryPre))
+
+	lockedAt, lockedUntil := lockNFT(
+		t,
+		b,
+		contracts,
+		false,
+		userAddress,
+		userSigner,
+		exampleNft1ID,
+		duration,
+	)
+
+	assert.Equal(t, lockedAt+duration, lockedUntil)
+
+	// fast-forward block time past unlock duration
+	for i := 1; i < 5; i++ {
+		time.Sleep(1 * time.Second)
+		b.CommitBlock()
+	}
+
+	swapLock(
+		t,
+		b,
+		contracts,
+		false,
+		userAddress,
+		userSigner,
+		exampleNft1ID,
+		exampleNft2ID,
+		duration,
+	)
+
+	lockedDataNFT2 := getLockedTokenData(
+		t,
+		b,
+		contracts,
+		exampleNft2ID,
+	)
+
+	assert.Equal(t, lockedDataNFT2.LockedAt+duration, lockedDataNFT2.LockedUntil)
+
+	nftInventoryPost := getNFTInventory(
+		t,
+		b,
+		contracts,
+		userAddress,
+	)
+
+	assert.Equal(t, true, arrayContains(nftInventoryPost, exampleNft1ID))
+	assert.Equal(t, false, arrayContains(nftInventoryPost, exampleNft2ID))
+}
+
+func arrayContains(s []uint64, e uint64) bool {
+	for _, a := range s {
+		if a == e {
+			return true
+		}
+	}
+	return false
+}

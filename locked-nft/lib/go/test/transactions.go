@@ -165,3 +165,34 @@ func extendLock(
 	)
 	fmt.Println(txResult)
 }
+
+func swapLock(
+	t *testing.T,
+	b *emulator.Blockchain,
+	contracts Contracts,
+	shouldRevert bool,
+	userAddress flow.Address,
+	userSigner crypto.Signer,
+	nftLockedID uint64,
+	nftToLockID uint64,
+	duration uint64,
+) {
+	tx := flow.NewTransaction().
+		SetScript(swapLockTransaction(contracts)).
+		SetGasLimit(100).
+		SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
+		SetPayer(b.ServiceKey().Address).
+		AddAuthorizer(userAddress)
+	tx.AddArgument(cadence.UInt64(nftLockedID))
+	tx.AddArgument(cadence.UInt64(nftToLockID))
+	tx.AddArgument(cadence.UInt64(duration))
+
+	signer, _ := b.ServiceKey().Signer()
+	txResult := signAndSubmit(
+		t, b, tx,
+		[]flow.Address{b.ServiceKey().Address, userAddress},
+		[]crypto.Signer{signer, userSigner},
+		shouldRevert,
+	)
+	fmt.Println(txResult)
+}
