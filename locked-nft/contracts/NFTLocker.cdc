@@ -74,10 +74,6 @@ pub contract NFTLocker {
         }
 
         pub fun extendLock(extendedDuration: UInt64) {
-            pre {
-                self.lockedUntil != 0: "nft not locked"
-            }
-
             self.lockedUntil = self.lockedUntil + extendedDuration
         }
     }
@@ -93,6 +89,14 @@ pub contract NFTLocker {
             if lockedToken.lockedUntil < UInt64(getCurrentBlock().timestamp) {
                 return true
             }
+        }
+
+        return false
+    }
+
+    pub fun nftIsLocked(id: UInt64, nftType: Type): Bool {
+        if let lockedToken = (NFTLocker.lockedTokens[nftType]!)[id] {
+            return true
         }
 
         return false
@@ -190,6 +194,13 @@ pub contract NFTLocker {
         }
 
         pub fun extendLock(id: UInt64, nftType: Type, extendedDuration: UInt64) {
+            pre {
+                NFTLocker.nftIsLocked(
+                    id: id,
+                    nftType: nftType
+                ) == true : "token is not locked"
+            }
+
             let lockedToken = (NFTLocker.lockedTokens[nftType]!)[id]!
             lockedToken.extendLock(extendedDuration: extendedDuration)
 

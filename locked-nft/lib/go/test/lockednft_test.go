@@ -323,6 +323,50 @@ func testExtendLock(
 	assert.Less(t, lockedDataPre.LockedUntil, lockedDataPost.LockedUntil)
 }
 
+func TestExtendLockFail(t *testing.T) {
+	b := newEmulator()
+	contracts := NFTLockerDeployContracts(t, b)
+	t.Run("Should fail to extend the lock of an NFT that has not been locked", func(t *testing.T) {
+		testExtendLockFail(
+			t,
+			b,
+			contracts,
+			true,
+		)
+	})
+}
+
+func testExtendLockFail(
+	t *testing.T,
+	b *emulator.Blockchain,
+	contracts Contracts,
+	shouldRevert bool,
+) {
+	var extendedDuration uint64 = 1000
+	userAddress, userSigner := createAccount(t, b)
+	setupNFTLockerAccount(t, b, userAddress, userSigner, contracts)
+	setupExampleNFT(t, b, userAddress, userSigner, contracts)
+
+	exampleNftID := mintExampleNFT(
+		t,
+		b,
+		contracts,
+		false,
+		userAddress.String(),
+	)
+
+	extendLock(
+		t,
+		b,
+		contracts,
+		shouldRevert,
+		userAddress,
+		userSigner,
+		exampleNftID,
+		extendedDuration,
+	)
+}
+
 func TestSwapLock(t *testing.T) {
 	b := newEmulator()
 	contracts := NFTLockerDeployContracts(t, b)
