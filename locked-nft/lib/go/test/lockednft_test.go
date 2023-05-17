@@ -78,11 +78,11 @@ func testLockNFT(
 	assert.Equal(t, lockedAt+duration, lockedUntil)
 }
 
-func TestReLockNFT(t *testing.T) {
+func TestReLockNFTFail(t *testing.T) {
 	b := newEmulator()
 	contracts := NFTLockerDeployContracts(t, b)
 	t.Run("Should fail to relock a locked nft", func(t *testing.T) {
-		testReLockNFT(
+		testReLockNFTFail(
 			t,
 			b,
 			contracts,
@@ -90,7 +90,7 @@ func TestReLockNFT(t *testing.T) {
 	})
 }
 
-func testReLockNFT(
+func testReLockNFTFail(
 	t *testing.T,
 	b *emulator.Blockchain,
 	contracts Contracts,
@@ -248,6 +248,78 @@ func testUnlockNFT(
 	)
 }
 
+func TestReLockNFT(t *testing.T) {
+	b := newEmulator()
+	contracts := NFTLockerDeployContracts(t, b)
+	t.Run("Should be able to mint, lock, unlock, and lock an nft", func(t *testing.T) {
+		testReLockNFT(
+			t,
+			b,
+			contracts,
+		)
+	})
+}
+
+func testReLockNFT(
+	t *testing.T,
+	b *emulator.Blockchain,
+	contracts Contracts,
+) {
+	var duration uint64 = 0
+	var relockDuration uint64 = 10
+	userAddress, userSigner := createAccount(t, b)
+	setupNFTLockerAccount(t, b, userAddress, userSigner, contracts)
+	setupExampleNFT(t, b, userAddress, userSigner, contracts)
+
+	exampleNftID := mintExampleNFT(
+		t,
+		b,
+		contracts,
+		false,
+		userAddress.String(),
+	)
+
+	lockedAt, lockedUntil := lockNFT(
+		t,
+		b,
+		contracts,
+		false,
+		userAddress,
+		userSigner,
+		exampleNftID,
+		duration,
+	)
+	assert.Equal(t, lockedAt+duration, lockedUntil)
+
+	// fast-forward block time past unlock duration
+	for i := 1; i < 5; i++ {
+		time.Sleep(1 * time.Second)
+		b.CommitBlock()
+	}
+
+	unlockNFT(
+		t,
+		b,
+		contracts,
+		false,
+		userAddress,
+		userSigner,
+		exampleNftID,
+	)
+
+	lockedAt, lockedUntil = lockNFT(
+		t,
+		b,
+		contracts,
+		false,
+		userAddress,
+		userSigner,
+		exampleNftID,
+		relockDuration,
+	)
+	assert.Equal(t, lockedAt+relockDuration, lockedUntil)
+}
+
 func TestExtendLock(t *testing.T) {
 	b := newEmulator()
 	contracts := NFTLockerDeployContracts(t, b)
@@ -360,6 +432,78 @@ func testExtendLockFail(
 		b,
 		contracts,
 		shouldRevert,
+		userAddress,
+		userSigner,
+		exampleNftID,
+		extendedDuration,
+	)
+}
+
+func TestExtendLockUnlockFail(t *testing.T) {
+	b := newEmulator()
+	contracts := NFTLockerDeployContracts(t, b)
+	t.Run("Should lock, unlock, then fail to extend lock", func(t *testing.T) {
+		testExtendLockUnlockFail(
+			t,
+			b,
+			contracts,
+		)
+	})
+}
+
+func testExtendLockUnlockFail(
+	t *testing.T,
+	b *emulator.Blockchain,
+	contracts Contracts,
+) {
+	var duration uint64 = 0
+	var extendedDuration uint64 = 1000
+	userAddress, userSigner := createAccount(t, b)
+	setupNFTLockerAccount(t, b, userAddress, userSigner, contracts)
+	setupExampleNFT(t, b, userAddress, userSigner, contracts)
+
+	exampleNftID := mintExampleNFT(
+		t,
+		b,
+		contracts,
+		false,
+		userAddress.String(),
+	)
+
+	lockedAt, lockedUntil := lockNFT(
+		t,
+		b,
+		contracts,
+		false,
+		userAddress,
+		userSigner,
+		exampleNftID,
+		duration,
+	)
+
+	assert.Equal(t, lockedAt+duration, lockedUntil)
+
+	// fast-forward block time past unlock duration
+	for i := 1; i < 5; i++ {
+		time.Sleep(1 * time.Second)
+		b.CommitBlock()
+	}
+
+	unlockNFT(
+		t,
+		b,
+		contracts,
+		false,
+		userAddress,
+		userSigner,
+		exampleNftID,
+	)
+
+	extendLock(
+		t,
+		b,
+		contracts,
+		true,
 		userAddress,
 		userSigner,
 		exampleNftID,

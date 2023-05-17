@@ -126,6 +126,10 @@ pub contract NFTLocker {
         ///
         pub fun unlock(id: UInt64, nftType: Type): @NonFungibleToken.NFT {
             pre {
+                NFTLocker.nftIsLocked(
+                    id: id,
+                    nftType: nftType
+                ) == true : "token is not locked"
                 NFTLocker.canUnlockToken(
                     id: id,
                     nftType: nftType
@@ -134,8 +138,9 @@ pub contract NFTLocker {
 
             let token <- self.lockedNFTs[nftType]?.remove(key: id)!!
 
-            if let lockedToken = NFTLocker.lockedTokens[nftType] {
-                lockedToken.remove(key: id)
+            if let lockedType = NFTLocker.lockedTokens[nftType] {
+                lockedType.remove(key: id)
+                NFTLocker.lockedTokens[nftType] = lockedType
             }
             NFTLocker.totalLockedTokens = NFTLocker.totalLockedTokens - 1
 
