@@ -680,9 +680,7 @@ pub contract Golazos: NonFungibleToken {
                         })
                     )
                 case Type<MetadataViews.Traits>():
-                    let editiondata = Golazos.getEditionData(id: self.editionID)!
-                    let playdata = Golazos.getPlayData(id: editiondata.playID)!
-                    return MetadataViews.dictToTraits(dict: playdata.metadata, excludedNames: nil)
+                    return MetadataViews.dictToTraits(dict: self.getTraits())
 
                 case Type<MetadataViews.ExternalURL>():
                     return MetadataViews.ExternalURL("https://laligagolazos.com/moments/".concat(self.id.toString()))
@@ -781,6 +779,28 @@ pub contract Golazos: NonFungibleToken {
             }
 
             return nil
+        }
+
+        pub fun getTraits() : {String: AnyStruct} {
+            let edition: EditionData = Golazos.getEditionData(id: self.editionID)
+            let play: PlayData = Golazos.getPlayData(id: edition.playID)
+            let series: SeriesData = Golazos.getSeriesData(id: edition.seriesID)
+            let set: SetData = Golazos.getSetData(id: edition.setID)
+
+            let traitDictionary: {String: AnyStruct} = {
+                "editionTier": edition.tier,
+                "seriesName": series.name,
+                "setName": set.name,
+                "serialNumber": self.serialNumber
+            }
+
+            for name in play.metadata.keys {
+                let value = play.metadata[name] ?? ""
+                if value != "" {
+                    traitDictionary.insert(key: name, value)
+                }
+            }
+            return traitDictionary
         }
     }
 
