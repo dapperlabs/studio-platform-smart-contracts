@@ -24,6 +24,13 @@ pub contract NFTLocker {
         from: Address?,
         nftType: Type
     )
+    pub event NFTLockExtended(
+        id: UInt64,
+        lockedAt: UInt64,
+        lockedUntil: UInt64,
+        extendedDuration: UInt64,
+        nftType: Type
+    )
 
     /// Named Paths
     ///
@@ -44,26 +51,30 @@ pub contract NFTLocker {
         pub let id: UInt64
         pub let owner: Address
         pub let lockedAt: UInt64
-        pub let lockedUntil: UInt64
-        pub let duration: UInt64
+        pub var lockedUntil: UInt64
         pub let nftType: Type
+        pub let extension: {String: AnyStruct}
 
-        init (id: UInt64, owner: Address, duration: UInt64, nftType: Type) {
+        init (id: UInt64, owner: Address, duration: UInt64, nftType: Type, extension: {String: AnyStruct}) {
             if let lockedToken = (NFTLocker.lockedTokens[nftType]!)[id] {
                 self.id = id
                 self.owner = lockedToken.owner
                 self.lockedAt = lockedToken.lockedAt
                 self.lockedUntil = lockedToken.lockedUntil
-                self.duration = lockedToken.duration
                 self.nftType = lockedToken.nftType
+                self.extension = lockedToken.extension
             } else {
                 self.id = id
                 self.owner = owner
                 self.lockedAt = UInt64(getCurrentBlock().timestamp)
                 self.lockedUntil = self.lockedAt + duration
-                self.duration = duration
                 self.nftType = nftType
+                self.extension = extension
             }
+        }
+
+        pub fun extendLock(extendedDuration: UInt64) {
+            self.lockedUntil = self.lockedUntil + extendedDuration
         }
     }
 
@@ -83,6 +94,14 @@ pub contract NFTLocker {
         return false
     }
 
+    pub fun nftIsLocked(id: UInt64, nftType: Type): Bool {
+        if let lockedToken = (NFTLocker.lockedTokens[nftType]!)[id] {
+            return true
+        }
+
+        return false
+    }
+
     /// A public collection interface that returns the ids
     /// of nft locked for a given type
     ///
@@ -95,6 +114,7 @@ pub contract NFTLocker {
     pub resource interface LockProvider {
         pub fun lock(token: @NonFungibleToken.NFT, duration: UInt64)
         pub fun unlock(id: UInt64, nftType: Type): @NonFungibleToken.NFT
+        pub fun extendLock(id: UInt64, nftType: Type, extendedDuration: UInt64)
     }
 
     /// An NFT Collection
@@ -106,6 +126,10 @@ pub contract NFTLocker {
         ///
         pub fun unlock(id: UInt64, nftType: Type): @NonFungibleToken.NFT {
             pre {
+                NFTLocker.nftIsLocked(
+                    id: id,
+                    nftType: nftType
+                ) == true : "token is not locked"
                 NFTLocker.canUnlockToken(
                     id: id,
                     nftType: nftType
@@ -114,8 +138,9 @@ pub contract NFTLocker {
 
             let token <- self.lockedNFTs[nftType]?.remove(key: id)!!
 
-            if let lockedToken = NFTLocker.lockedTokens[nftType] {
-                lockedToken.remove(key: id)
+            if let lockedType = NFTLocker.lockedTokens[nftType] {
+                lockedType.remove(key: id)
+                NFTLocker.lockedTokens[nftType] = lockedType
             }
             NFTLocker.totalLockedTokens = NFTLocker.totalLockedTokens - 1
 
@@ -151,7 +176,8 @@ pub contract NFTLocker {
                 id: id,
                 owner: self.owner!.address,
                 duration: duration,
-                nftType: nftType
+                nftType: nftType,
+                extension: {}
             )
             nestedLock[id] = lockedData
             NFTLocker.lockedTokens[nftType] = nestedLock
@@ -163,13 +189,37 @@ pub contract NFTLocker {
                 to: self.owner?.address,
                 lockedAt: lockedData.lockedAt,
                 lockedUntil: lockedData.lockedUntil,
-                duration: lockedData.duration,
+                duration: duration,
                 nftType: nftType
             )
 
             emit Deposit(id: id, to: self.owner?.address)
 
             destroy oldToken
+        }
+
+        pub fun extendLock(id: UInt64, nftType: Type, extendedDuration: UInt64) {
+            pre {
+                NFTLocker.nftIsLocked(
+                    id: id,
+                    nftType: nftType
+                ) == true : "token is not locked"
+            }
+
+            let lockedToken = (NFTLocker.lockedTokens[nftType]!)[id]!
+            lockedToken.extendLock(extendedDuration: extendedDuration)
+
+            let nestedLock = NFTLocker.lockedTokens[nftType]!
+            nestedLock[id] = lockedToken
+            NFTLocker.lockedTokens[nftType] = nestedLock
+
+            emit NFTLockExtended(
+                id: id,
+                lockedAt: lockedToken.lockedAt,
+                lockedUntil: lockedToken.lockedUntil,
+                extendedDuration: extendedDuration,
+                nftType: nftType
+            )
         }
 
         pub fun getIDs(nftType: Type): [UInt64]? {

@@ -1,4 +1,5 @@
 import NFTLocker from "../contracts/NFTLocker.cdc"
+import NonFungibleToken from "../contracts/NonFungibleToken.cdc"
 
 pub fun main(acctAddress: Address): [UInt64] {
     let nftOwner = getAccount(acctAddress);

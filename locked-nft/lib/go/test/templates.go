@@ -9,8 +9,6 @@ import (
 	"github.com/onflow/flow-go-sdk"
 )
 
-// Handle relative paths by making these regular expressions
-
 const (
 	nftAddressPlaceholder           = "\"[^\"]*NonFungibleToken.cdc\""
 	NFTLockerAddressPlaceholder     = "\"[^\"]*NFTLocker.cdc\""
@@ -40,7 +38,10 @@ const (
 
 	// NFTLocker
 	GetLockedTokenByIDScriptPath = ScriptsRootPath + "/get_locked_token.cdc"
+	GetInventoryScriptPath       = ScriptsRootPath + "/examplenft/inventory.cdc"
 	LockNFTTxPath                = TransactionsRootPath + "/lock_nft.cdc"
+	ExtendLockTxPath             = TransactionsRootPath + "/extend_lock.cdc"
+	SwapLockTxPath               = TransactionsRootPath + "/swap_lock.cdc"
 	UnlockNFTTxPath              = TransactionsRootPath + "/unlock_nft.cdc"
 )
 
@@ -123,6 +124,20 @@ func mintExampleNFTTransaction(contracts Contracts) []byte {
 func lockNFTTransaction(contracts Contracts) []byte {
 	return replaceAddresses(
 		readFile(LockNFTTxPath),
+		contracts,
+	)
+}
+
+func extendLockTransaction(contracts Contracts) []byte {
+	return replaceAddresses(
+		readFile(ExtendLockTxPath),
+		contracts,
+	)
+}
+
+func swapLockTransaction(contracts Contracts) []byte {
+	return replaceAddresses(
+		readFile(SwapLockTxPath),
 		contracts,
 	)
 }

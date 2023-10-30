@@ -5,18 +5,16 @@ import (
 )
 
 type LockedData struct {
-	Owner       string
+	Id          uint64
 	LockedAt    uint64
 	LockedUntil uint64
-	nftType     string
 }
 
 func parseLockedData(value cadence.Value) LockedData {
 	fields := value.(cadence.Struct).Fields
 	return LockedData{
-		fields[0].ToGoValue().(string),
-		fields[1].ToGoValue().(uint64),
+		fields[0].ToGoValue().(uint64),
 		fields[2].ToGoValue().(uint64),
-		fields[3].ToGoValue().(string),
+		fields[3].ToGoValue().(uint64),
 	}
 }
