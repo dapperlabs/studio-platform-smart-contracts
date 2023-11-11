@@ -76,6 +76,13 @@ func testLockNFT(
 	)
 
 	assert.Equal(t, lockedAt+duration, lockedUntil)
+	lockedData := getLockedTokenData(
+		t,
+		b,
+		contracts,
+		exampleNftID,
+	)
+	assert.Equal(t, lockedData.LockedUntil, lockedUntil)
 }
 
 func TestReLockNFT(t *testing.T) {

@@ -35,8 +35,8 @@ const (
 	// MetadataViews
 	MetadataViewsContractsBaseURL = "https://raw.githubusercontent.com/onflow/flow-nft/master/contracts/"
 	MetadataViewsInterfaceFile    = "MetadataViews.cdc"
-	MetadataFTReplaceAddress      = `"./utility/FungibleToken.cdc"`
-	MetadataNFTReplaceAddress     = `"./NonFungibleToken.cdc"`
+	MetadataFTReplaceAddress      = `"FungibleToken"`
+	MetadataNFTReplaceAddress     = `"NonFungibleToken"`
 
 	// NFTLocker
 	GetLockedTokenByIDScriptPath = ScriptsRootPath + "/get_locked_token.cdc"

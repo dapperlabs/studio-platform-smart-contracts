@@ -47,6 +47,7 @@ pub contract NFTLocker {
         pub let lockedUntil: UInt64
         pub let duration: UInt64
         pub let nftType: Type
+        pub let extension: {String: AnyStruct}
 
         init (id: UInt64, owner: Address, duration: UInt64, nftType: Type) {
             if let lockedToken = (NFTLocker.lockedTokens[nftType]!)[id] {
@@ -56,6 +57,7 @@ pub contract NFTLocker {
                 self.lockedUntil = lockedToken.lockedUntil
                 self.duration = lockedToken.duration
                 self.nftType = lockedToken.nftType
+                self.extension = lockedToken.extension
             } else {
                 self.id = id
                 self.owner = owner
@@ -63,12 +65,13 @@ pub contract NFTLocker {
                 self.lockedUntil = self.lockedAt + duration
                 self.duration = duration
                 self.nftType = nftType
+                self.extension = {}
             }
         }
     }
 
     pub fun getNFTLockerDetails(id: UInt64, nftType: Type): NFTLocker.LockedData? {
-        return (NFTLocker.lockedTokens[nftType]!)[id]!
+        return (NFTLocker.lockedTokens[nftType]!)[id]
     }
 
     /// Determine if NFT can be unlocked
