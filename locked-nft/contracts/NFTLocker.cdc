@@ -146,8 +146,9 @@ pub contract NFTLocker {
             if self.lockedNFTs[nftType] == nil {
                 self.lockedNFTs[nftType] <-! {}
             }
+            let ref = &self.lockedNFTs[nftType] as &{UInt64: NonFungibleToken.NFT}?
 
-            let oldToken <- self.lockedNFTs.insert(key: nftType, <-{id: <- token})
+            let oldToken <- ref!.insert(key: id, <- token)
 
             let nestedLock = NFTLocker.lockedTokens[nftType]!
             let lockedData = NFTLocker.LockedData(
@@ -171,7 +172,6 @@ pub contract NFTLocker {
             )
 
             emit Deposit(id: id, to: self.owner?.address)
-
             destroy oldToken
         }
 

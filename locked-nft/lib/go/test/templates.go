@@ -40,6 +40,7 @@ const (
 
 	// NFTLocker
 	GetLockedTokenByIDScriptPath = ScriptsRootPath + "/get_locked_token.cdc"
+	GetInventoryScriptPath       = ScriptsRootPath + "/inventory.cdc"
 	LockNFTTxPath                = TransactionsRootPath + "/lock_nft.cdc"
 	UnlockNFTTxPath              = TransactionsRootPath + "/unlock_nft.cdc"
 )

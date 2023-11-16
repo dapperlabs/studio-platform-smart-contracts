@@ -23,3 +23,13 @@ func parseLockedData(value cadence.Value) LockedData {
 		fields[5].(cadence.TypeValue).StaticType.ID(),
 	}
 }
+
+func parseInventoryData(value cadence.Value) []uint64 {
+	values := value.(cadence.Optional).Value.(cadence.Array).Values
+
+	inventory := make([]uint64, len(values))
+	for i, v := range values {
+		inventory[i] = uint64(v.(cadence.UInt64))
+	}
+	return inventory
+}

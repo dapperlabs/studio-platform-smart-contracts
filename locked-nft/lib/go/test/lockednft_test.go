@@ -2,6 +2,8 @@ package test
 
 import (
 	emulator "github.com/onflow/flow-emulator"
+	"github.com/onflow/flow-go-sdk"
+	"github.com/onflow/flow-go-sdk/crypto"
 	"github.com/stretchr/testify/assert"
 	"testing"
 	"time"
@@ -36,12 +38,57 @@ func TestLockNFT(t *testing.T) {
 	b := newEmulator()
 	contracts := NFTLockerDeployContracts(t, b)
 	t.Run("Should be able to mint and lock an nft", func(t *testing.T) {
-		testLockNFT(
+		userAddress, userSigner := createAccount(t, b)
+		setupNFTLockerAccount(t, b, userAddress, userSigner, contracts)
+		setupExampleNFT(t, b, userAddress, userSigner, contracts)
+		exampleNftID1 := mintExampleNFT(
 			t,
 			b,
 			contracts,
 			false,
+			userAddress.String(),
 		)
+		testLockNFT(
+			t,
+			b,
+			contracts,
+			userAddress,
+			userSigner,
+			exampleNftID1,
+			false,
+		)
+	})
+	t.Run("Should be able to mint and lock multiple nfts", func(t *testing.T) {
+		userAddress, userSigner := createAccount(t, b)
+		setupNFTLockerAccount(t, b, userAddress, userSigner, contracts)
+		setupExampleNFT(t, b, userAddress, userSigner, contracts)
+		nftIDs := []uint64{}
+		for i := 0; i < 2; i++ {
+			nftID := mintExampleNFT(
+				t,
+				b,
+				contracts,
+				false,
+				userAddress.String(),
+			)
+			testLockNFT(
+				t,
+				b,
+				contracts,
+				userAddress,
+				userSigner,
+				nftID,
+				false,
+			)
+			nftIDs = append(nftIDs, nftID)
+		}
+		ids := getInventoryData(
+			t,
+			b,
+			contracts,
+			userAddress.String())
+		assert.ElementsMatch(t, nftIDs, ids)
+
 	})
 }
 
@@ -49,21 +96,12 @@ func testLockNFT(
 	t *testing.T,
 	b *emulator.Blockchain,
 	contracts Contracts,
+	userAddress flow.Address,
+	userSigner crypto.Signer,
+	nftID uint64,
 	shouldRevert bool,
 ) {
 	var duration uint64 = 10
-	userAddress, userSigner := createAccount(t, b)
-	setupNFTLockerAccount(t, b, userAddress, userSigner, contracts)
-	setupExampleNFT(t, b, userAddress, userSigner, contracts)
-
-	exampleNftID := mintExampleNFT(
-		t,
-		b,
-		contracts,
-		false,
-		userAddress.String(),
-	)
-
 	lockedAt, lockedUntil := lockNFT(
 		t,
 		b,
@@ -71,7 +109,7 @@ func testLockNFT(
 		false,
 		userAddress,
 		userSigner,
-		exampleNftID,
+		nftID,
 		duration,
 	)
 
@@ -80,7 +118,7 @@ func testLockNFT(
 		t,
 		b,
 		contracts,
-		exampleNftID,
+		nftID,
 	)
 	assert.Equal(t, lockedData.LockedUntil, lockedUntil)
 }

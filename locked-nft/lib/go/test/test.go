@@ -315,3 +315,15 @@ func getLockedTokenData(
 
 	return parseLockedData(result)
 }
+
+func getInventoryData(
+	t *testing.T,
+	b *emulator.Blockchain,
+	contracts Contracts,
+	address string,
+) []uint64 {
+	script := readInventoryScript(contracts)
+	result := executeScriptAndCheck(t, b, script, [][]byte{jsoncdc.MustEncode(cadence.NewAddress(flow.HexToAddress(address)))})
+
+	return parseInventoryData(result)
+}
