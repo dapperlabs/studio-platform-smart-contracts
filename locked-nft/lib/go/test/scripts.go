@@ -27,3 +27,10 @@ func readLockedTokenByIDScript(contracts Contracts) []byte {
 		contracts,
 	)
 }
+
+func readInventoryScript(contracts Contracts) []byte {
+	return replaceAddresses(
+		readFile(GetInventoryScriptPath),
+		contracts,
+	)
+}

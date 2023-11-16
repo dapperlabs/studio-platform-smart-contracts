@@ -147,7 +147,10 @@ pub contract NFTLocker {
                 self.lockedNFTs[nftType] <-! {}
             }
 
-            let oldToken <- self.lockedNFTs.insert(key: nftType, <-{id: <- token})
+            var lockedNftsByType <- self.lockedNFTs.remove(key: nftType)!
+            let oldToken <- lockedNftsByType.insert(key: id, <- token)
+            let oldDictionary <- self.lockedNFTs.insert(key: nftType, <- lockedNftsByType)
+
 
             let nestedLock = NFTLocker.lockedTokens[nftType]!
             let lockedData = NFTLocker.LockedData(
@@ -171,8 +174,8 @@ pub contract NFTLocker {
             )
 
             emit Deposit(id: id, to: self.owner?.address)
-
             destroy oldToken
+            destroy oldDictionary
         }
 
         pub fun getIDs(nftType: Type): [UInt64]? {
