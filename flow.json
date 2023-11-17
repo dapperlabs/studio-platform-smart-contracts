@@ -1,0 +1,36 @@
+{
+	"contracts": {
+		"Escrow": {
+			"source": "./escrow/contracts/Escrow.cdc",
+			"aliases": {
+				"testnet": "4dfd62c88d1b6462"
+			}
+		},
+		"NonFungibleToken": {
+			"source": "",
+			"aliases": {
+				"testnet": "631e88ae7f1d7c20"
+			}
+		}
+	},
+	"networks": {
+		"emulator": "127.0.0.1:3569",
+		"mainnet": "access.mainnet.nodes.onflow.org:9000",
+		"sandboxnet": "access.sandboxnet.nodes.onflow.org:9000",
+		"testnet": "access.devnet.nodes.onflow.org:9000"
+	},
+	"accounts": {
+		"emulator-account": {
+			"address": "f8d6e0586b0a20c7",
+			"key": "dfe8ac5b9e81ba340387ae817c538a713ae64994098536c43d2c34e720a21bdf"
+		},
+		"nfl-account": {
+			"address": "4dfd62c88d1b6462",
+			"key": {
+				"type": "google-kms",
+				"hashAlgorithm": "SHA2_256",
+				"resourceID": "projects/nfl-staging/locations/global/keyRings/flow-testnet-cosigners/cryptoKeys/signer/cryptoKeyVersions/3"
+			}
+		}
+	}
+}
