@@ -560,6 +560,7 @@ func TestEscrow(t *testing.T) {
 			b,
 			contracts,
 			"leaderboardBurn-1",
+			userAddress,
 			uint64(1),
 		)
 	})
@@ -641,6 +642,7 @@ func testWithdrawMomentNFT(
 	b *emulator.Blockchain,
 	contracts Contracts,
 	leaderboardName string,
+	userAddress flow.Address,
 	momentNftFlowID uint64,
 ) {
 	withdrawMomentNFT(
@@ -648,6 +650,7 @@ func testWithdrawMomentNFT(
 		b,
 		contracts,
 		leaderboardName,
+		userAddress,
 		momentNftFlowID,
 	)
 }

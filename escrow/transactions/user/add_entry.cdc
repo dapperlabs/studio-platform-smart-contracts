@@ -28,11 +28,13 @@ transaction(leaderboardName: String, nftID: UInt64) {
     }
 
     execute {
+        let metadata: {String: String} = {}
         // Add the NFT entry to the leaderboard
         self.collectionPublic.addEntryToLeaderboard(
             nft: <-self.nft,
             leaderboardName: leaderboardName,
-            depositCap: self.receiver
+            ownerAddress: self.receiver.address,
+            metadata: metadata
         )
     }
 }
