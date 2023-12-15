@@ -301,6 +301,7 @@ func withdrawMomentNFT(
 	b *emulator.Blockchain,
 	contracts Contracts,
 	leaderboardName string,
+	userAddress flow.Address,
 	momentNftFlowID uint64,
 ) {
 	tx := flow.NewTransaction().
@@ -311,6 +312,7 @@ func withdrawMomentNFT(
 		AddAuthorizer(contracts.AllDayAddress)
 	tx.AddArgument(cadence.String(leaderboardName))
 	tx.AddArgument(cadence.NewUInt64(momentNftFlowID))
+	tx.AddArgument(cadence.BytesToAddress(userAddress.Bytes()))
 
 	signer, err := b.ServiceKey().Signer()
 	require.NoError(t, err)
