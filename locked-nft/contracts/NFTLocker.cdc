@@ -150,15 +150,14 @@ pub contract NFTLocker {
 
             let oldToken <- ref!.insert(key: id, <- token)
 
-            let nestedLock = NFTLocker.lockedTokens[nftType]!
+            let nestedLockRef = &NFTLocker.lockedTokens[nftType] as &{UInt64: NFTLocker.LockedData}?
             let lockedData = NFTLocker.LockedData(
                 id: id,
                 owner: self.owner!.address,
                 duration: duration,
                 nftType: nftType
             )
-            nestedLock[id] = lockedData
-            NFTLocker.lockedTokens[nftType] = nestedLock
+            nestedLockRef!.insert(key: id, lockedData)
 
             NFTLocker.totalLockedTokens = NFTLocker.totalLockedTokens + 1
 
