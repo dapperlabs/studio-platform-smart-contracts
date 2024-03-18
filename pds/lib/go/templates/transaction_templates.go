@@ -16,6 +16,8 @@ const (
 	filenmaeSetPackIssuerCap          = "transactions/pds/set_pack_issuer_cap.cdc"
 	filenameCreateDistribution        = "transactions/pds/create_distribution.cdc"
 	filenameMintPackNFT               = "transactions/pds/mint_packNFT.cdc"
+	filenameSettleDistribution        = "transactions/pds/settle.cdc"
+	filenameOpenPackNFT               = "transactions/pds/open_packNFT.cdc"
 )
 
 // GenerateDeployPackNFTTx returns a transaction script that
@@ -62,4 +64,16 @@ func GenerateCreateDistributionTx(pdsAddress, packNFTAddress, iPackNFTAddress, n
 func GenerateMintPackNFTTx(pdsAddress, packNFTAddress, nftAddress flow.Address) []byte {
 	code := string(assets.MustAsset(filenameMintPackNFT))
 	return replaceAddresses(code, nftAddress, flow.EmptyAddress, flow.EmptyAddress, flow.EmptyAddress, flow.EmptyAddress, pdsAddress, packNFTAddress)
+}
+
+// GenerateSettleTx returns a transaction script that settles a distribution
+func GenerateSettleTx(pdsAddress, packNFTAddress, nftAddress flow.Address) []byte {
+	code := string(assets.MustAsset(filenameSettleDistribution))
+	return replaceAddresses(code, nftAddress, flow.EmptyAddress, flow.EmptyAddress, flow.EmptyAddress, flow.EmptyAddress, pdsAddress, packNFTAddress)
+}
+
+// GenerateOpenPackNFTTx returns a transaction script that opens a pack NFT
+func GenerateOpenPackNFTTx(pdsAddress, nftAddress flow.Address) []byte {
+	code := string(assets.MustAsset(filenameOpenPackNFT))
+	return replaceAddresses(code, nftAddress, flow.EmptyAddress, flow.EmptyAddress, flow.EmptyAddress, flow.EmptyAddress, pdsAddress, flow.EmptyAddress)
 }
