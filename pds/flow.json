@@ -52,6 +52,11 @@
 				"mainnet": "edf9df96c92f4595",
 				"testnet": "a2526e2d9cc7f0d2"
 			}
+		},
+		"ExampleNFT": {
+			"source": "./contracts/imports/ExampleNFT.cdc",
+			"aliases": {
+			}
 		}
 	},
 	"networks": {

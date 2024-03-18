@@ -2,12 +2,20 @@ import Crypto
 import NonFungibleToken from "NonFungibleToken"
 
 access(all) contract interface IPackNFT{
+
+    /// Entitlement to perform operations on the PackNFT
+    ///
+    access(all) entitlement Operatable
+
     /// StoragePath for Collection Resource
     ///
     access(all) let CollectionStoragePath: StoragePath
     /// PublicPath expected for deposit
     ///
     access(all) let CollectionPublicPath: PublicPath
+    /// PublicPath for receiving PackNFT
+    ///
+    access(all) let CollectionIPackNFTPublicPath: PublicPath
     /// StoragePath for the PackNFT Operator Resource (issuer owns this)
     ///
     access(all) let OperatorStoragePath: StoragePath
@@ -54,14 +62,16 @@ access(all) contract interface IPackNFT{
     }
 
     access(all) resource interface IOperator {
-        access(all) fun mint(distId: UInt64, commitHash: String, issuer: Address): @{NFT}
-        access(all) fun reveal(id: UInt64, nfts: [{Collectible}], salt: String)
-        access(all) fun open(id: UInt64, nfts: [{IPackNFT.Collectible}])
+        access(Operatable) fun mint(distId: UInt64, commitHash: String, issuer: Address): @{NFT}
+        access(Operatable) fun reveal(id: UInt64, nfts: [{Collectible}], salt: String)
+        access(Operatable) fun open(id: UInt64, nfts: [{IPackNFT.Collectible}])
     }
+
+    /// Deprecated
     access(all) resource interface PackNFTOperator: IOperator {
-        access(all) fun mint(distId: UInt64, commitHash: String, issuer: Address): @{NFT}
-        access(all) fun reveal(id: UInt64, nfts: [{Collectible}], salt: String)
-        access(all) fun open(id: UInt64, nfts: [{IPackNFT.Collectible}])
+        // access(Operatable) fun mint(distId: UInt64, commitHash: String, issuer: Address): @{NFT}
+        // access(Operatable) fun reveal(id: UInt64, nfts: [{Collectible}], salt: String)
+        // access(Operatable) fun open(id: UInt64, nfts: [{IPackNFT.Collectible}])
     }
 
     access(all) resource interface IPackNFTToken {
@@ -72,13 +82,28 @@ access(all) contract interface IPackNFT{
     access(all) resource interface NFT: NonFungibleToken.NFT, IPackNFTToken, IPackNFTOwnerOperator{
         access(all) let id: UInt64
         access(all) let issuer: Address
-        access(all) fun reveal(openRequest: Bool)
-        access(all) fun open()
+        access(NonFungibleToken.Owner) fun reveal(openRequest: Bool)
+        access(NonFungibleToken.Owner) fun open()
     }
 
+    /// Deprecated
     access(all) resource interface IPackNFTOwnerOperator{
-        access(all) fun reveal(openRequest: Bool)
-        access(all) fun open()
+        // access(all) fun reveal(openRequest: Bool)
+        // access(all) fun open()
+    }
+
+    access(all) resource interface IPackNFTCollectionPublic {
+        access(all) fun deposit(token: @{NonFungibleToken.NFT})
+        access(all) fun getIDs(): [UInt64]
+        access(all) fun borrowNFT(id: UInt64): &{NonFungibleToken.NFT}
+        access(all) fun borrowPackNFT(id: UInt64): &{IPackNFT.NFT}? {
+            // If the result isn't nil, the id of the returned reference
+            // should be the same as the argument to the function
+            post {
+                (result == nil) || (result!.id == id):
+                    "Cannot borrow PackNFT reference: The ID of the returned reference is incorrect"
+            }
+        }
     }
 
     access(contract) fun revealRequest(id: UInt64, openRequest: Bool)

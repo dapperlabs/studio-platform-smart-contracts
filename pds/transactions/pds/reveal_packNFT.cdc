@@ -1,7 +1,7 @@
-import PDS from 0x{{.PDS}}
-import {{.PackNFTName}} from 0x{{.PackNFTAddress}}
-import {{.CollectibleNFTName}} from 0x{{.CollectibleNFTAddress}}
-import NonFungibleToken from 0x{{.NonFungibleToken}}
+import PDS from "PDS"
+import {{.PackNFTName}} from "PackNFT"
+import ExampleNFT from "ExampleNFT"
+import NonFungibleToken from "NonFungibleToken"
 
 transaction (
     distId: UInt64,
@@ -12,14 +12,17 @@ transaction (
     salt: String,
     owner: Address,
     openRequest: Bool,
-    NFTProviderPath: PrivatePath
+    collectionStoragePath: StoragePath
 ) {
-    prepare(pds: AuthAccount) {
-        let cap = pds.borrow<&PDS.DistributionManager>(from: PDS.DistManagerStoragePath) ?? panic("pds does not have Dist manager")
-        let p = {{.PackNFTName}}.borrowPackRepresentation(id: packId) ?? panic ("No such pack")
+    prepare(pds: auth(BorrowValue) &Account) {
+        let cap = pds.storage.borrow<&PDS.DistributionManager>(from: PDS.DistManagerStoragePath)
+            ?? panic("pds does not have Dist manager")
+        let p = {{.PackNFTName}}.borrowPackRepresentation(id: packId)
+            ?? panic ("No such pack")
+
         if openRequest && p.status == {{.PackNFTName}}.Status.Revealed {
             let recvAcct = getAccount(owner)
-            let recv = recvAcct.getCapability({{.CollectibleNFTName}}.CollectionPublicPath).borrow<&{NonFungibleToken.CollectionPublic}>()
+            let recv = recvAcct.capabilities.borrow<&{NonFungibleToken.CollectionPublic}>(PublicPath(identifier: "cadenceExampleNFTCollection")!)
                 ?? panic("Unable to borrow Collection Public reference for recipient")
             cap.openPackNFT(
                 distId: distId,
@@ -28,16 +31,17 @@ transaction (
                 nftContractName: nftContractName,
                 nftIds: nftIds,
                 recvCap: recv,
-                collectionProviderPath: NFTProviderPath
+                collectionStoragePath: collectionStoragePath
             )
         } else {
             cap.revealPackNFT(
-                    distId: distId,
-                    packId: packId,
-                    nftContractAddrs: nftContractAddrs,
-                    nftContractName: nftContractName,
-                    nftIds: nftIds,
-                    salt: salt)
+                distId: distId,
+                packId: packId,
+                nftContractAddrs: nftContractAddrs,
+                nftContractName: nftContractName,
+                nftIds: nftIds,
+                salt: salt
+            )
         }
     }
 }

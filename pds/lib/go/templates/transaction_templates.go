@@ -21,7 +21,7 @@ const (
 // GenerateDeployPackNFTTx returns a transaction script that
 // links a new royalty receiver interface
 func GenerateDeployPackNFTTx(nftAddress, iPackNFTAddress flow.Address) []byte {
-	code := assets.MustAssetString(filenameDeployPackNFT)
+	code := string(assets.MustAsset(filenameDeployPackNFT))
 	return replaceAddresses(code, nftAddress, flow.EmptyAddress, flow.EmptyAddress, flow.EmptyAddress, iPackNFTAddress, flow.EmptyAddress, flow.EmptyAddress)
 }
 
@@ -29,37 +29,37 @@ func GenerateDeployPackNFTTx(nftAddress, iPackNFTAddress flow.Address) []byte {
 // NFT collection instance, saves the collection in storage, then stores a
 // reference to the collection.
 func GenerateDeployPDSTx(nftAddress, iPackNFTAddress flow.Address) []byte {
-	code := assets.MustAssetString(filenameDeployPDS)
+	code := string(assets.MustAsset(filenameDeployPDS))
 	return replaceAddresses(code, nftAddress, flow.EmptyAddress, flow.EmptyAddress, flow.EmptyAddress, iPackNFTAddress, flow.EmptyAddress, flow.EmptyAddress)
 }
 
 // GenerateCreatePackIssuerTx returns a transaction script that instantiates a new
 // PackIssuer instance, saves it in storage, then stores a reference to it.
 func GenerateCreatePackIssuerTx(pdsAddress flow.Address) []byte {
-	code := assets.MustAssetString(filenameCreatePackIssuer)
+	code := string(assets.MustAsset(filenameCreatePackIssuer))
 	return replaceAddresses(code, flow.EmptyAddress, flow.EmptyAddress, flow.EmptyAddress, flow.EmptyAddress, flow.EmptyAddress, pdsAddress, flow.EmptyAddress)
 }
 
 // GenerateLinkExampleNFTProviderCapTx returns a transaction script that links NFT provider to a private path
 func GenerateLinkExampleNFTProviderCapTx(nftAddress, exampleNFTAddress flow.Address) []byte {
-	code := assets.MustAssetString(filenameLinkExampleNFTProviderCap)
+	code := string(assets.MustAsset(filenameLinkExampleNFTProviderCap))
 	return replaceAddresses(code, nftAddress, exampleNFTAddress, flow.EmptyAddress, flow.EmptyAddress, flow.EmptyAddress, flow.EmptyAddress, flow.EmptyAddress)
 }
 
 // GenerateSetPackIssuerCapTx returns a transaction script that sets the pack issuer capability
 func GenerateSetPackIssuerCapTx(pdsAddress flow.Address) []byte {
-	code := assets.MustAssetString(filenmaeSetPackIssuerCap)
+	code := string(assets.MustAsset(filenmaeSetPackIssuerCap))
 	return replaceAddresses(code, flow.EmptyAddress, flow.EmptyAddress, flow.EmptyAddress, flow.EmptyAddress, flow.EmptyAddress, pdsAddress, flow.EmptyAddress)
 }
 
 // GenerateCreateDistributionTx returns a transaction script that creates a distribution
 func GenerateCreateDistributionTx(pdsAddress, packNFTAddress, iPackNFTAddress, nftAddress flow.Address) []byte {
-	code := assets.MustAssetString(filenameCreateDistribution)
+	code := string(assets.MustAsset(filenameCreateDistribution))
 	return replaceAddresses(code, nftAddress, flow.EmptyAddress, flow.EmptyAddress, flow.EmptyAddress, iPackNFTAddress, pdsAddress, packNFTAddress)
 }
 
 // GenerateMintPackNFTTx returns a transaction script that mints a pack NFT
 func GenerateMintPackNFTTx(pdsAddress, packNFTAddress, nftAddress flow.Address) []byte {
-	code := assets.MustAssetString(filenameMintPackNFT)
+	code := string(assets.MustAsset(filenameMintPackNFT))
 	return replaceAddresses(code, nftAddress, flow.EmptyAddress, flow.EmptyAddress, flow.EmptyAddress, flow.EmptyAddress, pdsAddress, packNFTAddress)
 }

@@ -9,6 +9,7 @@ access(all) contract PackNFT: NonFungibleToken, IPackNFT {
     access(all) let version: String
     access(all) let CollectionStoragePath: StoragePath
     access(all) let CollectionPublicPath: PublicPath
+    access(all) let CollectionIPackNFTPublicPath: PublicPath
     access(all) let OperatorStoragePath: StoragePath
 
     // representation of the NFT in this contract to keep track of states
@@ -32,23 +33,22 @@ access(all) contract PackNFT: NonFungibleToken, IPackNFT {
 
     access(all) resource PackNFTOperator: IPackNFT.IOperator {
 
-        access(all) fun mint(distId: UInt64, commitHash: String, issuer: Address): @{IPackNFT.NFT} {
+        access(IPackNFT.Operatable) fun mint(distId: UInt64, commitHash: String, issuer: Address): @{IPackNFT.NFT} {
             let nft <- create NFT(commitHash: commitHash, issuer: issuer)
             PackNFT.totalSupply = PackNFT.totalSupply + 1
             let p  <-create Pack(commitHash: commitHash, issuer: issuer)
             PackNFT.packs[nft.id] <-! p
             emit Minted(id: nft.id, hash: commitHash.decodeHex(), distId: distId)
-            let token <- nft as! @{IPackNFT.NFT}
-            return <- token
+            return <- nft
         }
 
-        access(all) fun reveal(id: UInt64, nfts: [{IPackNFT.Collectible}], salt: String) {
+        access(IPackNFT.Operatable) fun reveal(id: UInt64, nfts: [{IPackNFT.Collectible}], salt: String) {
             let p <- PackNFT.packs.remove(key: id) ?? panic("no such pack")
             p.reveal(id: id, nfts: nfts, salt: salt)
             PackNFT.packs[id] <-! p
         }
 
-        access(all) fun open(id: UInt64, nfts: [{IPackNFT.Collectible}]) {
+        access(IPackNFT.Operatable) fun open(id: UInt64, nfts: [{IPackNFT.Collectible}]) {
             let p <- PackNFT.packs.remove(key: id) ?? panic("no such pack")
             p.open(id: id, nfts: nfts)
             PackNFT.packs[id] <-! p
@@ -110,19 +110,25 @@ access(all) contract PackNFT: NonFungibleToken, IPackNFT {
         }
     }
 
-    access(all) resource NFT: NonFungibleToken.NFT, IPackNFT.IPackNFTToken, IPackNFT.IPackNFTOwnerOperator {
+    access(all) resource NFT: NonFungibleToken.NFT, IPackNFT.NFT, IPackNFT.IPackNFTOwnerOperator {
         access(all) let id: UInt64
         access(all) let hash: [UInt8]
         access(all) let issuer: Address
 
-        access(all) fun reveal(openRequest: Bool){
+        access(NonFungibleToken.Update | NonFungibleToken.Owner) fun reveal(openRequest: Bool){
             PackNFT.revealRequest(id: self.id, openRequest: openRequest)
         }
 
-        access(all) fun open(){
+        access(NonFungibleToken.Update |NonFungibleToken.Owner) fun open(){
             PackNFT.openRequest(id: self.id)
         }
 
+        /// Event emitted when a NFT is destroyed (replaces Burned event before Cadence 1.0 update)
+        ///
+        access(all) event ResourceDestroyed(id: UInt64 = self.id)
+
+        // When destroying a NFT resource, the corresponding PackNFT resource now has to be detroyed as well in a separate call.
+        // This is because custome destroy() function is not allowed in Cadence 1.0.
         // destroy() {
         //     let p <- PackNFT.packs.remove(key: self.id) ?? panic("no such pack")
         //     PackNFT.totalSupply = PackNFT.totalSupply - (1 as UInt64)
@@ -142,10 +148,11 @@ access(all) contract PackNFT: NonFungibleToken, IPackNFT {
         access(all) fun createEmptyCollection(): @{NonFungibleToken.Collection} {
             return <- PackNFT.createEmptyCollection(nftType: Type<@PackNFT.NFT>())
         }
+
         view access(all) fun getViews(): [Type] {
             return []
         }
-        access(all) fun resolveView(_ view: Type): AnyStruct? {
+        view access(all) fun resolveView(_ view: Type): AnyStruct? {
             return nil
         }
     }
@@ -251,7 +258,7 @@ access(all) contract PackNFT: NonFungibleToken, IPackNFT {
         return <- create Collection()
     }
 
-      /// Function that returns all the Metadata Views implemented by a Non Fungible Token
+    /// Function that returns all the Metadata Views implemented by a Non Fungible Token
     ///
     /// @return An array of Types defining the implemented views. This value will be used by
     ///         developers to know which parameter to pass to the resolveView() method.
@@ -305,6 +312,7 @@ access(all) contract PackNFT: NonFungibleToken, IPackNFT {
     init(
         CollectionStoragePath: StoragePath,
         CollectionPublicPath: PublicPath,
+        CollectionIPackNFTPublicPath: PublicPath,
         OperatorStoragePath: StoragePath,
         version: String
     ){
@@ -312,6 +320,7 @@ access(all) contract PackNFT: NonFungibleToken, IPackNFT {
         self.packs <- {}
         self.CollectionStoragePath = CollectionStoragePath
         self.CollectionPublicPath = CollectionPublicPath
+        self.CollectionIPackNFTPublicPath = CollectionIPackNFTPublicPath
         self.OperatorStoragePath = OperatorStoragePath
         self.version = version
 
@@ -321,6 +330,10 @@ access(all) contract PackNFT: NonFungibleToken, IPackNFT {
         self.account.capabilities.publish(
             self.account.capabilities.storage.issue<&{NonFungibleToken.CollectionPublic}>(self.CollectionStoragePath),
             at: self.CollectionPublicPath
+        )
+        self.account.capabilities.publish(
+            self.account.capabilities.storage.issue<&{IPackNFT.IPackNFTCollectionPublic}>(self.CollectionStoragePath),
+            at: self.CollectionIPackNFTPublicPath
         )
 
         // Create a operator to share mint capability with proxy

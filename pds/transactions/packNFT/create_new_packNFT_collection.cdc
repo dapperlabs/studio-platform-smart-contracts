@@ -1,5 +1,5 @@
-import PackNFT from 0x{{.PackNFT}}
-import NonFungibleToken from 0x{{.NonFungibleToken}}
+import PackNFT from "PackNFT"
+import NonFungibleToken from "NonFungibleToken"
 
 transaction() {
     prepare (issuer: AuthAccount) {

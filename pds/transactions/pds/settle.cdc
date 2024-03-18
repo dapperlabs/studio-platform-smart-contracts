@@ -1,9 +1,14 @@
-import PDS from 0x{{.PDS}}
-import {{.CollectibleNFTName}} from 0x{{.CollectibleNFTAddress}}
+import PDS from "PDS"
+import ExampleNFT from "ExampleNFT"
 
 transaction (distId: UInt64, nftIDs: [UInt64]) {
-    prepare(pds: AuthAccount) {
-        let cap = pds.borrow<&PDS.DistributionManager>(from: PDS.DistManagerStoragePath) ?? panic("pds does not have Dist manager")
-        cap.withdraw(distId: distId, nftIDs: nftIDs, escrowCollectionPublic: {{.CollectibleNFTName}}.CollectionPublicPath)
+    prepare(pds: auth(BorrowValue) &Account) {
+        let cap = pds.storage.borrow<&PDS.DistributionManager>(from: PDS.DistManagerStoragePath)
+            ?? panic("pds does not have Dist manager")
+        cap.withdraw(
+            distId: distId,
+            nftIDs: nftIDs,
+            escrowCollectionPublic: PublicPath(identifier: "cadenceExampleNFTCollection")!,
+        )
     }
 }

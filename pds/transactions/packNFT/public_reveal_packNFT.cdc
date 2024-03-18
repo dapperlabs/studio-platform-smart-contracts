@@ -1,7 +1,7 @@
-import PackNFT from 0x{{.PackNFT}}
-import PDS from 0x{{.PDS}}
-import IPackNFT from 0x{{.IPackNFT}}
-import ExampleNFT from 0x{{.ExampleNFT}}
+import PackNFT from "PackNFT"
+import PDS from "PDS"
+import IPackNFT from "IPackNFT"
+import ExampleNFT from "ExampleNFT"
 
 transaction (packId: UInt64, nftContractAddrs: [Address], nftContractName: [String], nftIds: [UInt64], salt: String) {
     prepare(pds: AuthAccount) {
