@@ -20,6 +20,7 @@ const (
 
 const (
 	NFTLockerPath        = "../../../contracts/NFTLocker.cdc"
+	NFTLockerV2Path      = "../../../contracts/NFTLockerNew.cdc"
 	ExampleNFTPath       = "../../../contracts/ExampleNFT.cdc"
 	TransactionsRootPath = "../../../transactions"
 	ScriptsRootPath      = "../../../scripts"
@@ -43,6 +44,7 @@ const (
 	GetInventoryScriptPath       = ScriptsRootPath + "/inventory.cdc"
 	LockNFTTxPath                = TransactionsRootPath + "/lock_nft.cdc"
 	UnlockNFTTxPath              = TransactionsRootPath + "/unlock_nft.cdc"
+	AdminUnlockNFTTxPath         = TransactionsRootPath + "/admin_unlock_nft.cdc"
 )
 
 // ------------------------------------------------------------
@@ -131,6 +133,13 @@ func lockNFTTransaction(contracts Contracts) []byte {
 func unlockNFTTransaction(contracts Contracts) []byte {
 	return replaceAddresses(
 		readFile(UnlockNFTTxPath),
+		contracts,
+	)
+}
+
+func adminUnlockNFTTransaction(contracts Contracts) []byte {
+	return replaceAddresses(
+		readFile(AdminUnlockNFTTxPath),
 		contracts,
 	)
 }

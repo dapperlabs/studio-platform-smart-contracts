@@ -37,6 +37,7 @@ pub contract NFTLocker {
     /// Metadata Dictionaries
     ///
     access(self) let lockedTokens:  {Type: {UInt64: LockedData}}
+    access(self) var adminUnlockedTokens:  {Type: {UInt64: Bool}}
 
     /// Data describing characteristics of the locked NFT
     ///
@@ -77,14 +78,42 @@ pub contract NFTLocker {
     /// Determine if NFT can be unlocked
     ///
     pub fun canUnlockToken(id: UInt64, nftType: Type): Bool {
-        if let lockedToken = (NFTLocker.lockedTokens[nftType]!)[id] {
-            if lockedToken.lockedUntil < UInt64(getCurrentBlock().timestamp) {
+        if let unlockedTokens = NFTLocker.adminUnlockedTokens[nftType]{
+            if unlockedTokens.containsKey(id) {
                 return true
             }
         }
 
+        if let lockedTokens = NFTLocker.lockedTokens[nftType]{
+            if let lockedToken = lockedTokens[id] {
+                if lockedToken.lockedUntil < UInt64(getCurrentBlock().timestamp) {
+                    return true
+                }
+            }
+        }
         return false
     }
+
+    /// The path to the NFTLocker Admin resource belonging to the Account
+    // which the contract is deployed on
+    pub fun GetAdminStoragePath() : StoragePath { return /storage/NFTLockerAdmin}
+
+    /// Admin resource
+    pub resource Admin {
+        pub fun expireLock(id: UInt64, nftType: Type) {
+            if let locker = &NFTLocker.lockedTokens[nftType] as &{UInt64: NFTLocker.LockedData}?{
+                if locker[id] != nil {
+                    if NFTLocker.adminUnlockedTokens[nftType] == nil {
+                        NFTLocker.adminUnlockedTokens[nftType] = {}
+                    }
+                    if let unlockedTokens = &NFTLocker.adminUnlockedTokens[nftType] as &{UInt64: Bool}? {
+                        unlockedTokens[id] = true
+                    }
+                }
+            }
+        }
+    }
+
 
     /// A public collection interface that returns the ids
     /// of nft locked for a given type
@@ -119,6 +148,11 @@ pub contract NFTLocker {
 
             if let lockedToken = NFTLocker.lockedTokens[nftType] {
                 lockedToken.remove(key: id)
+            }
+            if let unlockedTokens = &NFTLocker.adminUnlockedTokens[nftType] as &{UInt64: Bool}? {
+                if unlockedTokens.containsKey(id) {
+                    unlockedTokens.remove(key: id)
+                }
             }
             NFTLocker.totalLockedTokens = NFTLocker.totalLockedTokens - 1
 
@@ -195,7 +229,12 @@ pub contract NFTLocker {
         self.CollectionStoragePath = /storage/NFTLockerCollection
         self.CollectionPublicPath = /public/NFTLockerCollection
 
+        // Create an admin resource
+        let admin <- create Admin()
+        self.account.save(<-admin, to: NFTLocker.GetAdminStoragePath())
+
         self.totalLockedTokens = 0
         self.lockedTokens = {}
+        self.adminUnlockedTokens = {}
     }
 }
