@@ -91,8 +91,6 @@ pub contract NFTLocker {
                 }
             }
         }
-
-
         return false
     }
 
@@ -111,8 +109,6 @@ pub contract NFTLocker {
                     if let unlockedTokens = &NFTLocker.adminUnlockedTokens[nftType] as &{UInt64: Bool}? {
                         unlockedTokens[id] = true
                     }
-
-
                 }
             }
         }
