@@ -34,7 +34,7 @@ access(all) contract PackNFT: NonFungibleToken, IPackNFT {
 
     access(all) resource PackNFTOperator: IPackNFT.IOperator {
 
-        access(IPackNFT.Operatable) fun mint(distId: UInt64, commitHash: String, issuer: Address): @{IPackNFT.NFT}{
+        access(IPackNFT.Operatable) fun mint(distId: UInt64, commitHash: String, issuer: Address): @{IPackNFT.INFT}{
             let nft <- create NFT(commitHash: commitHash, issuer: issuer)
             PackNFT.totalSupply = PackNFT.totalSupply + 1
             let p  <-create Pack(commitHash: commitHash, issuer: issuer)
@@ -111,7 +111,7 @@ access(all) contract PackNFT: NonFungibleToken, IPackNFT {
         }
     }
 
-    access(all) resource NFT: NonFungibleToken.INFT, IPackNFT.NFT, IPackNFT.IPackNFTOwnerOperator {
+    access(all) resource NFT: NonFungibleToken.INFT, IPackNFT.IPackNFTToken, IPackNFT.IPackNFTOwnerOperator, NonFungibleToken.NFT, IPackNFT.INFT {
         access(all) let id: UInt64
         access(all) let commitHash: String
         access(all) let issuer: Address
@@ -194,7 +194,7 @@ access(all) contract PackNFT: NonFungibleToken, IPackNFT {
                         })
                     )
                 case Type<MetadataViews.NFTCollectionDisplay>():
-                   let bannerImage = MetadataViews.Media(
+                    let bannerImage = MetadataViews.Media(
                         file: MetadataViews.HTTPFile(
                             url: "https://assets.nflallday.com/flow/catalogue/NFLAD_BANNER.png"
                         ),
@@ -218,7 +218,7 @@ access(all) contract PackNFT: NonFungibleToken, IPackNFT {
                             "discord": MetadataViews.ExternalURL("https://discord.com/invite/5K6qyTzj2k")
                         }
                     )
-                 case Type<MetadataViews.Royalties>():
+                case Type<MetadataViews.Royalties>():
                     let royaltyReceiver: Capability<&{FungibleToken.Receiver}> =
                         getAccount({{.RoyaltyAddress}}).capabilities.get<&{FungibleToken.Receiver}>(MetadataViews.getRoyaltyReceiverPublicPath())!
                     return MetadataViews.Royalties(
@@ -245,7 +245,13 @@ access(all) contract PackNFT: NonFungibleToken, IPackNFT {
         }
     }
 
-    access(all) resource Collection: NonFungibleToken.Collection {
+    access(all) resource Collection:
+        NonFungibleToken.Provider,
+        NonFungibleToken.Receiver,
+        NonFungibleToken.CollectionPublic,
+        IPackNFT.IPackNFTCollectionPublic,
+        // MetadataViews.ResolverCollection
+        NonFungibleToken.Collection {
         // dictionary of NFT conforming tokens
         // NFT is a resource type with an `UInt64` ID field
         access(all) var ownedNFTs: @{UInt64: {NonFungibleToken.NFT}}
@@ -310,8 +316,8 @@ access(all) contract PackNFT: NonFungibleToken, IPackNFT {
             return &self.ownedNFTs[id]
         }
 
-        access(all) fun borrowPackNFT(id: UInt64): &{IPackNFT.NFT}? {
-            return self.borrowNFT(id) as! &{IPackNFT.NFT}?
+        view access(all) fun borrowPackNFT(id: UInt64): &{IPackNFT.INFT}? {
+            return self.borrowNFT(id) as! &{IPackNFT.INFT}?
         }
 
          /// createEmptyCollection creates an empty Collection of the same type

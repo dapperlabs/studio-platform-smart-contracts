@@ -74,7 +74,27 @@
 	"deployments": {
 		"emulator": {
 			"emulator-account": [
-				
+				"IPackNFT",
+				{
+					"name": "PDS",
+					"args": [
+						{"type": "Path","value": {"domain": "storage", "identifier": "PackIssuer"}},
+						{"type": "Path","value": {"domain": "public", "identifier": "PackIssuer"}},
+						{"type": "Path","value": {"domain": "storage", "identifier": "DistCreator"}},
+						{"type": "Path","value": {"domain": "storage", "identifier": "DistManager"}},
+						{"type": "String","value": "0.1"}
+					]
+				},
+				{
+					"name": "PackNFT",
+					"args": [
+						{"type": "Path","value": {"domain": "storage", "identifier": "PackNFT"}},
+						{"type": "Path","value": {"domain": "public", "identifier": "PackNFT"}},
+						{"type": "Path","value": {"domain": "public", "identifier": "IPackNFT"}},
+						{"type": "Path","value": {"domain": "storage", "identifier": "PackNFTOperator"}},
+						{"type": "String","value": "0.1"}
+					]
+				}
 			]
 		}
 	}

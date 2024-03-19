@@ -2,6 +2,9 @@ import NonFungibleToken from "NonFungibleToken"
 import IPackNFT from "IPackNFT"
 
 access(all) contract PDS{
+    /// Entitlement that grants the ability to create a distribution
+    access(all) entitlement DistCreation
+
     /// The collection to hold all escrowed NFT
     /// Original collection created from PackNFT
     access(all) var version: String
@@ -126,12 +129,8 @@ access(all) contract PDS{
     }
 
 
-    access(all) resource interface PackIssuerCapReciever {
-        // access(all) fun setDistCap(cap: Capability<&{IDistCreator}>)
-    }
-
-    /// Entitlement that grants the ability to create a distribution (replacement for PackIssuerCapReciever resource interface)
-    access(all) entitlement DistCreation
+    // Included for backwards compatibility
+    access(all) resource interface PackIssuerCapReciever {}
 
     access(all) resource PackIssuer: PackIssuerCapReciever {
         access(self) var cap:  Capability<auth(DistCreation) &DistributionCreator>?
@@ -153,10 +152,8 @@ access(all) contract PDS{
         }
     }
 
-    // DistCap to be shared
-    access(all) resource interface  IDistCreator {
-        // access(all) fun createNewDist(sharedCap: @SharedCapabilities, title: String, metadata: {String: String})
-    }
+    // Included for backwards compatibility
+    access(all) resource interface  IDistCreator {}
 
     access(all) resource DistributionCreator: IDistCreator {
         access(DistCreation) fun createNewDist(sharedCap: @SharedCapabilities, title: String, metadata: {String: String}) {

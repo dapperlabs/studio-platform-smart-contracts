@@ -33,7 +33,7 @@ access(all) contract PackNFT: NonFungibleToken, IPackNFT {
 
     access(all) resource PackNFTOperator: IPackNFT.IOperator {
 
-        access(IPackNFT.Operatable) fun mint(distId: UInt64, commitHash: String, issuer: Address): @{IPackNFT.NFT} {
+        access(IPackNFT.Operatable) fun mint(distId: UInt64, commitHash: String, issuer: Address): @{IPackNFT.INFT} {
             let nft <- create NFT(commitHash: commitHash, issuer: issuer)
             PackNFT.totalSupply = PackNFT.totalSupply + 1
             let p  <-create Pack(commitHash: commitHash, issuer: issuer)
@@ -110,7 +110,13 @@ access(all) contract PackNFT: NonFungibleToken, IPackNFT {
         }
     }
 
-    access(all) resource NFT: NonFungibleToken.NFT, IPackNFT.NFT, IPackNFT.IPackNFTOwnerOperator {
+    access(all) resource NFT:
+        NonFungibleToken.INFT,
+        IPackNFT.IPackNFTToken,
+        IPackNFT.IPackNFTOwnerOperator,
+        NonFungibleToken.NFT,
+        IPackNFT.INFT
+    {
         access(all) let id: UInt64
         access(all) let hash: [UInt8]
         access(all) let issuer: Address
@@ -157,7 +163,13 @@ access(all) contract PackNFT: NonFungibleToken, IPackNFT {
         }
     }
 
-    access(all) resource Collection: NonFungibleToken.Collection {
+    access(all) resource Collection:
+        NonFungibleToken.Provider,
+        NonFungibleToken.Receiver,
+        NonFungibleToken.CollectionPublic,
+        IPackNFT.IPackNFTCollectionPublic,
+        NonFungibleToken.Collection
+    {
         // dictionary of NFT conforming tokens
         // NFT is a resource type with an `UInt64` ID field
         access(all) var ownedNFTs: @{UInt64: {NonFungibleToken.NFT}}
@@ -222,8 +234,8 @@ access(all) contract PackNFT: NonFungibleToken, IPackNFT {
             return &self.ownedNFTs[id]
         }
 
-        access(all) fun borrowPackNFT(id: UInt64): &{IPackNFT.NFT}? {
-            return self.borrowNFT(id) as! &{IPackNFT.NFT}?
+        view access(all) fun borrowPackNFT(id: UInt64): &{IPackNFT.INFT}? {
+            return self.borrowNFT(id) as! &{IPackNFT.INFT}?
         }
 
         /// createEmptyCollection creates an empty Collection of the same type
@@ -340,7 +352,5 @@ access(all) contract PackNFT: NonFungibleToken, IPackNFT {
         let operator <- create PackNFTOperator()
         self.account.storage.save(<-operator, to: self.OperatorStoragePath)
         self.account.capabilities.storage.issue<&{IPackNFT.IOperator}>(self.OperatorStoragePath)
-
     }
-
 }

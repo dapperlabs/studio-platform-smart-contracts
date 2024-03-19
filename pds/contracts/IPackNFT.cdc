@@ -62,41 +62,34 @@ access(all) contract interface IPackNFT{
     }
 
     access(all) resource interface IOperator {
-        access(Operatable) fun mint(distId: UInt64, commitHash: String, issuer: Address): @{NFT}
+        access(Operatable) fun mint(distId: UInt64, commitHash: String, issuer: Address): @{IPackNFT.INFT}
         access(Operatable) fun reveal(id: UInt64, nfts: [{Collectible}], salt: String)
         access(Operatable) fun open(id: UInt64, nfts: [{IPackNFT.Collectible}])
     }
 
-    /// Deprecated
-    access(all) resource interface PackNFTOperator: IOperator {
-        // access(Operatable) fun mint(distId: UInt64, commitHash: String, issuer: Address): @{NFT}
-        // access(Operatable) fun reveal(id: UInt64, nfts: [{Collectible}], salt: String)
-        // access(Operatable) fun open(id: UInt64, nfts: [{IPackNFT.Collectible}])
-    }
+    // Included for backwards compatibility
+    access(all) resource interface PackNFTOperator: IOperator {}
 
     access(all) resource interface IPackNFTToken {
         access(all) let id: UInt64
         access(all) let issuer: Address
     }
 
-    access(all) resource interface NFT: NonFungibleToken.NFT, IPackNFTToken, IPackNFTOwnerOperator{
+    access(all) resource interface INFT: NonFungibleToken.NFT, IPackNFTToken {
         access(all) let id: UInt64
         access(all) let issuer: Address
-        access(NonFungibleToken.Owner) fun reveal(openRequest: Bool)
-        access(NonFungibleToken.Owner) fun open()
+        access(NonFungibleToken.Update | NonFungibleToken.Owner) fun reveal(openRequest: Bool)
+        access(NonFungibleToken.Update | NonFungibleToken.Owner) fun open()
     }
 
-    /// Deprecated
-    access(all) resource interface IPackNFTOwnerOperator{
-        // access(all) fun reveal(openRequest: Bool)
-        // access(all) fun open()
-    }
+    // Included for backwards compatibility
+    access(all) resource interface IPackNFTOwnerOperator{}
 
     access(all) resource interface IPackNFTCollectionPublic {
         access(all) fun deposit(token: @{NonFungibleToken.NFT})
-        access(all) fun getIDs(): [UInt64]
-        access(all) fun borrowNFT(id: UInt64): &{NonFungibleToken.NFT}
-        access(all) fun borrowPackNFT(id: UInt64): &{IPackNFT.NFT}? {
+        view access(all) fun getIDs(): [UInt64]
+        view access(all) fun borrowNFT(_ id: UInt64): &{NonFungibleToken.NFT}?
+        view access(all) fun borrowPackNFT(id: UInt64): &{IPackNFT.INFT}? {
             // If the result isn't nil, the id of the returned reference
             // should be the same as the argument to the function
             post {
