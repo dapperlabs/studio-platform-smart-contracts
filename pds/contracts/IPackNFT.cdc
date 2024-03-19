@@ -36,6 +36,7 @@ access(all) contract interface IPackNFT{
     /// Emitted when a packNFT has been opened
     access(all) event Opened(id: UInt64)
 
+    // Enums cannot be declared anymore in interfaces in Cadence 1.0
     // access(all) enum Status: UInt8 {
     //     access(all) case Sealed
     //     access(all) case Revealed
@@ -62,7 +63,7 @@ access(all) contract interface IPackNFT{
     }
 
     access(all) resource interface IOperator {
-        access(Operatable) fun mint(distId: UInt64, commitHash: String, issuer: Address): @{IPackNFT.INFT}
+        access(Operatable) fun mint(distId: UInt64, commitHash: String, issuer: Address): @{IPackNFT.NFT}
         access(Operatable) fun reveal(id: UInt64, nfts: [{Collectible}], salt: String)
         access(Operatable) fun open(id: UInt64, nfts: [{IPackNFT.Collectible}])
     }
@@ -75,7 +76,7 @@ access(all) contract interface IPackNFT{
         access(all) let issuer: Address
     }
 
-    access(all) resource interface INFT: NonFungibleToken.NFT, IPackNFTToken {
+    access(all) resource interface NFT: NonFungibleToken.INFT, IPackNFTToken, IPackNFTOwnerOperator {
         access(all) let id: UInt64
         access(all) let issuer: Address
         access(NonFungibleToken.Update | NonFungibleToken.Owner) fun reveal(openRequest: Bool)
@@ -89,7 +90,7 @@ access(all) contract interface IPackNFT{
         access(all) fun deposit(token: @{NonFungibleToken.NFT})
         view access(all) fun getIDs(): [UInt64]
         view access(all) fun borrowNFT(_ id: UInt64): &{NonFungibleToken.NFT}?
-        view access(all) fun borrowPackNFT(id: UInt64): &{IPackNFT.INFT}? {
+        view access(all) fun borrowPackNFT(id: UInt64): &{IPackNFT.NFT}? {
             // If the result isn't nil, the id of the returned reference
             // should be the same as the argument to the function
             post {

@@ -33,7 +33,7 @@ access(all) contract PackNFT: NonFungibleToken, IPackNFT {
 
     access(all) resource PackNFTOperator: IPackNFT.IOperator {
 
-        access(IPackNFT.Operatable) fun mint(distId: UInt64, commitHash: String, issuer: Address): @{IPackNFT.INFT} {
+        access(IPackNFT.Operatable) fun mint(distId: UInt64, commitHash: String, issuer: Address): @{IPackNFT.NFT} {
             let nft <- create NFT(commitHash: commitHash, issuer: issuer)
             PackNFT.totalSupply = PackNFT.totalSupply + 1
             let p  <-create Pack(commitHash: commitHash, issuer: issuer)
@@ -115,7 +115,7 @@ access(all) contract PackNFT: NonFungibleToken, IPackNFT {
         IPackNFT.IPackNFTToken,
         IPackNFT.IPackNFTOwnerOperator,
         NonFungibleToken.NFT,
-        IPackNFT.INFT
+        IPackNFT.NFT
     {
         access(all) let id: UInt64
         access(all) let hash: [UInt8]
@@ -234,8 +234,8 @@ access(all) contract PackNFT: NonFungibleToken, IPackNFT {
             return &self.ownedNFTs[id]
         }
 
-        view access(all) fun borrowPackNFT(id: UInt64): &{IPackNFT.INFT}? {
-            return self.borrowNFT(id) as! &{IPackNFT.INFT}?
+        view access(all) fun borrowPackNFT(id: UInt64): &{IPackNFT.NFT}? {
+            return self.borrowNFT(id) as! &{IPackNFT.NFT}?
         }
 
         /// createEmptyCollection creates an empty Collection of the same type
