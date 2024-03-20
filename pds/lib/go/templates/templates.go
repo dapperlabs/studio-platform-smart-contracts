@@ -22,7 +22,7 @@ var (
 	placeholderPackNFT           = regexp.MustCompile(`"PackNFT"`)
 	placeholderPackNFT2          = regexp.MustCompile(`"PackNFT"`)
 	placeholderPackNFT3          = regexp.MustCompile(`"PackNFT"`)
-	placeholderPackNFT4          = regexp.MustCompile(`{{.PackNFTName}}`)
+	placeholderPackNFTName       = regexp.MustCompile(`{{.PackNFTName}}`)
 	placeholderPDS               = regexp.MustCompile(`"PDS"`)
 )
 
@@ -40,7 +40,7 @@ func replaceAddresses(code string, nftAddress, exampleNFTAddress, metadataAddres
 	code = placeholderPackNFT.ReplaceAllString(code, "0x"+packNFTAddress.String())
 	code = placeholderPackNFT2.ReplaceAllString(code, "0x"+packNFTAddress.String())
 	code = placeholderPackNFT3.ReplaceAllString(code, "0x"+packNFTAddress.String())
-	code = placeholderPackNFT4.ReplaceAllString(code, "PackNFT")
+	code = placeholderPackNFTName.ReplaceAllString(code, "PackNFT")
 	code = placeholderPDS.ReplaceAllString(code, "0x"+pdsAddress.String())
 	return []byte(code)
 }
