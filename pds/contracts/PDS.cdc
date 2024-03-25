@@ -1,34 +1,49 @@
 import NonFungibleToken from "NonFungibleToken"
 import IPackNFT from "IPackNFT"
 
+/// The Pack Distribution Service (PDS) contract is responsible for creating and managing distributions of packs.
+///
 access(all) contract PDS{
-    /// Entitlement that grants the ability to create a distribution
+    /// Entitlement that grants the ability to create a distribution.
+    ///
     access(all) entitlement DistCreation
 
-    /// The collection to hold all escrowed NFT
-    /// Original collection created from PackNFT
     access(all) var version: String
     access(all) let PackIssuerStoragePath: StoragePath
     access(all) let PackIssuerCapRecv: PublicPath
     access(all) let DistCreatorStoragePath: StoragePath
     access(all) let DistManagerStoragePath: StoragePath
 
+    /// The next distribution ID to be used.
+    ///
     access(all) var nextDistId: UInt64
+
+    /// Dictionary that stores distribution IDs to distribution details in the contract state.
+    ///
     access(contract) let Distributions: {UInt64: DistInfo}
+
+    /// Dictionary that stores distribution IDs to shared capabilities in the contract state.
+    ///
     access(contract) let DistSharedCap: @{UInt64: SharedCapabilities}
 
-    /// Issuer has created a distribution
+    /// Emitted when an issuer has created a distribution.
+    ///
     access(all) event DistributionCreated(DistId: UInt64, title: String, metadata: {String: String}, state: UInt8)
 
-    /// Distribution manager has updated a distribution state
+    /// Emmitted when a distribution manager has updated a distribution state.
+    ///
     access(all) event DistributionStateUpdated(DistId: UInt64, state: UInt8)
 
+    /// Enum that defines the status of a Distribution.
+    ///
     access(all) enum DistState: UInt8 {
         access(all) case Initialized
         access(all) case Invalid
         access(all) case Complete
     }
 
+    /// Struct that defines the details of a Distribution.
+    ///
     access(all) struct DistInfo {
         access(all) let title: String
         access(all) let metadata: {String: String}
@@ -38,6 +53,8 @@ access(all) contract PDS{
             self.state = newState
         }
 
+        /// DistInfo struct initializer.
+        ///
         init(title: String, metadata: {String: String}) {
             self.title = title
             self.metadata = metadata
@@ -45,7 +62,8 @@ access(all) contract PDS{
         }
     }
 
-
+    /// Struct that defines a Collectible.
+    ///
     access(all) struct Collectible: IPackNFT.Collectible {
         access(all) let address: Address
         access(all) let contractName: String
@@ -70,9 +88,11 @@ access(all) contract PDS{
             } else {
                 a = addrStr.slice(from: 2, upTo: 18)
             }
-            var str = c.concat(a).concat(".").concat(self.contractName).concat(".").concat(self.id.toString())
-            return str
+            return c.concat(a).concat(".").concat(self.contractName).concat(".").concat(self.id.toString())
         }
+
+        /// Collectible struct initializer.
+        ///
         init(address: Address, contractName: String, id: UInt64) {
             self.address = address
             self.contractName = contractName
@@ -80,16 +100,27 @@ access(all) contract PDS{
         }
     }
 
+    /// Resource that defines the shared capabilities required for creating and managing Pack NFTs.
+    ///
     access(all) resource SharedCapabilities {
-        access(self) let withdrawCap: Capability<auth(NonFungibleToken.Withdraw) &{NonFungibleToken.Provider}>
+        /// Capability to withdraw NFTs from the issuer.
+        ///
+        access(self) let withdrawCap: Capability<auth(NonFungibleToken.Withdraw) &{NonFungibleToken.Collection}>
+
+        /// Capability to mint, reveal, and open Pack NFTs.
+        ///
         access(self) let operatorCap: Capability<auth(IPackNFT.Operatable) &{IPackNFT.IOperator}>
 
+        /// Withdraw an NFT from the issuer.
+        ///
         access(all) fun withdrawFromIssuer(withdrawID: UInt64): @{NonFungibleToken.NFT} {
             let c = self.withdrawCap.borrow() ?? panic("no such cap")
             return <- c.withdraw(withdrawID: withdrawID)
         }
 
-        access(all) fun mintPackNFT(distId: UInt64, commitHashes: [String], issuer: Address, recvCap: &{NonFungibleToken.CollectionPublic} ){
+        /// Mint Pack NFTs.
+        ///
+        access(all) fun mintPackNFT(distId: UInt64, commitHashes: [String], issuer: Address, recvCap: &{NonFungibleToken.CollectionPublic}) {
             var i = 0
             let c = self.operatorCap.borrow() ?? panic("no such cap")
             while i < commitHashes.length{
@@ -100,11 +131,15 @@ access(all) contract PDS{
             }
         }
 
+        /// Reveal Pack NFTs.
+        ///
         access(all) fun revealPackNFT(packId: UInt64, nfts: [{IPackNFT.Collectible}], salt: String) {
             let c = self.operatorCap.borrow() ?? panic("no such cap")
             c.reveal(id: packId, nfts: nfts, salt: salt)
         }
 
+        /// Open Pack NFTs.
+        ///
         access(all) fun openPackNFT(packId: UInt64, nfts: [{IPackNFT.Collectible}], recvCap: &{NonFungibleToken.CollectionPublic}, collectionStoragePath: StoragePath) {
             let c = self.operatorCap.borrow() ?? panic("no such cap")
             let toReleaseNFTs: [UInt64] = []
@@ -117,23 +152,25 @@ access(all) contract PDS{
             PDS.releaseEscrow(nftIds: toReleaseNFTs, recvCap: recvCap , collectionStoragePath: collectionStoragePath)
         }
 
-
+        /// SharedCapabilities resource initializer.
+        ///
         init(
-            withdrawCap: Capability<auth(NonFungibleToken.Withdraw) &{NonFungibleToken.Provider}>,
+            withdrawCap: Capability<auth(NonFungibleToken.Withdraw) &{NonFungibleToken.Collection}>,
             operatorCap: Capability<auth(IPackNFT.Operatable) &{IPackNFT.IOperator}>
-
-        ){
+        ) {
             self.withdrawCap = withdrawCap
             self.operatorCap = operatorCap
         }
     }
 
 
-    // Included for backwards compatibility
+    // Included for backwards compatibility.
     access(all) resource interface PackIssuerCapReciever {}
 
+    /// Resource that defines the issuer of a pack.
+    ///
     access(all) resource PackIssuer: PackIssuerCapReciever {
-        access(self) var cap:  Capability<auth(DistCreation) &DistributionCreator>?
+        access(self) var cap: Capability<auth(DistCreation) &DistributionCreator>?
 
         access(all) fun setDistCap(cap: Capability<auth(DistCreation) &DistributionCreator>) {
             pre {
@@ -147,14 +184,19 @@ access(all) contract PDS{
             let c = self.cap!.borrow()!
             c.createNewDist(sharedCap: <- sharedCap, title: title, metadata: metadata)
         }
+
+        /// PackIssuer resource initializer.
+        ///
         init() {
             self.cap = nil
         }
     }
 
-    // Included for backwards compatibility
-    access(all) resource interface  IDistCreator {}
+    // Included for backwards compatibility.
+    access(all) resource interface IDistCreator {}
 
+    /// Resource that defines the creator of a distribution.
+    ///
     access(all) resource DistributionCreator: IDistCreator {
         access(DistCreation) fun createNewDist(sharedCap: @SharedCapabilities, title: String, metadata: {String: String}) {
             let currentId = PDS.nextDistId
@@ -165,6 +207,8 @@ access(all) contract PDS{
         }
     }
 
+    /// Resource that defines the manager of a distribution.
+    ///
     access(all) resource DistributionManager {
         access(all) fun updateDistState(distId: UInt64, state: PDS.DistState) {
             let d = PDS.Distributions.remove(key: distId) ?? panic ("No such distribution")
@@ -186,25 +230,25 @@ access(all) contract PDS{
             PDS.DistSharedCap[distId] <-! d
         }
 
-        access(all) fun mintPackNFT(distId: UInt64, commitHashes: [String], issuer: Address, recvCap: &{NonFungibleToken.CollectionPublic}){
+        access(all) fun mintPackNFT(distId: UInt64, commitHashes: [String], issuer: Address, recvCap: &{NonFungibleToken.CollectionPublic}) {
             assert(PDS.DistSharedCap.containsKey(distId), message: "No such distribution")
             let d <- PDS.DistSharedCap.remove(key: distId)!
             d.mintPackNFT(distId: distId, commitHashes: commitHashes, issuer: issuer, recvCap: recvCap)
             PDS.DistSharedCap[distId] <-! d
         }
 
-        access(all) fun revealPackNFT(distId: UInt64, packId: UInt64, nftContractAddrs: [Address], nftContractName: [String], nftIds: [UInt64], salt: String){
+        access(all) fun revealPackNFT(distId: UInt64, packId: UInt64, nftContractAddrs: [Address], nftContractNames: [String], nftIds: [UInt64], salt: String) {
             assert(PDS.DistSharedCap.containsKey(distId), message: "No such distribution")
             assert(
-                nftContractAddrs.length == nftContractName.length &&
-                nftContractName.length == nftIds.length,
+                nftContractAddrs.length == nftContractNames.length &&
+                nftContractNames.length == nftIds.length,
                 message: "NFTs must be fully described"
             )
             let d <- PDS.DistSharedCap.remove(key: distId)!
             let arr: [{IPackNFT.Collectible}] = []
             var i = 0
             while i < nftContractAddrs.length {
-                let s = Collectible(address: nftContractAddrs[i], contractName: nftContractName[i], id: nftIds[i])
+                let s = Collectible(address: nftContractAddrs[i], contractName: nftContractNames[i], id: nftIds[i])
                 arr.append(s)
                 i = i + 1
             }
@@ -216,17 +260,17 @@ access(all) contract PDS{
             distId: UInt64,
             packId: UInt64,
             nftContractAddrs: [Address],
-            nftContractName: [String],
+            nftContractNames: [String],
             nftIds: [UInt64],
             recvCap: &{NonFungibleToken.CollectionPublic},
             collectionStoragePath: StoragePath
-        ){
+        ) {
             assert(PDS.DistSharedCap.containsKey(distId), message: "No such distribution")
             let d <- PDS.DistSharedCap.remove(key: distId)!
             let arr: [{IPackNFT.Collectible}] = []
             var i = 0
             while i < nftContractAddrs.length {
-                let s = Collectible(address: nftContractAddrs[i], contractName: nftContractName[i], id: nftIds[i])
+                let s = Collectible(address: nftContractAddrs[i], contractName: nftContractNames[i], id: nftIds[i])
                 arr.append(s)
                 i = i + 1
             }
@@ -236,14 +280,18 @@ access(all) contract PDS{
 
     }
 
+    /// Returns the manager collection capability to receive NFTs to be escrowed.
+    ///
     access(contract) fun getManagerCollectionCap(escrowCollectionPublic: PublicPath): Capability<&{NonFungibleToken.CollectionPublic}> {
         let pdsCollection = self.account.capabilities.get<&{NonFungibleToken.CollectionPublic}>(escrowCollectionPublic)!
         assert(pdsCollection.check(), message: "Please ensure PDS has created and linked a Collection for recieving escrows")
         return pdsCollection
     }
 
-    access(contract) fun releaseEscrow(nftIds: [UInt64], recvCap:  &{NonFungibleToken.CollectionPublic}, collectionStoragePath: StoragePath ) {
-        let pdsCollection = self.account.storage.borrow<auth(NonFungibleToken.Withdraw) &{NonFungibleToken.Provider}>(from: collectionStoragePath)
+    /// Release escrowed NFTs to the receiver.
+    ///
+    access(contract) fun releaseEscrow(nftIds: [UInt64], recvCap: &{NonFungibleToken.CollectionPublic}, collectionStoragePath: StoragePath ) {
+        let pdsCollection = self.account.storage.borrow<auth(NonFungibleToken.Withdraw) &{NonFungibleToken.Collection}>(from: collectionStoragePath)
             ?? panic("Unable to borrow PDS collection provider capability from private path")
         var i = 0
         while i < nftIds.length {
@@ -252,24 +300,31 @@ access(all) contract PDS{
         }
     }
 
-    access(all) fun createPackIssuer (): @PackIssuer{
+    /// Create a PackIssuer resource and return it to the caller.
+    access(all) fun createPackIssuer(): @PackIssuer{
         return <- create PackIssuer()
     }
 
-    access(all) fun createSharedCapabilities (
-            withdrawCap: Capability<auth(NonFungibleToken.Withdraw) &{NonFungibleToken.Provider}>,
-            operatorCap: Capability<auth(IPackNFT.Operatable) &{IPackNFT.IOperator}>
-    ): @SharedCapabilities{
+    /// Create a SharedCapabilities resource and return it to the caller.
+    ///
+    access(all) fun createSharedCapabilities(
+        withdrawCap: Capability<auth(NonFungibleToken.Withdraw) &{NonFungibleToken.Collection}>,
+        operatorCap: Capability<auth(IPackNFT.Operatable) &{IPackNFT.IOperator}>
+    ): @SharedCapabilities {
         return <- create SharedCapabilities(
             withdrawCap: withdrawCap,
             operatorCap: operatorCap
         )
     }
 
+    /// Returns the details of a distribution if it exists, nil otherwise.
+    ///
     access(all) fun getDistInfo(distId: UInt64): DistInfo? {
         return PDS.Distributions[distId]
     }
 
+    /// PDS contract initializer.
+    ///
     init(
         PackIssuerStoragePath: StoragePath,
         PackIssuerCapRecv: PublicPath,
@@ -286,10 +341,10 @@ access(all) contract PDS{
         self.DistManagerStoragePath = DistManagerStoragePath
         self.version = version
 
-        // Create a distributionCreator to share create capability with PackIssuer
+        // Create a DistributionCreator resource to share create capability with PackIssuer.
         self.account.storage.save(<- create DistributionCreator(), to: self.DistCreatorStoragePath)
 
-        // Create a distributionManager to manager distributions (withdraw for escrow, mint PackNFT todo: reveal / transfer)
+        // Create a DistributionManager resource to manager distributions (withdraw for escrow, mint PackNFT todo: reveal / transfer).
         self.account.storage.save(<- create DistributionManager(), to: self.DistManagerStoragePath)
     }
 }

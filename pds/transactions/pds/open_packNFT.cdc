@@ -6,7 +6,7 @@ transaction (
     distId: UInt64,
     packId: UInt64,
     nftContractAddrs: [Address],
-    nftContractName: [String],
+    nftContractNames: [String],
     nftIds: [UInt64],
     owner: Address,
     collectionStoragePath: StoragePath
@@ -22,7 +22,7 @@ transaction (
             distId: distId,
             packId: packId,
             nftContractAddrs: nftContractAddrs,
-            nftContractName: nftContractName,
+            nftContractNames: nftContractNames,
             nftIds: nftIds,
             recvCap: recv,
             collectionStoragePath: collectionStoragePath,
