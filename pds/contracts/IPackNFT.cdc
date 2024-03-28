@@ -60,7 +60,7 @@ access(all) contract interface IPackNFT{
         access(all) let contractName: String
         access(all) let id: UInt64
         access(all) fun hashString(): String
-        init(address: Address, contractName: String, id: UInt64)
+        view init(address: Address, contractName: String, id: UInt64)
     }
 
     /// Resource interface for PackNFT
@@ -73,7 +73,7 @@ access(all) contract interface IPackNFT{
 
         access(contract) fun reveal(id: UInt64, nfts: [{IPackNFT.Collectible}], salt: String)
         access(contract) fun open(id: UInt64, nfts: [{IPackNFT.Collectible}])
-        init(commitHash: String, issuer: Address)
+        view init(commitHash: String, issuer: Address)
     }
 
     /// Resource interface for IOperator

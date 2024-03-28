@@ -75,7 +75,7 @@ access(all) contract PackNFT: NonFungibleToken, IPackNFT {
 
         /// PackNFTOperator resource initializer.
         ///
-        init() {}
+        view init() {}
     }
 
     /// Resource that defines a Pack NFT.
@@ -86,7 +86,7 @@ access(all) contract PackNFT: NonFungibleToken, IPackNFT {
         access(all) var status: Status
         access(all) var salt: String?
 
-        access(all) fun verify(nftString: String): Bool {
+        access(all) view fun verify(nftString: String): Bool {
             assert(self.status != Status.Sealed, message: "Pack not revealed yet")
             var hashString = self.salt!
             hashString = hashString.concat(",").concat(nftString)
@@ -127,7 +127,7 @@ access(all) contract PackNFT: NonFungibleToken, IPackNFT {
 
         /// Pack resource initializer.
         ///
-        init(commitHash: String, issuer: Address) {
+        view init(commitHash: String, issuer: Address) {
             // Set the hash and issuer from the arguments.
             self.commitHash = commitHash
             self.issuer = issuer
@@ -180,7 +180,7 @@ access(all) contract PackNFT: NonFungibleToken, IPackNFT {
 
         /// NFT resource initializer.
         ///
-        init(commitHash: String, issuer: Address) {
+        view init(commitHash: String, issuer: Address) {
             self.id = self.uuid
             self.commitHash = commitHash
             self.issuer = issuer
@@ -194,7 +194,7 @@ access(all) contract PackNFT: NonFungibleToken, IPackNFT {
 
         /// Return the metadata view types available for this NFT.
         ///
-        view access(all) fun getViews(): [Type] {
+        access(all) view fun getViews(): [Type] {
             return [
                 Type<MetadataViews.Display>(),
                 Type<MetadataViews.ExternalURL>(),
@@ -208,7 +208,7 @@ access(all) contract PackNFT: NonFungibleToken, IPackNFT {
 
         /// Resolve this NFT's metadata views.
         ///
-        access(all) fun resolveView(_ view: Type): AnyStruct? {
+        access(all) view fun resolveView(_ view: Type): AnyStruct? {
             switch view {
                 case Type<MetadataViews.Display>():
                     return MetadataViews.Display(
@@ -282,13 +282,13 @@ access(all) contract PackNFT: NonFungibleToken, IPackNFT {
 
         /// Return an asset path.
         ///
-        access(all) fun assetPath(): String {
+        access(all) view fun assetPath(): String {
             return "https://media.nflallday.com/packnfts/".concat(self.id.toString()).concat("/media/")
         }
 
         /// Return an image path.
         ///
-        access(all) fun getImage(imageType: String, format: String, width: Int): String {
+        access(all) view fun getImage(imageType: String, format: String, width: Int): String {
             return self.assetPath().concat(imageType).concat("?format=").concat(format).concat("&width=").concat(width.toString())
         }
     }
@@ -303,7 +303,7 @@ access(all) contract PackNFT: NonFungibleToken, IPackNFT {
 
         /// Collection resource initializer,
         ///
-        init() {
+        view init() {
             self.ownedNFTs <- {}
         }
 
@@ -332,19 +332,19 @@ access(all) contract PackNFT: NonFungibleToken, IPackNFT {
 
         /// Return an array of the IDs that are in the collection.
         ///
-        view access(all) fun getIDs(): [UInt64] {
+        access(all) view fun getIDs(): [UInt64] {
             return self.ownedNFTs.keys
         }
 
         /// Return the amount of NFTs stored in the collection.
         ///
-        view access(all) fun getLength(): Int {
+        access(all) view fun getLength(): Int {
             return self.ownedNFTs.keys.length
         }
 
         /// Return a list of NFT types that this receiver accepts.
         ///
-        view access(all) fun getSupportedNFTTypes(): {Type: Bool} {
+        access(all) view fun getSupportedNFTTypes(): {Type: Bool} {
             let supportedTypes: {Type: Bool} = {}
             supportedTypes[Type<@NFT>()] = true
             return supportedTypes
@@ -352,7 +352,7 @@ access(all) contract PackNFT: NonFungibleToken, IPackNFT {
 
         /// Return whether or not the given type is accepted by the collection.
         ///
-        view access(all) fun isSupportedNFTType(type: Type): Bool {
+        access(all) view fun isSupportedNFTType(type: Type): Bool {
             if type == Type<@NFT>() {
                 return true
             }
@@ -361,13 +361,13 @@ access(all) contract PackNFT: NonFungibleToken, IPackNFT {
 
         /// Return a reference to an NFT in the Collection.
         ///
-        view access(all) fun borrowNFT(_ id: UInt64): &{NonFungibleToken.NFT}? {
+        access(all) view fun borrowNFT(_ id: UInt64): &{NonFungibleToken.NFT}? {
             return &self.ownedNFTs[id]
         }
 
         /// Return a reference to an NFT in the Collection as a IPackNFT.NFT.
         ///
-        view access(all) fun borrowPackNFT(id: UInt64): &{IPackNFT.NFT}? {
+        access(all) view fun borrowPackNFT(id: UInt64): &{IPackNFT.NFT}? {
             return self.borrowNFT(id) as! &{IPackNFT.NFT}?
         }
 
@@ -401,7 +401,7 @@ access(all) contract PackNFT: NonFungibleToken, IPackNFT {
 
     /// Return a reference to a Pack resource stored in the contract state.
     ///
-    access(all) fun borrowPackRepresentation(id: UInt64): &Pack? {
+    access(all) view fun borrowPackRepresentation(id: UInt64): &Pack? {
         return (&self.packs[id] as &Pack?)!
     }
 
@@ -431,7 +431,7 @@ access(all) contract PackNFT: NonFungibleToken, IPackNFT {
     /// @param view: The Type of the desired view.
     /// @return A structure representing the requested view.
     ///
-    access(all) fun resolveContractView(resourceType: Type?, viewType: Type): AnyStruct? {
+    access(all) view fun resolveContractView(resourceType: Type?, viewType: Type): AnyStruct? {
         switch viewType {
             case Type<MetadataViews.NFTCollectionData>():
                 let collectionData = MetadataViews.NFTCollectionData(

@@ -55,7 +55,7 @@ access(all) contract PDS{
 
         /// DistInfo struct initializer.
         ///
-        init(title: String, metadata: {String: String}) {
+        view init(title: String, metadata: {String: String}) {
             self.title = title
             self.metadata = metadata
             self.state = PDS.DistState.Initialized
@@ -70,7 +70,7 @@ access(all) contract PDS{
         access(all) let id: UInt64
 
         // returning in string so that it is more readable and anyone can check the hash
-        access(all) fun hashString(): String {
+        access(all) view fun hashString(): String {
             // address string is 16 characters long with 0x as prefix (for 8 bytes in hex)
             // example: ,f3fcd2c1a78f5ee.ExampleNFT.12
             let c = "A."
@@ -93,7 +93,7 @@ access(all) contract PDS{
 
         /// Collectible struct initializer.
         ///
-        init(address: Address, contractName: String, id: UInt64) {
+        view init(address: Address, contractName: String, id: UInt64) {
             self.address = address
             self.contractName = contractName
             self.id = id
@@ -105,7 +105,7 @@ access(all) contract PDS{
     access(all) resource SharedCapabilities {
         /// Capability to withdraw NFTs from the issuer.
         ///
-        access(self) let withdrawCap: Capability<auth(NonFungibleToken.Withdraw) &{NonFungibleToken.Collection}>
+        access(self) let withdrawCap: Capability<auth(NonFungibleToken.Withdraw | NonFungibleToken.Owner) &{NonFungibleToken.Provider}>
 
         /// Capability to mint, reveal, and open Pack NFTs.
         ///
@@ -154,8 +154,8 @@ access(all) contract PDS{
 
         /// SharedCapabilities resource initializer.
         ///
-        init(
-            withdrawCap: Capability<auth(NonFungibleToken.Withdraw) &{NonFungibleToken.Collection}>,
+        view init(
+            withdrawCap: Capability<auth(NonFungibleToken.Withdraw | NonFungibleToken.Owner) &{NonFungibleToken.Provider}>,
             operatorCap: Capability<auth(IPackNFT.Operatable) &{IPackNFT.IOperator}>
         ) {
             self.withdrawCap = withdrawCap
@@ -187,7 +187,7 @@ access(all) contract PDS{
 
         /// PackIssuer resource initializer.
         ///
-        init() {
+        view init() {
             self.cap = nil
         }
     }
@@ -282,7 +282,7 @@ access(all) contract PDS{
 
     /// Returns the manager collection capability to receive NFTs to be escrowed.
     ///
-    access(contract) fun getManagerCollectionCap(escrowCollectionPublic: PublicPath): Capability<&{NonFungibleToken.CollectionPublic}> {
+    access(contract) view fun getManagerCollectionCap(escrowCollectionPublic: PublicPath): Capability<&{NonFungibleToken.CollectionPublic}> {
         let pdsCollection = self.account.capabilities.get<&{NonFungibleToken.CollectionPublic}>(escrowCollectionPublic)!
         assert(pdsCollection.check(), message: "Please ensure PDS has created and linked a Collection for recieving escrows")
         return pdsCollection
@@ -308,7 +308,7 @@ access(all) contract PDS{
     /// Create a SharedCapabilities resource and return it to the caller.
     ///
     access(all) fun createSharedCapabilities(
-        withdrawCap: Capability<auth(NonFungibleToken.Withdraw) &{NonFungibleToken.Collection}>,
+        withdrawCap: Capability<auth(NonFungibleToken.Withdraw | NonFungibleToken.Owner) &{NonFungibleToken.Provider}>,
         operatorCap: Capability<auth(IPackNFT.Operatable) &{IPackNFT.IOperator}>
     ): @SharedCapabilities {
         return <- create SharedCapabilities(
@@ -319,7 +319,7 @@ access(all) contract PDS{
 
     /// Returns the details of a distribution if it exists, nil otherwise.
     ///
-    access(all) fun getDistInfo(distId: UInt64): DistInfo? {
+    access(all) view fun getDistInfo(distId: UInt64): DistInfo? {
         return PDS.Distributions[distId]
     }
 
