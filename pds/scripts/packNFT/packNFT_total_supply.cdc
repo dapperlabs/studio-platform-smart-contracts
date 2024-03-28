@@ -1,5 +1,5 @@
-import PackNFT from 0x{{.PackNFT}}
+import PackNFT from "PackNFT"
 
-pub fun main(): UInt64{
-    return PackNFT.totalSupply 
+access(all) fun main(): UInt64{
+    return PackNFT.totalSupply
 }

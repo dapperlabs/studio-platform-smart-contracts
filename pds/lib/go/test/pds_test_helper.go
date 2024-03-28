@@ -1,21 +1,25 @@
 package test
 
 import (
+	"context"
 	"encoding/hex"
 
 	studioPlatformContracts "github.com/dapperlabs/studio-platform-smart-contracts/lib/go/contracts"
 	studioPlatformTemplates "github.com/dapperlabs/studio-platform-smart-contracts/lib/go/templates"
 	"github.com/onflow/flow-nft/lib/go/templates"
+	"github.com/rs/zerolog"
 
 	"testing"
 
 	"github.com/onflow/cadence"
 	jsoncdc "github.com/onflow/cadence/encoding/json"
-	emulator "github.com/onflow/flow-emulator"
+	"github.com/onflow/cadence/runtime/common"
+	"github.com/onflow/flow-emulator/adapters"
+	"github.com/onflow/flow-emulator/emulator"
 	"github.com/onflow/flow-go-sdk"
 	"github.com/onflow/flow-go-sdk/crypto"
 	"github.com/onflow/flow-go-sdk/test"
-	"github.com/onflow/flow-nft/lib/go/contracts"
+	nftcontracts "github.com/onflow/flow-nft/lib/go/contracts"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -33,13 +37,15 @@ func deployPDSContracts(
 ) (flow.Address, flow.Address, flow.Address, flow.Address, flow.Address) {
 
 	// 1. Deploy utility contracts
-	nftAddress := deploy(t, b, "NonFungibleToken", contracts.NonFungibleToken())
+	resolverAddress := deploy(t, b, "ViewResolver", nftcontracts.ViewResolver(), b.ServiceKey().AccountKey())
 
-	metadataAddress := deploy(t, b, "MetadataViews", contracts.MetadataViews(flow.HexToAddress(emulatorFTAddress), nftAddress))
+	nftAddress := deploy(t, b, "NonFungibleToken", nftcontracts.NonFungibleToken(resolverAddress.String()))
+
+	metadataAddress := deploy(t, b, "MetadataViews", nftcontracts.MetadataViews(emulatorFTAddress, nftAddress.String(), resolverAddress.String()))
 	exampleNFTAddress := deploy(
 		t, b,
 		"ExampleNFT",
-		contracts.ExampleNFT(nftAddress, metadataAddress),
+		nftcontracts.ExampleNFT(nftAddress, metadataAddress, resolverAddress),
 		exampleNFTAccountKey,
 	)
 
@@ -51,7 +57,7 @@ func deployPDSContracts(
 	)
 
 	// 2. Deploy Pack NFT contract
-	deployPackNftContract(t, b, nftAddress, iPackNFTAddress, exampleNFTAddress, exampleNFTSigner)
+	deployPackNftContract(t, b, nftAddress, iPackNFTAddress, exampleNFTAddress, metadataAddress, exampleNFTSigner)
 
 	// 3. Deploy AllDay Pack NFT contract
 	deployAllDayPackNftContract(t, b, nftAddress, ftAddress, iPackNFTAddress, metadataAddress)
@@ -62,10 +68,9 @@ func deployPDSContracts(
 	return nftAddress, metadataAddress, exampleNFTAddress, iPackNFTAddress, pdsAddress
 }
 
-func deployPackNftContract(t *testing.T, b *emulator.Blockchain, nftAddress, iPackNFTAddress, exampleNFTAddress flow.Address, exampleNFTSigner crypto.Signer) {
+func deployPackNftContract(t *testing.T, b *emulator.Blockchain, nftAddress, iPackNFTAddress, exampleNFTAddress, metadataAddress flow.Address, exampleNFTSigner crypto.Signer) {
 
-	PackNftCode := studioPlatformContracts.PackNFT(nftAddress, iPackNFTAddress)
-	fundAccount(t, b, exampleNFTAddress, defaultAccountFunding)
+	PackNftCode := studioPlatformContracts.PackNFT(nftAddress, iPackNFTAddress, metadataAddress)
 
 	packNFTencodedStr := hex.EncodeToString(PackNftCode)
 	txBytes := studioPlatformTemplates.GenerateDeployPackNFTTx(nftAddress, iPackNFTAddress)
@@ -73,11 +78,11 @@ func deployPackNftContract(t *testing.T, b *emulator.Blockchain, nftAddress, iPa
 	tx1 := createTxWithTemplateAndAuthorizer(b, txBytes, exampleNFTAddress)
 	_ = tx1.AddArgument(cadence.String("PackNFT"))
 	_ = tx1.AddArgument(cadence.String(packNFTencodedStr))
-	_ = tx1.AddArgument(cadence.Path{Domain: "storage", Identifier: "PackNFTCollection"})
-	_ = tx1.AddArgument(cadence.Path{Domain: "public", Identifier: "PackNFTCollectionPub"})
-	_ = tx1.AddArgument(cadence.Path{Domain: "public", Identifier: "PackNFTIPackNFTCollectionPub"})
-	_ = tx1.AddArgument(cadence.Path{Domain: "storage", Identifier: "PackNFTOperator"})
-	_ = tx1.AddArgument(cadence.Path{Domain: "private", Identifier: "PackNFTOperatorPriv"})
+	_ = tx1.AddArgument(cadence.Path{Domain: common.PathDomainStorage, Identifier: "PackNFTCollection"})
+	_ = tx1.AddArgument(cadence.Path{Domain: common.PathDomainPublic, Identifier: "PackNFTCollectionPub"})
+	_ = tx1.AddArgument(cadence.Path{Domain: common.PathDomainPublic, Identifier: "PackNFTIPackNFTCollectionPub"})
+	_ = tx1.AddArgument(cadence.Path{Domain: common.PathDomainStorage, Identifier: "PackNFTOperator"})
+	// _ = tx1.AddArgument(cadence.Path{Domain: "private", Identifier: "PackNFTOperatorPriv"})
 	_ = tx1.AddArgument(cadence.String("0.1.0"))
 
 	signer, err := b.ServiceKey().Signer()
@@ -95,13 +100,14 @@ func deployPackNftContract(t *testing.T, b *emulator.Blockchain, nftAddress, iPa
 }
 
 func deployAllDayPackNftContract(t *testing.T, b *emulator.Blockchain, nftAddress, ftAddress, iPackNFTAddress, metaDataViewAddress flow.Address) flow.Address {
+	logger := zerolog.Nop()
+	adapter := adapters.NewSDKAdapter(&logger, b)
 	accountKeys := test.AccountKeyGenerator()
 
 	// set up PackNFT account
 	AllDayPackNftAccountKey, AllDayPackNftSigner := accountKeys.NewWithSigner()
-	AllDayPackNftAddress, _ := b.CreateAccount([]*flow.AccountKey{AllDayPackNftAccountKey}, nil)
+	AllDayPackNftAddress, _ := adapter.CreateAccount(context.Background(), []*flow.AccountKey{AllDayPackNftAccountKey}, nil)
 	PackNftCode := studioPlatformContracts.AllDayPackNFT(nftAddress, ftAddress, iPackNFTAddress, metaDataViewAddress, AllDayPackNftAddress)
-	fundAccount(t, b, AllDayPackNftAddress, defaultAccountFunding)
 
 	packNFTencodedStr := hex.EncodeToString(PackNftCode)
 	txBytes := studioPlatformTemplates.GenerateDeployPackNFTTx(nftAddress, iPackNFTAddress)
@@ -109,11 +115,11 @@ func deployAllDayPackNftContract(t *testing.T, b *emulator.Blockchain, nftAddres
 	tx1 := createTxWithTemplateAndAuthorizer(b, txBytes, AllDayPackNftAddress)
 	_ = tx1.AddArgument(cadence.String("PackNFT"))
 	_ = tx1.AddArgument(cadence.String(packNFTencodedStr))
-	_ = tx1.AddArgument(cadence.Path{Domain: "storage", Identifier: "PackNFTCollection"})
-	_ = tx1.AddArgument(cadence.Path{Domain: "public", Identifier: "PackNFTCollectionPub"})
-	_ = tx1.AddArgument(cadence.Path{Domain: "public", Identifier: "PackNFTIPackNFTCollectionPub"})
-	_ = tx1.AddArgument(cadence.Path{Domain: "storage", Identifier: "PackNFTOperator"})
-	_ = tx1.AddArgument(cadence.Path{Domain: "private", Identifier: "PackNFTOperatorPriv"})
+	_ = tx1.AddArgument(cadence.Path{Domain: common.PathDomainStorage, Identifier: "PackNFTCollection"})
+	_ = tx1.AddArgument(cadence.Path{Domain: common.PathDomainPublic, Identifier: "PackNFTCollectionPub"})
+	_ = tx1.AddArgument(cadence.Path{Domain: common.PathDomainPublic, Identifier: "PackNFTIPackNFTCollectionPub"})
+	_ = tx1.AddArgument(cadence.Path{Domain: common.PathDomainStorage, Identifier: "PackNFTOperator"})
+	// _ = tx1.AddArgument(cadence.Path{Domain: "private", Identifier: "PackNFTOperatorPriv"})
 	_ = tx1.AddArgument(cadence.String("0.1.0"))
 
 	signer, err := b.ServiceKey().Signer()
@@ -138,13 +144,14 @@ func deployPDSContract(
 	nftAddress, iPackNFTAddress flow.Address,
 	pdsAccountKey *flow.AccountKey,
 	pdsSigner crypto.Signer) flow.Address {
+	logger := zerolog.Nop()
+	adapter := adapters.NewSDKAdapter(&logger, b)
 	//accountKeys := test.AccountKeyGenerator()
 
 	// set up PackNFT account
 	//PDSAccountKey, PDSSigner := accountKeys.NewWithSigner()
-	PDSAddress, _ := b.CreateAccount([]*flow.AccountKey{pdsAccountKey}, nil)
+	PDSAddress, _ := adapter.CreateAccount(context.Background(), []*flow.AccountKey{pdsAccountKey}, nil)
 	PDSCode := studioPlatformContracts.PDS(nftAddress, iPackNFTAddress)
-	fundAccount(t, b, PDSAddress, defaultAccountFunding)
 
 	PDSEncodedStr := hex.EncodeToString(PDSCode)
 	script := studioPlatformTemplates.GenerateDeployPDSTx(nftAddress, iPackNFTAddress)
@@ -157,11 +164,11 @@ func deployPDSContract(
 
 	_ = tx1.AddArgument(cadence.String("PDS"))
 	_ = tx1.AddArgument(cadence.String(PDSEncodedStr))
-	_ = tx1.AddArgument(cadence.Path{Domain: "storage", Identifier: "PDSPackIssuer"})
-	_ = tx1.AddArgument(cadence.Path{Domain: "public", Identifier: "PDSPackIssuerCapRecv"})
-	_ = tx1.AddArgument(cadence.Path{Domain: "storage", Identifier: "PDSDistCreator"})
-	_ = tx1.AddArgument(cadence.Path{Domain: "private", Identifier: "PDSDistCap"})
-	_ = tx1.AddArgument(cadence.Path{Domain: "storage", Identifier: "PDSDistManager"})
+	_ = tx1.AddArgument(cadence.Path{Domain: common.PathDomainStorage, Identifier: "PDSPackIssuer"})
+	_ = tx1.AddArgument(cadence.Path{Domain: common.PathDomainPublic, Identifier: "PDSPackIssuerCapRecv"})
+	_ = tx1.AddArgument(cadence.Path{Domain: common.PathDomainStorage, Identifier: "PDSDistCreator"})
+	// _ = tx1.AddArgument(cadence.Path{Domain: "private", Identifier: "PDSDistCap"})
+	_ = tx1.AddArgument(cadence.Path{Domain: common.PathDomainStorage, Identifier: "PDSDistManager"})
 	_ = tx1.AddArgument(cadence.String("0.1.0"))
 
 	signer, err := b.ServiceKey().Signer()
@@ -180,16 +187,15 @@ func deployPDSContract(
 	return PDSAddress
 }
 
-// Assers that the ExampleNFT collection in the specified user's account
+// Asserts that the ExampleNFT collection in the specified user's account
 // is the expected length
 func assertCollectionLength(
 	t *testing.T,
 	b *emulator.Blockchain,
-	nftAddress flow.Address, exampleNFTAddress flow.Address,
-	collectionAddress flow.Address,
+	nftAddress, exampleNFTAddress, metadataAddress, collectionAddress flow.Address,
 	expectedLength int,
 ) {
-	script := templates.GenerateGetCollectionLengthScript(nftAddress, exampleNFTAddress)
+	script := templates.GenerateGetCollectionLengthScript(nftAddress, exampleNFTAddress, metadataAddress)
 	actualLength := executeScriptAndCheck(t, b, script, [][]byte{jsoncdc.MustEncode(cadence.NewAddress(collectionAddress))})
 	assert.Equal(t, cadence.NewInt(expectedLength), actualLength)
 }
@@ -272,7 +278,7 @@ func setupRoyaltyReceiver(
 	script := templates.GenerateSetupAccountToReceiveRoyaltyScript(metadataAddress, flow.HexToAddress(emulatorFTAddress))
 	tx := createTxWithTemplateAndAuthorizer(b, script, authorizerAddress)
 
-	vaultPath := cadence.Path{Domain: "storage", Identifier: "flowTokenVault"}
+	vaultPath := cadence.Path{Domain: common.PathDomainStorage, Identifier: "flowTokenVault"}
 	tx.AddArgument(vaultPath)
 
 	serviceSigner, _ := b.ServiceKey().Signer()
