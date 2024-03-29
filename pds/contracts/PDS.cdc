@@ -6,7 +6,7 @@ import IPackNFT from "IPackNFT"
 access(all) contract PDS{
     /// Entitlement that grants the ability to create a distribution.
     ///
-    access(all) entitlement DistCreation
+    access(all) entitlement CreateDist
 
     access(all) var version: String
     access(all) let PackIssuerStoragePath: StoragePath
@@ -105,7 +105,7 @@ access(all) contract PDS{
     access(all) resource SharedCapabilities {
         /// Capability to withdraw NFTs from the issuer.
         ///
-        access(self) let withdrawCap: Capability<auth(NonFungibleToken.Withdraw | NonFungibleToken.Owner) &{NonFungibleToken.Provider}>
+        access(self) let withdrawCap: Capability<auth(NonFungibleToken.Withdraw, NonFungibleToken.Owner) &{NonFungibleToken.Provider}>
 
         /// Capability to mint, reveal, and open Pack NFTs.
         ///
@@ -155,7 +155,7 @@ access(all) contract PDS{
         /// SharedCapabilities resource initializer.
         ///
         view init(
-            withdrawCap: Capability<auth(NonFungibleToken.Withdraw | NonFungibleToken.Owner) &{NonFungibleToken.Provider}>,
+            withdrawCap: Capability<auth(NonFungibleToken.Withdraw, NonFungibleToken.Owner) &{NonFungibleToken.Provider}>,
             operatorCap: Capability<auth(IPackNFT.Operatable) &{IPackNFT.IOperator}>
         ) {
             self.withdrawCap = withdrawCap
@@ -170,16 +170,16 @@ access(all) contract PDS{
     /// Resource that defines the issuer of a pack.
     ///
     access(all) resource PackIssuer: PackIssuerCapReciever {
-        access(self) var cap: Capability<auth(DistCreation) &DistributionCreator>?
+        access(self) var cap: Capability<&DistributionCreator>?
 
-        access(all) fun setDistCap(cap: Capability<auth(DistCreation) &DistributionCreator>) {
+        access(all) fun setDistCap(cap: Capability<&DistributionCreator>) {
             pre {
                 cap.borrow() != nil: "Invalid capability"
             }
             self.cap = cap
         }
 
-        access(DistCreation) fun createDist(sharedCap: @SharedCapabilities, title: String, metadata: {String: String}) {
+        access(CreateDist) fun createDist(sharedCap: @SharedCapabilities, title: String, metadata: {String: String}) {
             assert(title.length > 0, message: "Title must not be empty")
             let c = self.cap!.borrow()!
             c.createNewDist(sharedCap: <- sharedCap, title: title, metadata: metadata)
@@ -198,7 +198,7 @@ access(all) contract PDS{
     /// Resource that defines the creator of a distribution.
     ///
     access(all) resource DistributionCreator: IDistCreator {
-        access(DistCreation) fun createNewDist(sharedCap: @SharedCapabilities, title: String, metadata: {String: String}) {
+        access(all) fun createNewDist(sharedCap: @SharedCapabilities, title: String, metadata: {String: String}) {
             let currentId = PDS.nextDistId
             PDS.DistSharedCap[currentId] <-! sharedCap
             PDS.Distributions[currentId] = DistInfo(title: title, metadata: metadata)
@@ -308,7 +308,7 @@ access(all) contract PDS{
     /// Create a SharedCapabilities resource and return it to the caller.
     ///
     access(all) fun createSharedCapabilities(
-        withdrawCap: Capability<auth(NonFungibleToken.Withdraw | NonFungibleToken.Owner) &{NonFungibleToken.Provider}>,
+        withdrawCap: Capability<auth(NonFungibleToken.Withdraw, NonFungibleToken.Owner) &{NonFungibleToken.Provider}>,
         operatorCap: Capability<auth(IPackNFT.Operatable) &{IPackNFT.IOperator}>
     ): @SharedCapabilities {
         return <- create SharedCapabilities(

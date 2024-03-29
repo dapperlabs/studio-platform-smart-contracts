@@ -96,7 +96,7 @@ access(all) contract interface IPackNFT{
 
     /// Resource interface for NFT
     ///
-    access(all) resource interface NFT: NonFungibleToken.INFT, IPackNFTToken, IPackNFTOwnerOperator {
+    access(all) resource interface NFT: NonFungibleToken.NFT, IPackNFTToken, IPackNFTOwnerOperator {
         access(all) let id: UInt64
         access(all) let issuer: Address
         access(NonFungibleToken.Update | NonFungibleToken.Owner) fun reveal(openRequest: Bool)
