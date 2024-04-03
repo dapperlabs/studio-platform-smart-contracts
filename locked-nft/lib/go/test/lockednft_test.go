@@ -1,7 +1,6 @@
 package test
 
 import (
-	"errors"
 	emulator "github.com/onflow/flow-emulator"
 	"github.com/onflow/flow-go-sdk"
 	"github.com/onflow/flow-go-sdk/crypto"
@@ -299,15 +298,12 @@ func testUnlockNFT(
 				err = r.(error)
 			}
 		}()
-		lockedData := getLockedTokenData(
+		_ = getLockedTokenData(
 			t,
 			b,
 			contracts,
 			exampleNftID,
 		)
-		if lockedData.ID != exampleNftID {
-			return errors.New("nft should not be locked")
-		}
 		return err
 	}()
 	assert.Error(t, err)
