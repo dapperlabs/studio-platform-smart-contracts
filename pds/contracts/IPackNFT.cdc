@@ -7,7 +7,7 @@ access(all) contract interface IPackNFT{
 
     /// Entitlement to perform operations on the PackNFT
     ///
-    access(all) entitlement Operatable
+    access(all) entitlement Operate
 
     /// StoragePath for Collection Resource
     ///
@@ -79,9 +79,9 @@ access(all) contract interface IPackNFT{
     /// Resource interface for IOperator
     ///
     access(all) resource interface IOperator {
-        access(Operatable) fun mint(distId: UInt64, commitHash: String, issuer: Address): @{IPackNFT.NFT}
-        access(Operatable) fun reveal(id: UInt64, nfts: [{Collectible}], salt: String)
-        access(Operatable) fun open(id: UInt64, nfts: [{IPackNFT.Collectible}])
+        access(Operate) fun mint(distId: UInt64, commitHash: String, issuer: Address): @{IPackNFT.NFT}
+        access(Operate) fun reveal(id: UInt64, nfts: [{Collectible}], salt: String)
+        access(Operate) fun open(id: UInt64, nfts: [{IPackNFT.Collectible}])
     }
 
     // Included for backwards compatibility

@@ -47,7 +47,7 @@ access(all) contract PackNFT: NonFungibleToken, IPackNFT {
         /// Mint a new Pack NFT resource and corresponding Pack resource; store the Pack resource in the contract's packs dictionary
         /// and return the Pack NFT resource to the caller.
         ///
-        access(IPackNFT.Operatable) fun mint(distId: UInt64, commitHash: String, issuer: Address): @{IPackNFT.NFT} {
+        access(IPackNFT.Operate) fun mint(distId: UInt64, commitHash: String, issuer: Address): @{IPackNFT.NFT} {
             let nft <- create NFT(commitHash: commitHash, issuer: issuer)
             PackNFT.totalSupply = PackNFT.totalSupply + 1
             let p <- create Pack(commitHash: commitHash, issuer: issuer)
@@ -58,7 +58,7 @@ access(all) contract PackNFT: NonFungibleToken, IPackNFT {
 
         /// Reveal a Sealed Pack resource.
         ///
-        access(IPackNFT.Operatable) fun reveal(id: UInt64, nfts: [{IPackNFT.Collectible}], salt: String) {
+        access(IPackNFT.Operate) fun reveal(id: UInt64, nfts: [{IPackNFT.Collectible}], salt: String) {
             let p <- PackNFT.packs.remove(key: id) ?? panic("no such pack")
             p.reveal(id: id, nfts: nfts, salt: salt)
             PackNFT.packs[id] <-! p
@@ -66,7 +66,7 @@ access(all) contract PackNFT: NonFungibleToken, IPackNFT {
 
         /// Open a Revealed Pack NFT resource.
         ///
-        access(IPackNFT.Operatable) fun open(id: UInt64, nfts: [{IPackNFT.Collectible}]) {
+        access(IPackNFT.Operate) fun open(id: UInt64, nfts: [{IPackNFT.Collectible}]) {
             let p <- PackNFT.packs.remove(key: id) ?? panic("no such pack")
             p.open(id: id, nfts: nfts)
             PackNFT.packs[id] <-! p
@@ -209,7 +209,7 @@ access(all) contract PackNFT: NonFungibleToken, IPackNFT {
         /// Dictionary of NFT conforming tokens.
         /// NFT is a resource type with a UInt64 ID field.
         ///
-        access(all) var ownedNFTs: @{UInt64: {NonFungibleToken.NFT}}
+        access(self) var ownedNFTs: @{UInt64: {NonFungibleToken.NFT}}
 
         /// Collection resource initializer.
         ///

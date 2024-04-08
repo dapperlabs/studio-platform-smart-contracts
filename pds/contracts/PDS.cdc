@@ -109,7 +109,7 @@ access(all) contract PDS{
 
         /// Capability to mint, reveal, and open Pack NFTs.
         ///
-        access(self) let operatorCap: Capability<auth(IPackNFT.Operatable) &{IPackNFT.IOperator}>
+        access(self) let operatorCap: Capability<auth(IPackNFT.Operate) &{IPackNFT.IOperator}>
 
         /// Withdraw an NFT from the issuer.
         ///
@@ -156,7 +156,7 @@ access(all) contract PDS{
         ///
         view init(
             withdrawCap: Capability<auth(NonFungibleToken.Withdraw, NonFungibleToken.Owner) &{NonFungibleToken.Provider}>,
-            operatorCap: Capability<auth(IPackNFT.Operatable) &{IPackNFT.IOperator}>
+            operatorCap: Capability<auth(IPackNFT.Operate) &{IPackNFT.IOperator}>
         ) {
             self.withdrawCap = withdrawCap
             self.operatorCap = operatorCap
@@ -174,7 +174,7 @@ access(all) contract PDS{
 
         access(all) fun setDistCap(cap: Capability<&DistributionCreator>) {
             pre {
-                cap.borrow() != nil: "Invalid capability"
+                self.cap.borrow() != nil: "Invalid capability"
             }
             self.cap = cap
         }
@@ -309,7 +309,7 @@ access(all) contract PDS{
     ///
     access(all) fun createSharedCapabilities(
         withdrawCap: Capability<auth(NonFungibleToken.Withdraw, NonFungibleToken.Owner) &{NonFungibleToken.Provider}>,
-        operatorCap: Capability<auth(IPackNFT.Operatable) &{IPackNFT.IOperator}>
+        operatorCap: Capability<auth(IPackNFT.Operate) &{IPackNFT.IOperator}>
     ): @SharedCapabilities {
         return <- create SharedCapabilities(
             withdrawCap: withdrawCap,
