@@ -291,6 +291,23 @@ func testUnlockNFT(
 		userSigner,
 		exampleNftID,
 	)
+
+	err := func() (err error) {
+		defer func() {
+			if r := recover(); r != nil {
+				err = r.(error)
+			}
+		}()
+		_ = getLockedTokenData(
+			t,
+			b,
+			contracts,
+			exampleNftID,
+		)
+		return err
+	}()
+	assert.Error(t, err)
+
 }
 
 func TestAdminUnLockNFT(t *testing.T) {
@@ -323,7 +340,7 @@ func TestAdminUnLockNFT(t *testing.T) {
 			false,
 		)
 	})
-	
+
 	t.Run("Should fail unlocking an nft", func(t *testing.T) {
 		unlockNFT(t, b, contracts, true, userAddress, userSigner, mintedNft1)
 	})

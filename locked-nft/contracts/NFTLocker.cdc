@@ -143,7 +143,7 @@ pub contract NFTLocker {
 
             let token <- self.lockedNFTs[nftType]?.remove(key: id)!!
 
-            if let lockedToken = NFTLocker.lockedTokens[nftType] {
+            if let lockedToken = &NFTLocker.lockedTokens[nftType] as &{UInt64: NFTLocker.LockedData}? {
                 lockedToken.remove(key: id)
             }
             NFTLocker.totalLockedTokens = NFTLocker.totalLockedTokens - 1
