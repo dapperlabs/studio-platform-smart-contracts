@@ -197,6 +197,7 @@ access(all) contract PackNFT: NonFungibleToken, IPackNFT {
         }
 
         /// Resolve this NFT's metadata views.
+        //// TODO: Implement metadata views as needed for the NFT the PackNFT is intended to contain
         ///
         access(all) view fun resolveView(_ view: Type): AnyStruct? {
             return nil
@@ -273,12 +274,6 @@ access(all) contract PackNFT: NonFungibleToken, IPackNFT {
         ///
         access(all) view fun borrowNFT(_ id: UInt64): &{NonFungibleToken.NFT}? {
             return &self.ownedNFTs[id]
-        }
-
-        /// Return a reference to an NFT in the Collection as a IPackNFT.NFT.
-        ///
-        access(all) view fun borrowPackNFT(id: UInt64): &{IPackNFT.NFT}? {
-            return self.borrowNFT(id) as! &{IPackNFT.NFT}?
         }
 
         /// Create an empty Collection of the same type and returns it to the caller.

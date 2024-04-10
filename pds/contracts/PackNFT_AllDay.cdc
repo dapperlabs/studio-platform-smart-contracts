@@ -365,12 +365,6 @@ access(all) contract PackNFT: NonFungibleToken, IPackNFT {
             return &self.ownedNFTs[id]
         }
 
-        /// Return a reference to an NFT in the Collection as a IPackNFT.NFT.
-        ///
-        access(all) view fun borrowPackNFT(id: UInt64): &{IPackNFT.NFT}? {
-            return self.borrowNFT(id) as! &{IPackNFT.NFT}?
-        }
-
         /// Create an empty Collection of the same type and returns it to the caller.
         ///
         access(all) fun createEmptyCollection(): @{NonFungibleToken.Collection} {
