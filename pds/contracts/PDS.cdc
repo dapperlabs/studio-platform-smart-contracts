@@ -174,7 +174,7 @@ access(all) contract PDS{
 
         access(all) fun setDistCap(cap: Capability<&DistributionCreator>) {
             pre {
-                self.cap.borrow() != nil: "Invalid capability"
+                cap.check(): "Invalid capability"
             }
             self.cap = cap
         }

@@ -10,7 +10,7 @@ transaction(
     // OperatorPrivPath: PrivatePath,
     version: String,
 ) {
-    prepare(owner: auth(AddContract) &Account) {
+    prepare(owner: auth(AddContract, UpdateContract) &Account) {
         let existingContract = owner.contracts.get(name: contractName)
 
         if (existingContract == nil) {
@@ -27,7 +27,7 @@ transaction(
             )
         } else {
             log("has contract")
-            owner.contracts.add(name: contractName, code: code.decodeHex())
+            owner.contracts.update(name: contractName, code: code.decodeHex())
         }
     }
 }
