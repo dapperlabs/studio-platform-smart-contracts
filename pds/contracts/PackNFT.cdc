@@ -250,7 +250,7 @@ access(all) contract PackNFT: NonFungibleToken, IPackNFT {
         /// Return the amount of NFTs stored in the collection.
         ///
         access(all) view fun getLength(): Int {
-            return self.ownedNFTs.keys.length
+            return self.ownedNFTs.length
         }
 
         /// Return a list of NFT types that this receiver accepts.
