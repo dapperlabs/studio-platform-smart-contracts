@@ -1,13 +1,12 @@
 import NonFungibleToken from "NonFungibleToken"
 import ExampleNFT from "ExampleNFT"
 
-// This script borrows an NFT from a collection
-access(all) fun main(address: Address, id: UInt64) {
+// This script returns the number of NFTs in the collection of the given address
+access(all) fun main(address: Address): Int {
     let account = getAccount(address)
 
     let collectionRef = getAccount(address).capabilities.borrow<
         &ExampleNFT.Collection>(PublicPath(identifier: "cadenceExampleNFTCollection")!)!
 
-    // Borrow a reference to a specific NFT in the collection
-    let _ = collectionRef.borrowNFT(id)
+    return collectionRef.getIDs().length
 }

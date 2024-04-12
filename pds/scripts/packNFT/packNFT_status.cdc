@@ -1,7 +1,7 @@
-import PackNFT from 0x{{.PackNFT}}
-import IPackNFT from 0x{{.IPackNFT}}
+import PackNFT from "PackNFT"
+import IPackNFT from "IPackNFT"
 
-pub fun main(id: UInt64): UInt8 {
-    let p = PackNFT.borrowPackRepresentation(id: id) 
+access(all) fun main(id: UInt64): UInt8 {
+    let p = PackNFT.borrowPackRepresentation(id: id)
     return p!.status.rawValue
 }

@@ -1,5 +1,5 @@
-import PackNFT from 0x{{.PackNFT}}
-import IPackNFT from 0x{{.IPackNFT}}
+import PackNFT from "PackNFT"
+import IPackNFT from "IPackNFT"
 
 transaction(revealID: UInt64) {
     prepare(owner: AuthAccount) {

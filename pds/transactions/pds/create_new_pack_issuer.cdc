@@ -1,19 +1,19 @@
-import PDS from 0x{{.PDS}}
+import PDS from "PDS"
 
 transaction() {
-    prepare (issuer: AuthAccount) {
-        
+    prepare (issuer: auth(Storage, Capabilities) &Account) {
         // Check if account already have a PackIssuer resource, if so destroy it
-        if issuer.borrow<&PDS.PackIssuer>(from: PDS.PackIssuerStoragePath) != nil {
-            issuer.unlink(PDS.PackIssuerCapRecv)
-            let p <- issuer.load<@PDS.PackIssuer>(from: PDS.PackIssuerStoragePath) 
+        if issuer.storage.borrow<&PDS.PackIssuer>(from: PDS.PackIssuerStoragePath) != nil {
+            issuer.capabilities.unpublish(PDS.PackIssuerCapRecv)
+            let p <- issuer.storage.load<@PDS.PackIssuer>(from: PDS.PackIssuerStoragePath)
             destroy p
         }
-        
-        issuer.save(<- PDS.createPackIssuer(), to: PDS.PackIssuerStoragePath);
-        
-        issuer.link<&PDS.PackIssuer{PDS.PackIssuerCapReciever}>(PDS.PackIssuerCapRecv, target: PDS.PackIssuerStoragePath)
-        ??  panic("Could not link packIssuerCapReceiver");
-    } 
+
+        issuer.storage.save(<- PDS.createPackIssuer(), to: PDS.PackIssuerStoragePath);
+
+        issuer.capabilities.publish(
+            issuer.capabilities.storage.issue<&PDS.PackIssuer>(PDS.PackIssuerStoragePath),
+            at: PDS.PackIssuerCapRecv
+        )
+    }
 }
- 

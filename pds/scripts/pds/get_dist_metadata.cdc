@@ -1,5 +1,5 @@
-import PDS from 0x{{.PDS}}
+import PDS from "PDS"
 
-pub fun main(distId: UInt64): {String: String} {
+access(all) fun main(distId: UInt64): {String: String} {
     return PDS.getDistInfo(distId: distId)!.metadata
 }

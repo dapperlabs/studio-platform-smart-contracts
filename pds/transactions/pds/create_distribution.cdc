@@ -1,21 +1,21 @@
-import PDS from 0x{{.PDS}}
-import {{.PackNFTName}} from 0x{{.PackNFTAddress}}
-import IPackNFT from 0x{{.IPackNFT}}
-import NonFungibleToken from 0x{{.NonFungibleToken}}
+import PDS from "PDS"
+import {{.PackNFTName}} from "PackNFT"
+import IPackNFT from "IPackNFT"
+import NonFungibleToken from "NonFungibleToken"
 
-transaction(NFTProviderPath: PrivatePath, title: String, metadata: {String: String}) {
-    prepare (issuer: AuthAccount) {
+transaction(title: String, metadata: {String: String}) {
+    prepare (issuer: auth(BorrowValue, Capabilities) &Account) {
 
-        let i = issuer.borrow<&PDS.PackIssuer>(from: PDS.PackIssuerStoragePath) ?? panic ("issuer does not have PackIssuer resource")
+        let i = issuer.storage.borrow<auth(PDS.CreateDist) &PDS.PackIssuer>(from: PDS.PackIssuerStoragePath)
+            ?? panic ("issuer does not have PackIssuer resource")
 
         // issuer must have a PackNFT collection
-        log(NFTProviderPath)
-        let withdrawCap = issuer.getCapability<&{NonFungibleToken.Provider}>(NFTProviderPath);
-        let operatorCap = issuer.getCapability<&{IPackNFT.IOperator}>({{.PackNFTName}}.OperatorPrivPath);
+        let withdrawCap = issuer.capabilities.storage.issue<auth(NonFungibleToken.Withdraw, NonFungibleToken.Owner) &{NonFungibleToken.Provider}>(StoragePath(identifier: "cadenceExampleNFTCollection")!);
+        let operatorCap = issuer.capabilities.storage.issue<auth(IPackNFT.Operate) &{IPackNFT.IOperator}>({{.PackNFTName}}.OperatorStoragePath);
         assert(withdrawCap.check(), message:  "cannot borrow withdraw capability")
         assert(operatorCap.check(), message:  "cannot borrow operator capability")
 
         let sc <- PDS.createSharedCapabilities ( withdrawCap: withdrawCap, operatorCap: operatorCap )
-        i.create(sharedCap: <-sc, title: title, metadata: metadata)
+        i.createDist(sharedCap: <-sc, title: title, metadata: metadata)
     }
 }

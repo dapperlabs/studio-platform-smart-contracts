@@ -1,5 +1,5 @@
-import PDS from 0x{{.PDS}}
+import PDS from "PDS"
 
-pub fun main(): UInt64 {
+access(all) fun main(): UInt64 {
     return PDS.nextDistId
 }
