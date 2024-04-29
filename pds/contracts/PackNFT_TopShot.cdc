@@ -299,7 +299,7 @@ access(all) contract PackNFT: NonFungibleToken, IPackNFT {
         /// Dictionary of NFT conforming tokens.
         /// NFT is a resource type with a UInt64 ID field.
         ///
-        access(self) var ownedNFTs: @{UInt64: {NonFungibleToken.NFT}}
+        access(all) var ownedNFTs: @{UInt64: {NonFungibleToken.NFT}}
 
         /// Collection resource initializer,
         ///
