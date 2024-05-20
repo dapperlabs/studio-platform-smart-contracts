@@ -19,11 +19,12 @@ const (
 )
 
 const (
-	NFTLockerPath        = "../../../contracts/NFTLocker.cdc"
-	NFTLockerV2Path      = "../../../contracts/NFTLockerNew.cdc"
-	ExampleNFTPath       = "../../../contracts/ExampleNFT.cdc"
-	TransactionsRootPath = "../../../transactions"
-	ScriptsRootPath      = "../../../scripts"
+	NFTLockerPath                  = "../../../contracts/NFTLocker.cdc"
+	NFTLockerV2Path                = "../../../contracts/NFTLockerNew.cdc"
+	ExampleNFTPath                 = "../../../contracts/ExampleNFT.cdc"
+	MetadataViewsInterfaceFilePath = "../../../contracts/MetadataViews.cdc"
+	TransactionsRootPath           = "../../../transactions"
+	ScriptsRootPath                = "../../../scripts"
 
 	// Accounts
 	SetupAccountTxPath       = TransactionsRootPath + "/setup_collection.cdc"
@@ -156,7 +157,7 @@ func DownloadFile(url string) ([]byte, error) {
 }
 
 func LoadMetadataViews(ftAddress flow.Address, nftAddress flow.Address) []byte {
-	code, _ := DownloadFile(MetadataViewsContractsBaseURL + MetadataViewsInterfaceFile)
+	code := readFile(MetadataViewsInterfaceFilePath)
 	code = []byte(strings.Replace(strings.Replace(string(code), MetadataFTReplaceAddress, "0x"+ftAddress.String(), 1), MetadataNFTReplaceAddress, "0x"+nftAddress.String(), 1))
 
 	return code

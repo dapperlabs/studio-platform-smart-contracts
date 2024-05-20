@@ -77,7 +77,7 @@ pub contract NFTLocker {
     /// Determine if NFT can be unlocked
     ///
     pub fun canUnlockToken(id: UInt64, nftType: Type): Bool {
-        if let lockedTokens = NFTLocker.lockedTokens[nftType]{
+        if let lockedTokens = &NFTLocker.lockedTokens[nftType] as &{UInt64: NFTLocker.LockedData}? {
             if let lockedToken = lockedTokens[id] {
                 if lockedToken.lockedUntil <= UInt64(getCurrentBlock().timestamp) {
                     return true
@@ -143,8 +143,8 @@ pub contract NFTLocker {
 
             let token <- self.lockedNFTs[nftType]?.remove(key: id)!!
 
-            if let lockedToken = &NFTLocker.lockedTokens[nftType] as &{UInt64: NFTLocker.LockedData}? {
-                lockedToken.remove(key: id)
+            if let lockedTokens = &NFTLocker.lockedTokens[nftType] as &{UInt64: NFTLocker.LockedData}? {
+                lockedTokens.remove(key: id)
             }
             NFTLocker.totalLockedTokens = NFTLocker.totalLockedTokens - 1
 
