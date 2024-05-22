@@ -155,13 +155,13 @@ access(all) contract PackNFT: NonFungibleToken, IPackNFT {
 
         /// Reveal a Sealed Pack resource.
         ///
-        access(NonFungibleToken.Update | NonFungibleToken.Owner) fun reveal(openRequest: Bool) {
+        access(NonFungibleToken.Update) fun reveal(openRequest: Bool) {
             PackNFT.revealRequest(id: self.id, openRequest: openRequest)
         }
 
         /// Open a Revealed Pack resource.
         ///
-        access(NonFungibleToken.Update |NonFungibleToken.Owner) fun open() {
+        access(NonFungibleToken.Update) fun open() {
             PackNFT.openRequest(id: self.id)
         }
 
@@ -220,7 +220,7 @@ access(all) contract PackNFT: NonFungibleToken, IPackNFT {
 
         /// Remove an NFT from the collection and moves it to the caller.
         ///
-        access(NonFungibleToken.Withdraw | NonFungibleToken.Owner) fun withdraw(withdrawID: UInt64): @{NonFungibleToken.NFT} {
+        access(NonFungibleToken.Withdraw) fun withdraw(withdrawID: UInt64): @{NonFungibleToken.NFT} {
             let token <- self.ownedNFTs.remove(key: withdrawID) ?? panic("missing NFT")
 
             // Withdrawn event emitted from NonFungibleToken contract interface.
