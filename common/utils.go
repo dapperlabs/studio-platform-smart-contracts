@@ -17,10 +17,10 @@ const (
 	NonFungibleTokenAddr AddressName = "NonFungibleToken"
 )
 
-var replacer Replacer
+var NewReplacer Replacer
 
 func init() {
-	replacer = map[AddressName]*regexp.Regexp{
+	NewReplacer = map[AddressName]*regexp.Regexp{
 		"placeholderNonFungibleToken": placeholderNonFungibleToken,
 		"placeholderExampleNFT":       placeholderExampleNFT,
 		"placeholderMetadataViews":    placeholderMetadataViews,
