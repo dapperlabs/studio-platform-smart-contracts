@@ -3,7 +3,7 @@ import ExampleNFT from "ExampleNFT"
 
 access(all) fun main(account: Address, offset: UInt64, limit: UInt64): [UInt64] {
     let collectionRef = getAccount(account).capabilities.borrow<
-        &ExampleNFT.Collection>(PublicPath(identifier: "cadenceExampleNFTCollection")!)!
+        &ExampleNFT.Collection>(PublicPath(identifier: "exampleNFTCollection")!)!
 
     let ids = collectionRef.getIDs()
     let idsLen = UInt64(ids.length)

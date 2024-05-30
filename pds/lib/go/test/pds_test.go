@@ -489,7 +489,6 @@ func TestOpenPackNFT(t *testing.T) {
 		exampleNFTAddress,
 	)
 	// Set argument: issuer address
-	// tx.AddArgument(cadence.Path{Domain: "private", Identifier: "exampleNFTprovider"})
 	tx.AddArgument(cadence.String(distributionTitle))
 	metadata := []cadence.KeyValuePair{{Key: cadence.String("TestKey"), Value: cadence.String("TestValue")}}
 	tx.AddArgument(cadence.NewDictionary(metadata))

@@ -134,7 +134,7 @@ access(all) contract ExampleNFT: NonFungibleToken {
 
         init () {
             self.ownedNFTs <- {}
-            let identifier = "cadenceExampleNFTCollection"
+            let identifier = "exampleNFTCollection"
             self.storagePath = StoragePath(identifier: identifier)!
             self.publicPath = PublicPath(identifier: identifier)!
         }
@@ -232,8 +232,8 @@ access(all) contract ExampleNFT: NonFungibleToken {
         switch viewType {
             case Type<MetadataViews.NFTCollectionData>():
                 let collectionData = MetadataViews.NFTCollectionData(
-                    storagePath: /storage/cadenceExampleNFTCollection,
-                    publicPath: /public/cadenceExampleNFTCollection,
+                    storagePath: /storage/exampleNFTCollection,
+                    publicPath: /public/exampleNFTCollection,
                     publicCollection: Type<&ExampleNFT.Collection>(),
                     publicLinkedType: Type<&ExampleNFT.Collection>(),
                     createEmptyCollectionFunction: (fun(): @{NonFungibleToken.Collection} {
