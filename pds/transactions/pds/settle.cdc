@@ -8,7 +8,7 @@ transaction (distId: UInt64, nftIDs: [UInt64]) {
         cap.withdraw(
             distId: distId,
             nftIDs: nftIDs,
-            escrowCollectionPublic: PublicPath(identifier: "cadenceExampleNFTCollection")!,
+            escrowCollectionPublic: PublicPath(identifier: "exampleNFTCollection")!,
         )
     }
 }

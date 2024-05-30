@@ -7,7 +7,7 @@ require (
 	github.com/onflow/cadence v1.0.0-M8
 	github.com/onflow/flow-emulator v1.0.0-M8
 	github.com/onflow/flow-go-sdk v1.0.0-M7
-	github.com/onflow/flow-nft/lib/go/contracts v1.1.1-0.20240214230837-cd2c42e54b4a
+	github.com/onflow/flow-nft/lib/go/contracts v1.2.0
 	github.com/onflow/flow-nft/lib/go/templates v0.0.0-20240214230837-cd2c42e54b4a
 	github.com/rs/zerolog v1.29.0
 	github.com/stretchr/testify v1.8.4

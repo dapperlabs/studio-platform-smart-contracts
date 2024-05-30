@@ -10,7 +10,7 @@ transaction(title: String, metadata: {String: String}) {
             ?? panic ("issuer does not have PackIssuer resource")
 
         // issuer must have a PackNFT collection
-        let withdrawCap = issuer.capabilities.storage.issue<auth(NonFungibleToken.Withdraw, NonFungibleToken.Owner) &{NonFungibleToken.Provider}>(StoragePath(identifier: "cadenceExampleNFTCollection")!);
+        let withdrawCap = issuer.capabilities.storage.issue<auth(NonFungibleToken.Withdraw) &{NonFungibleToken.Provider}>(StoragePath(identifier: "exampleNFTCollection")!);
         let operatorCap = issuer.capabilities.storage.issue<auth(IPackNFT.Operate) &{IPackNFT.IOperator}>({{.PackNFTName}}.OperatorStoragePath);
         assert(withdrawCap.check(), message:  "cannot borrow withdraw capability")
         assert(operatorCap.check(), message:  "cannot borrow operator capability")

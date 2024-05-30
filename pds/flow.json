@@ -36,14 +36,14 @@
 			"source": "./contracts/PDS.cdc",
 			"aliases": {
 				"mainnet": "b6f2481eba4df97b",
-				"testnet": "18ddf0823a55a0ee"
+				"testnet": "ef4cd3d07a7b43ce"
 			}
 		},
 		"IPackNFT": {
 			"source": "./contracts/IPackNFT.cdc",
 			"aliases": {
 				"mainnet": "18ddf0823a55a0ee",
-				"testnet": "a2526e2d9cc7f0d2"
+				"testnet": "d8f6346999b983f5"
 			}
 		},
 		"PackNFT": {
