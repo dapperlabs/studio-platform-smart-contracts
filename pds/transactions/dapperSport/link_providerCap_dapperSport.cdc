@@ -4,7 +4,7 @@ import DapperSport from "DapperSport"
 transaction(NFTProviderPath: PrivatePath) {
 
     prepare(signer: auth(Capabilities) &Account) {
-        if signer.getCapability<&{NonFungibleToken.Provider}>(NFTProviderPath).check() {
+        if signer.capabilities.get<&{NonFungibleToken.Provider}>(at: NFTProviderPath).check() {
             return
         }
         let cap = signer.capabilities.storage.issue<&{NonFungibleToken.Provider}>(target: DapperSport.CollectionStoragePath)
