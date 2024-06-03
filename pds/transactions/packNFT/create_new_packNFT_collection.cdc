@@ -10,7 +10,7 @@ transaction() {
 
             issuer.storage.save(<- collection, to: PackNFT.CollectionStoragePath);
             issuer.capabilities.publish(
-                signer.capabilities.storage.issue<&PackNFT.Collection>(PackNFT.CollectionStoragePath),
+                issuer.capabilities.storage.issue<&PackNFT.Collection>(PackNFT.CollectionStoragePath),
                 at: PackNFT.CollectionPublicPath
             ) ??  panic("Could not link Collection Pub Path");
         }
