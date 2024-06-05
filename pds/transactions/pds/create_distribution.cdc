@@ -3,7 +3,7 @@ import PackNFT from "PackNFT"
 import IPackNFT from "IPackNFT"
 import NonFungibleToken from "NonFungibleToken"
 
-transaction(NFTProviderPathIdentifier: string, title: String, metadata: {String: String}) {
+transaction(NFTProviderPathIdentifier: String, title: String, metadata: {String: String}) {
     prepare (issuer: auth(BorrowValue, Capabilities) &Account) {
 
         let i = issuer.storage.borrow<auth(PDS.CreateDist) &PDS.PackIssuer>(from: PDS.PackIssuerStoragePath)
