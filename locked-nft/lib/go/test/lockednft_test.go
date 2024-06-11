@@ -1,12 +1,13 @@
 package test
 
 import (
-	emulator "github.com/onflow/flow-emulator"
+	"testing"
+	"time"
+
+	"github.com/onflow/flow-emulator/emulator"
 	"github.com/onflow/flow-go-sdk"
 	"github.com/onflow/flow-go-sdk/crypto"
 	"github.com/stretchr/testify/assert"
-	"testing"
-	"time"
 )
 
 // ------------------------------------------------------------

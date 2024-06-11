@@ -1,0 +1,59 @@
+{
+	"networks": {
+		"emulator": "127.0.0.1:3569",
+		"mainnet": "access.mainnet.nodes.onflow.org:9000",
+		"previewnet": "access.previewnet.nodes.onflow.org:9000",
+		"testing": "127.0.0.1:3569",
+		"testnet": "access.devnet.nodes.onflow.org:9000"
+	},
+	"contracts": {
+		"FungibleToken": {
+			"source": "./contracts/imports/FungibleToken.cdc",
+			"aliases": {
+				"mainnet": "f233dcee88fe0abe",
+				"testnet": "9a0766d93b6608b7",
+				"emulator": "ee82856bf20e2aa6"
+			}
+		},
+		"NonFungibleToken": {
+			"source": "./contracts/imports/NonFungibleToken.cdc",
+			"aliases": {
+				"mainnet": "1d7e57aa55817448",
+				"testnet": "631e88ae7f1d7c20",
+				"emulator": "f8d6e0586b0a20c7"
+			}
+		},
+		"MetadataViews": {
+			"source": "./contracts/imports/MetadataViews.cdc",
+			"aliases": {
+				"mainnet": "1d7e57aa55817448",
+				"testnet": "631e88ae7f1d7c20",
+				"emulator": "f8d6e0586b0a20c7"
+			}
+		},
+		"ViewResolver": {
+			"source": "./contracts/imports/ViewResolver.cdc",
+			"aliases": {
+				"mainnet": "1d7e57aa55817448",
+				"testnet": "631e88ae7f1d7c20",
+				"emulator": "f8d6e0586b0a20c7"
+			}
+		},
+		"ExampleNFT": {
+			"source": "./contracts/ExampleNFT.cdc",
+			"aliases": {
+			}
+		},
+		"NFTLocker": {
+			"source": "./contracts/NFTLocker.cdc",
+			"aliases": {
+			}
+		}
+	},
+	"accounts": {
+		"emulator-account": {
+			"address": "f8d6e0586b0a20c7",
+			"key": "e61daee1414c57a52a1f7120e89daaf71ce3e16f396273e08142313fc4eea1d7"
+		}
+	}
+}
