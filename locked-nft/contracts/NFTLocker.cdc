@@ -70,13 +70,13 @@ access(all) contract NFTLocker {
         }
     }
 
-    access(all) fun getNFTLockerDetails(id: UInt64, nftType: Type): NFTLocker.LockedData? {
+    access(all) view fun getNFTLockerDetails(id: UInt64, nftType: Type): NFTLocker.LockedData? {
         return (NFTLocker.lockedTokens[nftType]!)[id]
     }
 
     /// Determine if NFT can be unlocked
     ///
-    access(all) fun canUnlockToken(id: UInt64, nftType: Type): Bool {
+    access(all) view fun canUnlockToken(id: UInt64, nftType: Type): Bool {
         if let lockedToken = (NFTLocker.lockedTokens[nftType]!)[id] {
             if lockedToken.lockedUntil < UInt64(getCurrentBlock().timestamp) {
                 return true
@@ -90,7 +90,7 @@ access(all) contract NFTLocker {
     /// of nft locked for a given type
     ///
     access(all) resource interface LockedCollection {
-        access(all) fun getIDs(nftType: Type): [UInt64]?
+        access(all) view fun getIDs(nftType: Type): [UInt64]?
     }
 
     /// A public collection interface allowing locking and unlocking of NFT
@@ -171,11 +171,11 @@ access(all) contract NFTLocker {
             destroy oldToken
         }
 
-        access(all) fun getIDs(nftType: Type): [UInt64]? {
+        access(all) view fun getIDs(nftType: Type): [UInt64]? {
             return self.lockedNFTs[nftType]?.keys
         }
 
-        init() {
+        view init() {
             self.lockedNFTs <- {}
         }
     }
@@ -184,7 +184,7 @@ access(all) contract NFTLocker {
         return <- create Collection()
     }
 
-    init() {
+    view init() {
         self.CollectionStoragePath = /storage/NFTLockerCollection
         self.CollectionPublicPath = /public/NFTLockerCollection
 

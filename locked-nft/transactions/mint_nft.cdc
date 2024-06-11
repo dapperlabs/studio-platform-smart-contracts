@@ -30,9 +30,4 @@ transaction(recipient: Address) {
         )
         )
     }
-
-    // post {
-    //     self.recipientCollectionRef.getIDs().contains(self.mintingIDBefore): "The next NFT ID should have been minted and delivered"
-    //     ExampleNFT.totalSupply == self.mintingIDBefore + 1: "The total supply should have been increased by 1"
-    // }
 }
