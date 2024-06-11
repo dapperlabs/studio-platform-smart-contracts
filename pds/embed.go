@@ -5,7 +5,7 @@ import (
 )
 
 //go:embed transactions/*
-var Transaction embed.FS
+var Transactions embed.FS
 
 //go:embed scripts/*
 var Scripts embed.FS
