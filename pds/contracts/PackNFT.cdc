@@ -155,13 +155,13 @@ access(all) contract PackNFT: NonFungibleToken, IPackNFT {
 
         /// Reveal a Sealed Pack resource.
         ///
-        access(NonFungibleToken.Update) fun reveal(openRequest: Bool) {
+        access(contract) fun reveal(openRequest: Bool) {
             PackNFT.revealRequest(id: self.id, openRequest: openRequest)
         }
 
         /// Open a Revealed Pack resource.
         ///
-        access(NonFungibleToken.Update) fun open() {
+        access(contract) fun open() {
             PackNFT.openRequest(id: self.id)
         }
 
@@ -239,6 +239,20 @@ access(all) contract PackNFT: NonFungibleToken, IPackNFT {
             // Deposited event emitted from NonFungibleToken contract interface.
             emit Deposit(id: id, to: self.owner?.address) // TODO: Consider removing
             destroy oldToken
+        }
+
+        /// Reveal a Sealed Pack resource.
+        ///
+        access(NonFungibleToken.Update) fun reveal(id: UInt64, openRequest: Bool) {
+            let packRef = self.borrowNFT(id) as! &NFT
+            packRef.reveal(openRequest: openRequest)
+        }
+
+        /// Open a Revealed Pack resource.
+        ///
+        access(NonFungibleToken.Update) fun open(id: UInt64) {
+            let packRef = self.borrowNFT(id) as! &NFT
+            packRef.open()
         }
 
         /// Return an array of the IDs that are in the collection.
