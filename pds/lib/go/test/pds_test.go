@@ -1,6 +1,7 @@
 package test
 
 import (
+	"strings"
 	"testing"
 
 	"github.com/dapperlabs/studio-platform-smart-contracts/lib/go/templates"
@@ -512,6 +513,8 @@ func TestOpenPackNFT(t *testing.T) {
 	)
 	assert.Equal(t, cadence.String(distributionTitle), title)
 
+	var packNftId uint64
+
 	t.Run("Should be able to mint a pack NFT", func(t *testing.T) {
 		// Assumes issuer is deployer of exampleNFT
 		tx := createTxWithTemplateAndAuthorizer(b,
@@ -525,7 +528,7 @@ func TestOpenPackNFT(t *testing.T) {
 
 		serviceSigner, _ := b.ServiceKey().Signer()
 
-		signAndSubmit(
+		txResult := signAndSubmitWithResult(
 			t, b, tx,
 			[]flow.Address{
 				b.ServiceKey().Address,
@@ -534,6 +537,46 @@ func TestOpenPackNFT(t *testing.T) {
 			[]crypto.Signer{
 				serviceSigner,
 				pdsSigner,
+			},
+			false,
+		)
+		for _, e := range txResult.Events {
+			if strings.Contains(e.Type, "NonFungibleToken.Deposited") {
+				values := e.Value.GetFieldValues()
+				if len(values) < 2 {
+					t.Fatalf("expected at least 2 fields in NonFungibleToken.Deposited event, got %d", len(values))
+				}
+				packNftId = uint64(values[1].(cadence.UInt64))
+			}
+		}
+
+		assertCollectionLength(t, b, nftAddress, exampleNFTAddress, metadataAddress,
+			exampleNFTAddress,
+			1,
+		)
+	})
+
+	t.Run("Should be able to emit a reveal request", func(t *testing.T) {
+		// Assumes issuer is deployer of exampleNFT
+		tx := createTxWithTemplateAndAuthorizer(b,
+			templates.GenerateRevealRequestTx(iPackNFTAddress, exampleNFTAddress, nftAddress),
+			exampleNFTAddress,
+		)
+		// Set argument: issuer address
+		tx.AddArgument(cadence.UInt64(packNftId))
+		tx.AddArgument(cadence.NewBool(true))
+
+		serviceSigner, _ := b.ServiceKey().Signer()
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{
+				b.ServiceKey().Address,
+				exampleNFTAddress,
+			},
+			[]crypto.Signer{
+				serviceSigner,
+				exampleNFTSigner,
 			},
 			false,
 		)
