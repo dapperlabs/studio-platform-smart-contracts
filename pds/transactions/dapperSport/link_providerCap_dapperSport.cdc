@@ -1,14 +1,16 @@
-import NonFungibleToken from 0x{{.NonFungibleToken}}
-import {{.DapperSportContract}} from 0x{{.DapperSportAddress}}
+import NonFungibleToken from "NonFungibleToken"
+import DapperSport from "DapperSport"
 
 transaction(NFTProviderPath: PrivatePath) {
 
-    prepare(signer: AuthAccount) {
-        if signer.getCapability<&{NonFungibleToken.Provider}>(NFTProviderPath).check() {
+    prepare(signer: auth(Capabilities) &Account) {
+        if signer.capabilities.get<&{NonFungibleToken.Provider}>(at: NFTProviderPath).check() {
             return
         }
+        let cap = signer.capabilities.storage.issue<&{NonFungibleToken.Provider}>(target: DapperSport.CollectionStoragePath)
+
         // This needs to be used to allow for PDS to withdraw
-        signer.link<&{NonFungibleToken.Provider}>( NFTProviderPath, target: {{.DapperSportContract}}.CollectionStoragePath)
+        signer.capabilities.publish(cap, at: NFTProviderPath)
     }
 
 }
