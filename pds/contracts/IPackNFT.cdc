@@ -103,7 +103,7 @@ access(all) contract interface IPackNFT{
 
     /// Resource interface for PackNFT Collection
     ///
-    access(all) resource interface IPackNFTCollectionPublic {
+    access(all) resource interface IPackNFTCollectionPublic: NonFungibleToken.Collection {
         access(NonFungibleToken.Update) fun emitRevealRequestEvent(id: UInt64, openRequest: Bool)
         access(NonFungibleToken.Update) fun emitOpenRequestEvent(id: UInt64)
     }
