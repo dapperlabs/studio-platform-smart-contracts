@@ -18,6 +18,7 @@ const (
 	filenameMintPackNFT               = "transactions/pds/mint_packNFT.cdc"
 	filenameSettleDistribution        = "transactions/pds/settle.cdc"
 	filenameOpenPackNFT               = "transactions/pds/open_packNFT.cdc"
+	filenameRevealRequest             = "transactions/packNFT/reveal_request.cdc"
 )
 
 // GenerateDeployPackNFTTx returns a transaction script that
@@ -76,4 +77,10 @@ func GenerateSettleTx(pdsAddress, packNFTAddress, nftAddress flow.Address) []byt
 func GenerateOpenPackNFTTx(pdsAddress, nftAddress flow.Address) []byte {
 	code := string(assets.MustAsset(filenameOpenPackNFT))
 	return replaceAddresses(code, nftAddress, flow.EmptyAddress, flow.EmptyAddress, flow.EmptyAddress, flow.EmptyAddress, pdsAddress, flow.EmptyAddress)
+}
+
+// GenerateRevealRequestTx returns a transaction script that reveals a request
+func GenerateRevealRequestTx(iPackNFTAddress, packNFTAddress, nftAddress flow.Address) []byte {
+	code := string(assets.MustAsset(filenameRevealRequest))
+	return replaceAddresses(code, nftAddress, flow.EmptyAddress, flow.EmptyAddress, flow.EmptyAddress, iPackNFTAddress, flow.EmptyAddress, packNFTAddress)
 }

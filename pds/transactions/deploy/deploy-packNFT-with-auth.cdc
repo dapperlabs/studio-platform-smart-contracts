@@ -7,7 +7,6 @@ transaction(
     CollectionPublicPath: PublicPath,
     CollectionIPackNFTPublicPath: PublicPath,
     OperatorStoragePath: StoragePath,
-    // OperatorPrivPath: PrivatePath,
     version: String,
 ) {
     prepare(owner: auth(AddContract, UpdateContract) &Account) {
@@ -22,7 +21,6 @@ transaction(
                 CollectionPublicPath: CollectionPublicPath,
                 CollectionIPackNFTPublicPath: CollectionIPackNFTPublicPath,
                 OperatorStoragePath: OperatorStoragePath,
-                // OperatorPrivPath: OperatorPrivPath,
                 version: version,
             )
         } else {

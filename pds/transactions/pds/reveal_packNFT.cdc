@@ -22,7 +22,7 @@ transaction (
 
         if openRequest && p.status == {{.PackNFTName}}.Status.Revealed {
             let recvAcct = getAccount(owner)
-            let recv = recvAcct.capabilities.borrow<&{NonFungibleToken.CollectionPublic}>(PublicPath(identifier: "cadenceExampleNFTCollection")!)
+            let recv = recvAcct.capabilities.borrow<&{NonFungibleToken.CollectionPublic}>(PublicPath(identifier: "exampleNFTCollection")!)
                 ?? panic("Unable to borrow Collection Public reference for recipient")
             cap.openPackNFT(
                 distId: distId,

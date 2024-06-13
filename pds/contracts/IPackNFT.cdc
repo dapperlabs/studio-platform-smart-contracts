@@ -99,21 +99,17 @@ access(all) contract interface IPackNFT{
     access(all) resource interface NFT: NonFungibleToken.NFT, IPackNFTToken, IPackNFTOwnerOperator {
         access(all) let id: UInt64
         access(all) let issuer: Address
-        access(NonFungibleToken.Update) fun reveal(openRequest: Bool)
-        access(NonFungibleToken.Update) fun open()
+    }
+
+    /// Resource interface for PackNFT Collection
+    ///
+    access(all) resource interface IPackNFTCollectionPublic: NonFungibleToken.Collection {
+        access(NonFungibleToken.Update) fun emitRevealRequestEvent(id: UInt64, openRequest: Bool)
+        access(NonFungibleToken.Update) fun emitOpenRequestEvent(id: UInt64)
     }
 
     // Included for backwards compatibility
     access(all) resource interface IPackNFTOwnerOperator{}
-    access(all) resource interface IPackNFTCollectionPublic {}
-
-    /// Emit a RevealRequest event to signal a Sealed Pack NFT should be revealed
-    ///
-    access(contract) fun revealRequest(id: UInt64, openRequest: Bool)
-
-    /// Emit an OpenRequest event to signal a Revealed Pack NFT should be opened
-    ///
-    access(contract) fun openRequest(id: UInt64)
 
     /// Reveal a Sealed Pack NFT
     ///

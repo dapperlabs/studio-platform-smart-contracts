@@ -6,7 +6,7 @@ access(all) fun main(address: Address): Int {
     let account = getAccount(address)
 
     let collectionRef = getAccount(address).capabilities.borrow<
-        &ExampleNFT.Collection>(PublicPath(identifier: "cadenceExampleNFTCollection")!)!
+        &ExampleNFT.Collection>(PublicPath(identifier: "exampleNFTCollection")!)!
 
     return collectionRef.getIDs().length
 }

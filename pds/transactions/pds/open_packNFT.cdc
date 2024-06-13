@@ -15,7 +15,7 @@ transaction (
         let cap = pds.storage.borrow<&PDS.DistributionManager>(from: PDS.DistManagerStoragePath)
             ?? panic("pds does not have Dist manager")
         let recvAcct = getAccount(owner)
-        let recv = recvAcct.capabilities.borrow<&{NonFungibleToken.CollectionPublic}>(PublicPath(identifier: "cadenceExampleNFTCollection")!)
+        let recv = recvAcct.capabilities.borrow<&{NonFungibleToken.CollectionPublic}>(PublicPath(identifier: "exampleNFTCollection")!)
             ?? panic("Unable to borrow Collection Public reference for recipient")
 
         cap.openPackNFT(
