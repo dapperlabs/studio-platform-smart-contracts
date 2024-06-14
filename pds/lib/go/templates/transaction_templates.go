@@ -56,9 +56,9 @@ func GenerateSetPackIssuerCapTx(pdsAddress flow.Address) []byte {
 }
 
 // GenerateCreateDistributionTx returns a transaction script that creates a distribution
-func GenerateCreateDistributionTx(pdsAddress, packNFTAddress, iPackNFTAddress, nftAddress flow.Address) []byte {
+func GenerateCreateDistributionTx(pdsAddress, exampleNFTAddress, packNFTAddress, iPackNFTAddress, nftAddress, metadataAddress flow.Address) []byte {
 	code := string(assets.MustAsset(filenameCreateDistribution))
-	return replaceAddresses(code, nftAddress, flow.EmptyAddress, flow.EmptyAddress, flow.EmptyAddress, iPackNFTAddress, pdsAddress, packNFTAddress)
+	return replaceAddresses(code, nftAddress, exampleNFTAddress, metadataAddress, flow.EmptyAddress, iPackNFTAddress, pdsAddress, packNFTAddress)
 }
 
 // GenerateMintPackNFTTx returns a transaction script that mints a pack NFT

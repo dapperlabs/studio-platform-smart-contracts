@@ -204,7 +204,7 @@ func TestCreateDistribution(t *testing.T) {
 
 		// Assumes issuer is deployer of exampleNFT
 		tx := createTxWithTemplateAndAuthorizer(b,
-			templates.GenerateCreateDistributionTx(pdsAddress, exampleNFTAddress, iPackNFTAddress, nftAddress),
+			templates.GenerateCreateDistributionTx(pdsAddress, exampleNFTAddress, exampleNFTAddress, iPackNFTAddress, nftAddress, metadataAddress),
 			exampleNFTAddress,
 		)
 		// Set argument: issuer address
@@ -331,7 +331,7 @@ func TestMintPackNFTs(t *testing.T) {
 
 	// Assumes issuer is deployer of exampleNFT
 	tx = createTxWithTemplateAndAuthorizer(b,
-		templates.GenerateCreateDistributionTx(pdsAddress, exampleNFTAddress, iPackNFTAddress, nftAddress),
+		templates.GenerateCreateDistributionTx(pdsAddress, exampleNFTAddress, exampleNFTAddress, iPackNFTAddress, nftAddress, metadataAddress),
 		exampleNFTAddress,
 	)
 	// Set argument: issuer address
@@ -486,7 +486,7 @@ func TestOpenPackNFT(t *testing.T) {
 
 	// Assumes issuer is deployer of exampleNFT
 	tx = createTxWithTemplateAndAuthorizer(b,
-		templates.GenerateCreateDistributionTx(pdsAddress, exampleNFTAddress, iPackNFTAddress, nftAddress),
+		templates.GenerateCreateDistributionTx(pdsAddress, exampleNFTAddress, exampleNFTAddress, iPackNFTAddress, nftAddress, metadataAddress),
 		exampleNFTAddress,
 	)
 	// Set argument: issuer address
