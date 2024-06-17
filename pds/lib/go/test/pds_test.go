@@ -150,30 +150,6 @@ func TestCreateDistribution(t *testing.T) {
 		false,
 	)
 
-	// t.Run("Should be able to link NFT provider capability", func(t *testing.T) {
-
-	// 	// Assumes issuer is deployer of exampleNFT
-	// 	script = templates.GenerateLinkExampleNFTProviderCapTx(nftAddress, exampleNFTAddress)
-	// 	tx := createTxWithTemplateAndAuthorizer(b, script, exampleNFTAddress)
-	// 	// Set argument: NFT provider path
-	// 	tx.AddArgument(cadence.Path{Domain: "private", Identifier: "exampleNFTprovider"})
-
-	// 	serviceSigner, _ := b.ServiceKey().Signer()
-
-	// 	signAndSubmit(
-	// 		t, b, tx,
-	// 		[]flow.Address{
-	// 			b.ServiceKey().Address,
-	// 			exampleNFTAddress,
-	// 		},
-	// 		[]crypto.Signer{
-	// 			serviceSigner,
-	// 			exampleNFTSigner,
-	// 		},
-	// 		false,
-	// 	)
-	// })
-
 	t.Run("Should be able to set pack issuer capability", func(t *testing.T) {
 
 		// Assumes issuer is deployer of exampleNFT

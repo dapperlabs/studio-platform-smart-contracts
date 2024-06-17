@@ -18,7 +18,6 @@
 // ../../../scripts/pds/get_next_dist_id.cdc
 // ../../../transactions/collectibleNFT/mint.cdc
 // ../../../transactions/collectibleNFT/setup_collection_and_link_provider.cdc
-// ../../../transactions/dapperSport/link_providerCap_dapperSport.cdc
 // ../../../transactions/dapperSport/setup_dapperSport.cdc
 // ../../../transactions/deploy/deploy-packNFT-with-auth.cdc
 // ../../../transactions/deploy/deploy-pds-with-auth.cdc
@@ -476,26 +475,6 @@ func transactionsCollectiblenftSetup_collection_and_link_providerCdc() (*asset, 
 	}
 
 	info := bindataFileInfo{name: "transactions/collectibleNFT/setup_collection_and_link_provider.cdc", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
-	a := &asset{bytes: bytes, info: info}
-	return a, nil
-}
-
-var _transactionsDappersportLink_providercap_dappersportCdc = "\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x84\x90\x41\xab\xea\x30\x10\x85\xf7\xf9\x15\x83\x0b\xa9\xf0\xa8\xfb\xf2\xde\x83\x8b\xe2\x52\x0a\xfa\x07\xa6\xe9\xd8\x0e\xc6\x24\x4c\x26\xba\x10\xff\xfb\xa5\xd6\x5b\x8a\x08\x77\x56\xd3\xc3\x39\xd3\x2f\x87\x2f\x31\x88\xc2\x3e\xf8\x5d\xf6\x1d\x37\x8e\x8e\xe1\x4c\x1e\x4e\x12\x2e\xb0\x78\x97\x17\xe6\xe5\xdf\x62\x8c\x24\x87\xe7\x3e\x5a\x67\xca\xc2\x18\x15\xf4\x09\xad\x72\xf0\xc5\x7e\x77\xac\x25\x5c\xb9\x25\xa9\x51\xfb\x0a\x6a\xe1\x2b\x2a\x0d\x1f\x2b\xb8\x1b\x03\x00\x10\x85\x22\x0a\x15\x89\x3b\x4f\x52\x01\x66\xed\x8b\x0d\x46\x6c\xd8\xb1\x32\xa5\x15\x2c\xbf\xac\x0d\xd9\xeb\x90\x81\xd7\xf0\x09\xc6\x44\x69\x67\xde\xb2\x23\xfd\xbb\xbc\xbf\xd3\x97\x3f\x18\x8f\xff\x05\x6a\x05\x6f\x60\xab\xd2\xf6\x64\xcf\xc5\xfc\xfe\x30\x42\x9a\xc5\x4f\xd2\x63\xda\x1c\x29\x58\x8c\xf0\xef\x23\x43\xd2\x20\xd8\x51\xc9\x29\x65\xfa\x85\x46\x51\x3a\xd2\x6a\x5e\x6b\xb9\x09\xce\xd1\xb3\xc1\xc3\x78\xe9\xc9\x68\xa6\xbf\xaf\xd7\x70\xec\x39\x81\x27\x6a\x13\x68\x80\x86\x20\x27\x6a\x87\x15\x9d\x0b\x37\x38\x05\x81\x7a\x7b\x18\x84\x1b\x6b\xdf\x0a\xde\xa6\xf4\x27\xe2\x98\x1b\xc7\xa9\x2f\x2c\xc6\x3f\xf0\xa9\x20\x33\xbe\xdf\x3c\xcc\x77\x00\x00\x00\xff\xff\xe6\xb1\x24\x8d\x37\x02\x00\x00"
-
-func transactionsDappersportLink_providercap_dappersportCdcBytes() ([]byte, error) {
-	return bindataRead(
-		_transactionsDappersportLink_providercap_dappersportCdc,
-		"transactions/dapperSport/link_providerCap_dapperSport.cdc",
-	)
-}
-
-func transactionsDappersportLink_providercap_dappersportCdc() (*asset, error) {
-	bytes, err := transactionsDappersportLink_providercap_dappersportCdcBytes()
-	if err != nil {
-		return nil, err
-	}
-
-	info := bindataFileInfo{name: "transactions/dapperSport/link_providerCap_dapperSport.cdc", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -1070,7 +1049,6 @@ var _bindata = map[string]func() (*asset, error){
 	"scripts/pds/get_next_dist_id.cdc":                                   scriptsPdsGet_next_dist_idCdc,
 	"transactions/collectibleNFT/mint.cdc":                               transactionsCollectiblenftMintCdc,
 	"transactions/collectibleNFT/setup_collection_and_link_provider.cdc": transactionsCollectiblenftSetup_collection_and_link_providerCdc,
-	"transactions/dapperSport/link_providerCap_dapperSport.cdc":          transactionsDappersportLink_providercap_dappersportCdc,
 	"transactions/dapperSport/setup_dapperSport.cdc":                     transactionsDappersportSetup_dappersportCdc,
 	"transactions/deploy/deploy-packNFT-with-auth.cdc":                   transactionsDeployDeployPacknftWithAuthCdc,
 	"transactions/deploy/deploy-pds-with-auth.cdc":                       transactionsDeployDeployPdsWithAuthCdc,
@@ -1171,8 +1149,7 @@ var _bintree = &bintree{nil, map[string]*bintree{
 			"setup_collection_and_link_provider.cdc": &bintree{transactionsCollectiblenftSetup_collection_and_link_providerCdc, map[string]*bintree{}},
 		}},
 		"dapperSport": &bintree{nil, map[string]*bintree{
-			"link_providerCap_dapperSport.cdc": &bintree{transactionsDappersportLink_providercap_dappersportCdc, map[string]*bintree{}},
-			"setup_dapperSport.cdc":            &bintree{transactionsDappersportSetup_dappersportCdc, map[string]*bintree{}},
+			"setup_dapperSport.cdc": &bintree{transactionsDappersportSetup_dappersportCdc, map[string]*bintree{}},
 		}},
 		"deploy": &bintree{nil, map[string]*bintree{
 			"deploy-packNFT-with-auth.cdc": &bintree{transactionsDeployDeployPacknftWithAuthCdc, map[string]*bintree{}},
