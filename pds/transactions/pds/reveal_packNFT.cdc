@@ -15,6 +15,9 @@ transaction (
     collectionStoragePath: StoragePath
 ) {
     prepare(pds: auth(BorrowValue) &Account) {
+        let collectionData = ExampleNFT.resolveContractView(resourceType: nil, viewType: Type<MetadataViews.NFTCollectionData>()) as! MetadataViews.NFTCollectionData?
+            ?? panic("ViewResolver does not resolve NFTCollectionData view")
+
         let cap = pds.storage.borrow<&PDS.DistributionManager>(from: PDS.DistManagerStoragePath)
             ?? panic("pds does not have Dist manager")
         let p = {{.PackNFTName}}.borrowPackRepresentation(id: packId)
@@ -22,7 +25,7 @@ transaction (
 
         if openRequest && p.status == {{.PackNFTName}}.Status.Revealed {
             let recvAcct = getAccount(owner)
-            let recv = recvAcct.capabilities.borrow<&{NonFungibleToken.CollectionPublic}>(PublicPath(identifier: "exampleNFTCollection")!)
+            let recv = recvAcct.capabilities.borrow<&{NonFungibleToken.CollectionPublic}>(collectionData.publicPath)
                 ?? panic("Unable to borrow Collection Public reference for recipient")
             cap.openPackNFT(
                 distId: distId,
