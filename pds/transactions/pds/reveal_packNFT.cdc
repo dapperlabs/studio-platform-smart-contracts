@@ -2,6 +2,7 @@ import PDS from "PDS"
 import PackNFT from "PackNFT"
 import ExampleNFT from "ExampleNFT"
 import NonFungibleToken from "NonFungibleToken"
+import MetadataViews from "MetadataViews"
 
 transaction (
     distId: UInt64,
