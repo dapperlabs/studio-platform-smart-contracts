@@ -70,6 +70,8 @@ access(all) contract NFTLocker {
         }
     }
 
+    /// Get the details of a locked NFT
+    ///
     access(all) view fun getNFTLockerDetails(id: UInt64, nftType: Type): NFTLocker.LockedData? {
         return (NFTLocker.lockedTokens[nftType]!)[id]
     }
@@ -82,23 +84,24 @@ access(all) contract NFTLocker {
                 return true
             }
         }
-
         return false
     }
 
-    /// A public collection interface that returns the ids
-    /// of nft locked for a given type
+    /// A public collection interface that requires the ability to lock and unlock NFTs and return the ids
+    /// of NFTs locked for a given type
     ///
     access(all) resource interface LockedCollection {
         access(all) view fun getIDs(nftType: Type): [UInt64]?
+        access(Operate) fun lock(token: @{NonFungibleToken.NFT}, duration: UInt64)
+        access(Operate) fun unlock(id: UInt64, nftType: Type): @{NonFungibleToken.NFT}
     }
 
-    /// A public collection interface allowing locking and unlocking of NFT
+    /// Deprecated in favor of Operate entitlement
     ///
-    access(all) resource interface LockProvider {
-        access(all) fun lock(token: @{NonFungibleToken.NFT}, duration: UInt64)
-        access(all) fun unlock(id: UInt64, nftType: Type): @{NonFungibleToken.NFT}
-    }
+    access(all) resource interface LockProvider: LockedCollection {}
+
+    /// Entitlement that grants the ability to operate the NFTLocker Collection
+    access(all) entitlement Operate
 
     /// An NFT Collection
     ///
@@ -107,9 +110,12 @@ access(all) contract NFTLocker {
 
         /// Unlock an NFT of a given type
         ///
-        access(all) fun unlock(id: UInt64, nftType: Type): @{NonFungibleToken.NFT} {
-            if !NFTLocker.canUnlockToken(id: id, nftType: nftType) {
-                return panic("locked duration has not been met")
+        access(Operate) fun unlock(id: UInt64, nftType: Type): @{NonFungibleToken.NFT} {
+            pre {
+                NFTLocker.canUnlockToken(
+                    id: id,
+                    nftType: nftType
+                ) == true : "locked duration has not been met"
             }
 
             let token <- self.lockedNFTs[nftType]?.remove(key: id)!!
@@ -132,7 +138,7 @@ access(all) contract NFTLocker {
 
         /// Lock an NFT of a given type
         ///
-        access(all) fun lock(token: @{NonFungibleToken.NFT}, duration: UInt64) {
+        access(Operate) fun lock(token: @{NonFungibleToken.NFT}, duration: UInt64) {
             let id: UInt64 = token.id
             let nftType: Type = token.getType()
 
