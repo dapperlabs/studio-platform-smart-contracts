@@ -4,9 +4,9 @@ import IPackNFT from "IPackNFT"
 /// The Pack Distribution Service (PDS) contract is responsible for creating and managing distributions of packs.
 ///
 access(all) contract PDS{
-    /// Entitlement that grants the ability to create a distribution.
+    /// Entitlement that grants the ability to operate PDS functionalities.
     ///
-    access(all) entitlement CreateDist
+    access(all) entitlement Operate
 
     access(all) var version: String
     access(all) let PackIssuerStoragePath: StoragePath
@@ -49,7 +49,7 @@ access(all) contract PDS{
         access(all) let metadata: {String: String}
         access(all) var state: PDS.DistState
 
-        access(all) fun setState(newState: PDS.DistState) {
+        access(contract) fun setState(newState: PDS.DistState) {
             self.state = newState
         }
 
@@ -113,14 +113,14 @@ access(all) contract PDS{
 
         /// Withdraw an NFT from the issuer.
         ///
-        access(all) fun withdrawFromIssuer(withdrawID: UInt64): @{NonFungibleToken.NFT} {
+        access(contract) fun withdrawFromIssuer(withdrawID: UInt64): @{NonFungibleToken.NFT} {
             let c = self.withdrawCap.borrow() ?? panic("no such cap")
             return <- c.withdraw(withdrawID: withdrawID)
         }
 
         /// Mint Pack NFTs.
         ///
-        access(all) fun mintPackNFT(distId: UInt64, commitHashes: [String], issuer: Address, recvCap: &{NonFungibleToken.CollectionPublic}) {
+        access(contract) fun mintPackNFT(distId: UInt64, commitHashes: [String], issuer: Address, recvCap: &{NonFungibleToken.CollectionPublic}) {
             var i = 0
             let c = self.operatorCap.borrow() ?? panic("no such cap")
             while i < commitHashes.length{
@@ -133,14 +133,14 @@ access(all) contract PDS{
 
         /// Reveal Pack NFTs.
         ///
-        access(all) fun revealPackNFT(packId: UInt64, nfts: [{IPackNFT.Collectible}], salt: String) {
+        access(contract) fun revealPackNFT(packId: UInt64, nfts: [{IPackNFT.Collectible}], salt: String) {
             let c = self.operatorCap.borrow() ?? panic("no such cap")
             c.reveal(id: packId, nfts: nfts, salt: salt)
         }
 
         /// Open Pack NFTs.
         ///
-        access(all) fun openPackNFT(packId: UInt64, nfts: [{IPackNFT.Collectible}], recvCap: &{NonFungibleToken.CollectionPublic}, collectionStoragePath: StoragePath) {
+        access(contract) fun openPackNFT(packId: UInt64, nfts: [{IPackNFT.Collectible}], recvCap: &{NonFungibleToken.CollectionPublic}, collectionStoragePath: StoragePath) {
             let c = self.operatorCap.borrow() ?? panic("no such cap")
             let toReleaseNFTs: [UInt64] = []
             var i = 0
@@ -170,16 +170,18 @@ access(all) contract PDS{
     /// Resource that defines the issuer of a pack.
     ///
     access(all) resource PackIssuer: PackIssuerCapReciever {
-        access(self) var cap: Capability<&DistributionCreator>?
+        access(self) var cap: Capability<auth(Operate) &DistributionCreator>?
 
-        access(all) fun setDistCap(cap: Capability<&DistributionCreator>) {
+        /// Set the capability to create a distribution; the function is publicly accessible but requires an authorized DistributionCreator capability argument.
+        ///
+        access(all) fun setDistCap(cap: Capability<auth(Operate) &DistributionCreator>) {
             pre {
                 cap.check(): "Invalid capability"
             }
             self.cap = cap
         }
 
-        access(CreateDist) fun createDist(sharedCap: @SharedCapabilities, title: String, metadata: {String: String}) {
+        access(Operate) fun createDist(sharedCap: @SharedCapabilities, title: String, metadata: {String: String}) {
             assert(title.length > 0, message: "Title must not be empty")
             let c = self.cap!.borrow()!
             c.createNewDist(sharedCap: <- sharedCap, title: title, metadata: metadata)
@@ -198,7 +200,7 @@ access(all) contract PDS{
     /// Resource that defines the creator of a distribution.
     ///
     access(all) resource DistributionCreator: IDistCreator {
-        access(all) fun createNewDist(sharedCap: @SharedCapabilities, title: String, metadata: {String: String}) {
+        access(Operate) fun createNewDist(sharedCap: @SharedCapabilities, title: String, metadata: {String: String}) {
             let currentId = PDS.nextDistId
             PDS.DistSharedCap[currentId] <-! sharedCap
             PDS.Distributions[currentId] = DistInfo(title: title, metadata: metadata)
@@ -210,14 +212,14 @@ access(all) contract PDS{
     /// Resource that defines the manager of a distribution.
     ///
     access(all) resource DistributionManager {
-        access(all) fun updateDistState(distId: UInt64, state: PDS.DistState) {
+        access(Operate) fun updateDistState(distId: UInt64, state: PDS.DistState) {
             let d = PDS.Distributions.remove(key: distId) ?? panic ("No such distribution")
             d.setState(newState: state)
             PDS.Distributions.insert(key: distId, d)
             emit DistributionStateUpdated(DistId: distId, state: state.rawValue)
         }
 
-        access(all) fun withdraw(distId: UInt64, nftIDs: [UInt64], escrowCollectionPublic: PublicPath) {
+        access(Operate) fun withdraw(distId: UInt64, nftIDs: [UInt64], escrowCollectionPublic: PublicPath) {
             assert(PDS.DistSharedCap.containsKey(distId), message: "No such distribution")
             let d <- PDS.DistSharedCap.remove(key: distId)!
             let pdsCollection = PDS.getManagerCollectionCap(escrowCollectionPublic: escrowCollectionPublic).borrow()!
@@ -230,14 +232,14 @@ access(all) contract PDS{
             PDS.DistSharedCap[distId] <-! d
         }
 
-        access(all) fun mintPackNFT(distId: UInt64, commitHashes: [String], issuer: Address, recvCap: &{NonFungibleToken.CollectionPublic}) {
+        access(Operate) fun mintPackNFT(distId: UInt64, commitHashes: [String], issuer: Address, recvCap: &{NonFungibleToken.CollectionPublic}) {
             assert(PDS.DistSharedCap.containsKey(distId), message: "No such distribution")
             let d <- PDS.DistSharedCap.remove(key: distId)!
             d.mintPackNFT(distId: distId, commitHashes: commitHashes, issuer: issuer, recvCap: recvCap)
             PDS.DistSharedCap[distId] <-! d
         }
 
-        access(all) fun revealPackNFT(distId: UInt64, packId: UInt64, nftContractAddrs: [Address], nftContractNames: [String], nftIds: [UInt64], salt: String) {
+        access(Operate) fun revealPackNFT(distId: UInt64, packId: UInt64, nftContractAddrs: [Address], nftContractNames: [String], nftIds: [UInt64], salt: String) {
             assert(PDS.DistSharedCap.containsKey(distId), message: "No such distribution")
             assert(
                 nftContractAddrs.length == nftContractNames.length &&
@@ -256,7 +258,7 @@ access(all) contract PDS{
             PDS.DistSharedCap[distId] <-! d
         }
 
-        access(all) fun openPackNFT(
+        access(Operate) fun openPackNFT(
             distId: UInt64,
             packId: UInt64,
             nftContractAddrs: [Address],
