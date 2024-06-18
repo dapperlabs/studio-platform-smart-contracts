@@ -10,7 +10,7 @@ transaction(title: String, metadata: {String: String}) {
         let collectionData = ExampleNFT.resolveContractView(resourceType: nil, viewType: Type<MetadataViews.NFTCollectionData>()) as! MetadataViews.NFTCollectionData?
             ?? panic("ViewResolver does not resolve NFTCollectionData view")
 
-        let i = issuer.storage.borrow<auth(PDS.CreateDist) &PDS.PackIssuer>(from: PDS.PackIssuerStoragePath)
+        let i = issuer.storage.borrow<auth(PDS.Operate) &PDS.PackIssuer>(from: PDS.PackIssuerStoragePath)
             ?? panic ("issuer does not have PackIssuer resource")
 
         // issuer must have a PackNFT collection
