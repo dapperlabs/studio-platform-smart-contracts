@@ -1,12 +1,13 @@
 package test
 
 import (
-	emulator "github.com/onflow/flow-emulator"
+	"math/big"
+	"testing"
+
+	"github.com/onflow/flow-emulator/emulator"
 	"github.com/onflow/flow-go-sdk"
 	"github.com/onflow/flow-go-sdk/crypto"
 	"github.com/stretchr/testify/assert"
-	"math/big"
-	"testing"
 )
 
 func TestEscrowDeployContracts(t *testing.T) {
@@ -527,7 +528,7 @@ func TestEscrow(t *testing.T) {
 		// Get leaderboard data from the contract.
 		leaderboard, _ := getLeaderboardData(t, b, contracts, "leaderboardBurn-1")
 		assert.Equal(t, "\"leaderboardBurn-1\"", leaderboard.Name)
-		assert.Equal(t, "Type<A.e03daebed8ca0615.AllDay.NFT>()", leaderboard.NftType)
+		assert.Equal(t, "Type<A.120e725050340cab.AllDay.NFT>()", leaderboard.NftType)
 		assert.Equal(t, uint64(0), leaderboard.EntriesLength)
 	})
 

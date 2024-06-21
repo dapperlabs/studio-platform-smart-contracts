@@ -1,13 +1,12 @@
-import Escrow from "../../contracts/AllDay.cdc"
+import Escrow from "Escrow"
 
 // This script returns the leaderboard info for the given leaderboard name.
-pub fun main(leaderboardName: String): Escrow.LeaderboardInfo? {
-    let account = getAccount("../../contracts/AllDay.cdc")
+access(all) fun main(leaderboardName: String): Escrow.LeaderboardInfo? {
+    let account = getAccount(0xf8d6e0586b0a20c7)
 
     let collectionPublic = account
-        .getCapability<&Escrow.Collection{Escrow.ICollectionPublic}>(Escrow.CollectionPublicPath)
-        .borrow()
-        ?? panic("Could not borrow a reference to the public leaderboard collection")
+        .capabilities.borrow<&Escrow.Collection>(Escrow.CollectionPublicPath)
+            ?? panic("Could not borrow a reference to the public leaderboard collection")
 
     return collectionPublic.getLeaderboardInfo(name: leaderboardName)
 }

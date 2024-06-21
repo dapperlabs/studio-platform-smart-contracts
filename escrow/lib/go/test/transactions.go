@@ -1,52 +1,17 @@
 package test
 
 import (
-	jsoncdc "github.com/onflow/cadence/encoding/json"
-	"github.com/stretchr/testify/require"
 	"math/big"
 	"testing"
 
+	jsoncdc "github.com/onflow/cadence/encoding/json"
+	"github.com/stretchr/testify/require"
+
 	"github.com/onflow/cadence"
-	emulator "github.com/onflow/flow-emulator"
-	fttemplates "github.com/onflow/flow-ft/lib/go/templates"
+	"github.com/onflow/flow-emulator/emulator"
 	"github.com/onflow/flow-go-sdk"
 	"github.com/onflow/flow-go-sdk/crypto"
 )
-
-// ------------------------------------------------------------
-// Setup
-// ------------------------------------------------------------
-func fundAccount(
-	t *testing.T,
-	b *emulator.Blockchain,
-	receiverAddress flow.Address,
-	amount string,
-) {
-	script := fttemplates.GenerateMintTokensScript(
-		ftAddress,
-		flowTokenAddress,
-		flowTokenName,
-	)
-
-	tx := flow.NewTransaction().
-		SetScript(script).
-		SetGasLimit(100).
-		SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
-		SetPayer(b.ServiceKey().Address).
-		AddAuthorizer(b.ServiceKey().Address)
-
-	tx.AddArgument(cadence.NewAddress(receiverAddress))
-	tx.AddArgument(cadenceUFix64(amount))
-
-	signer, err := b.ServiceKey().Signer()
-	require.NoError(t, err)
-	signAndSubmit(
-		t, b, tx,
-		[]flow.Address{b.ServiceKey().Address},
-		[]crypto.Signer{signer},
-		false,
-	)
-}
 
 // ------------------------------------------------------------
 // Series
@@ -61,7 +26,7 @@ func createSeries(
 	nameString, _ := cadence.NewString(name)
 	tx := flow.NewTransaction().
 		SetScript(loadEscrowCreateSeriesTransaction(contracts)).
-		SetGasLimit(100).
+		SetComputeLimit(100).
 		SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
 		SetPayer(b.ServiceKey().Address).
 		AddAuthorizer(contracts.AllDayAddress)
@@ -90,7 +55,7 @@ func createSet(
 	nameString, _ := cadence.NewString(name)
 	tx := flow.NewTransaction().
 		SetScript(loadEscrowCreateSetTransaction(contracts)).
-		SetGasLimit(100).
+		SetComputeLimit(100).
 		SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
 		SetPayer(b.ServiceKey().Address).
 		AddAuthorizer(contracts.AllDayAddress)
@@ -120,7 +85,7 @@ func createPlay(
 	classificationString, _ := cadence.NewString(classification)
 	tx := flow.NewTransaction().
 		SetScript(loadEscrowCreatePlayTransaction(contracts)).
-		SetGasLimit(100).
+		SetComputeLimit(100).
 		SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
 		SetPayer(b.ServiceKey().Address).
 		AddAuthorizer(contracts.AllDayAddress)
@@ -154,7 +119,7 @@ func createEdition(
 	tierString, _ := cadence.NewString(tier)
 	tx := flow.NewTransaction().
 		SetScript(loadEscrowCreateEditionTransaction(contracts)).
-		SetGasLimit(100).
+		SetComputeLimit(100).
 		SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
 		SetPayer(b.ServiceKey().Address).
 		AddAuthorizer(contracts.AllDayAddress)
@@ -189,7 +154,7 @@ func createLeaderboard(
 ) {
 	tx := flow.NewTransaction().
 		SetScript(loadEscrowCreateLeaderboardTransaction(contracts)).
-		SetGasLimit(100).
+		SetComputeLimit(100).
 		SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
 		SetPayer(b.ServiceKey().Address).
 		AddAuthorizer(contracts.AllDayAddress)
@@ -231,7 +196,7 @@ func escrowMomentNFT(
 ) {
 	tx := flow.NewTransaction().
 		SetScript(loadEscrowMomentNFTTransaction(contracts)).
-		SetGasLimit(100).
+		SetComputeLimit(100).
 		SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
 		SetPayer(b.ServiceKey().Address).
 		AddAuthorizer(ownerAddress)
@@ -257,7 +222,7 @@ func getMomentNFTLengthInAccount(
 	script := loadEscrowReadCollectionLengthScript(contracts)
 	result := executeScriptAndCheck(t, b, script, [][]byte{jsoncdc.MustEncode(cadence.BytesToAddress(address.Bytes()))})
 
-	return result.ToGoValue().(*big.Int)
+	return GetFieldValue(result).(*big.Int)
 }
 
 func mintMomentNFT(
@@ -271,7 +236,7 @@ func mintMomentNFT(
 ) {
 	tx := flow.NewTransaction().
 		SetScript(loadEscrowMintMomentNFTTransaction(contracts)).
-		SetGasLimit(100).
+		SetComputeLimit(100).
 		SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
 		SetPayer(b.ServiceKey().Address).
 		AddAuthorizer(contracts.AllDayAddress)
@@ -306,7 +271,7 @@ func withdrawMomentNFT(
 ) {
 	tx := flow.NewTransaction().
 		SetScript(loadEscrowWithdrawMomentNFT(contracts)).
-		SetGasLimit(100).
+		SetComputeLimit(100).
 		SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
 		SetPayer(b.ServiceKey().Address).
 		AddAuthorizer(contracts.AllDayAddress)
@@ -333,7 +298,7 @@ func burnMomentNFT(
 ) {
 	tx := flow.NewTransaction().
 		SetScript(loadEscrowBurnNFTTransaction(contracts)).
-		SetGasLimit(100).
+		SetComputeLimit(100).
 		SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
 		SetPayer(b.ServiceKey().Address).
 		AddAuthorizer(contracts.AllDayAddress)
