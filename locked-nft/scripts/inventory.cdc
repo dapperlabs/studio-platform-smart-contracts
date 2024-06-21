@@ -1,9 +1,8 @@
-import NFTLocker from "../contracts/NFTLocker.cdc"
-import ExampleNFT from 0xEXAMPLENFTADDRESS
+import NFTLocker from "NFTLocker"
+import ExampleNFT from "ExampleNFT"
 
-pub fun main(acctAddress: Address): [UInt64]? {
-    let nftOwner = getAccount(acctAddress);
-    let capability = nftOwner.getCapability<&{NFTLocker.LockedCollection}>(NFTLocker.CollectionPublicPath);
-    let borrowed = capability.borrow() ?? panic("Could not borrow receiver reference")
-    return borrowed.getIDs(nftType: Type<@ExampleNFT.NFT>())
+access(all) fun main(acctAddress: Address): [UInt64]? {
+    let lockedCollectionRef = getAccount(acctAddress).capabilities.borrow<&{NFTLocker.LockedCollection}>(NFTLocker.CollectionPublicPath)
+        ?? panic("Could not borrow receiver reference")
+    return lockedCollectionRef.getIDs(nftType: Type<@ExampleNFT.NFT>())
 }

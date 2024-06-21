@@ -1,9 +1,6 @@
-import NonFungibleToken from "../contracts/NonFungibleToken.cdc"
-import NFTLocker from "../contracts/NFTLocker.cdc"
+import NonFungibleToken from "NonFungibleToken"
+import NFTLocker from "NFTLocker"
 
-pub fun main(address: Address): Bool {
-    let account = getAccount(address)
-    return account.getCapability<&{
-            NFTLocker.LockedCollection
-        }>(NFTLocker.CollectionPublicPath).check()
+access(all) fun main(address: Address): Bool {
+    return getAccount(address).capabilities.get<&{NFTLocker.LockedCollection}>(NFTLocker.CollectionPublicPath).check()
 }

@@ -1,17 +1,17 @@
-import NonFungibleToken from "./NonFungibleToken.cdc"
+import NonFungibleToken from "NonFungibleToken"
 
 
 /// A contract to lock NFT for a given duration
 /// Locked NFT are stored in a user owned collection
 /// The collection owner can unlock the NFT after duration has been exceeded
 ///
-pub contract NFTLocker {
+access(all) contract NFTLocker {
 
     /// Contract events
     ///
-    pub event Withdraw(id: UInt64, from: Address?)
-    pub event Deposit(id: UInt64, to: Address?)
-    pub event NFTLocked(
+    access(all) event Withdraw(id: UInt64, from: Address?)
+    access(all) event Deposit(id: UInt64, to: Address?)
+    access(all) event NFTLocked(
         id: UInt64,
         to: Address?,
         lockedAt: UInt64,
@@ -19,7 +19,7 @@ pub contract NFTLocker {
         duration: UInt64,
         nftType: Type
     )
-    pub event NFTUnlocked(
+    access(all) event NFTUnlocked(
         id: UInt64,
         from: Address?,
         nftType: Type
@@ -27,12 +27,12 @@ pub contract NFTLocker {
 
     /// Named Paths
     ///
-    pub let CollectionStoragePath:  StoragePath
-    pub let CollectionPublicPath:   PublicPath
+    access(all) let CollectionStoragePath:  StoragePath
+    access(all) let CollectionPublicPath:   PublicPath
 
     /// Contract variables
     ///
-    pub var totalLockedTokens:      UInt64
+    access(all) var totalLockedTokens:      UInt64
 
     /// Metadata Dictionaries
     ///
@@ -40,14 +40,14 @@ pub contract NFTLocker {
 
     /// Data describing characteristics of the locked NFT
     ///
-    pub struct LockedData {
-        pub let id: UInt64
-        pub let owner: Address
-        pub let lockedAt: UInt64
-        pub let lockedUntil: UInt64
-        pub let duration: UInt64
-        pub let nftType: Type
-        pub let extension: {String: AnyStruct}
+    access(all) struct LockedData {
+        access(all) let id: UInt64
+        access(all) let owner: Address
+        access(all) let lockedAt: UInt64
+        access(all) let lockedUntil: UInt64
+        access(all) let duration: UInt64
+        access(all) let nftType: Type
+        access(all) let extension: {String: AnyStruct}
 
         init (id: UInt64, owner: Address, duration: UInt64, nftType: Type) {
             if let lockedToken = (NFTLocker.lockedTokens[nftType]!)[id] {
@@ -70,44 +70,47 @@ pub contract NFTLocker {
         }
     }
 
-    pub fun getNFTLockerDetails(id: UInt64, nftType: Type): NFTLocker.LockedData? {
+    /// Get the details of a locked NFT
+    ///
+    access(all) view fun getNFTLockerDetails(id: UInt64, nftType: Type): NFTLocker.LockedData? {
         return (NFTLocker.lockedTokens[nftType]!)[id]
     }
 
     /// Determine if NFT can be unlocked
     ///
-    pub fun canUnlockToken(id: UInt64, nftType: Type): Bool {
+    access(all) view fun canUnlockToken(id: UInt64, nftType: Type): Bool {
         if let lockedToken = (NFTLocker.lockedTokens[nftType]!)[id] {
             if lockedToken.lockedUntil < UInt64(getCurrentBlock().timestamp) {
                 return true
             }
         }
-
         return false
     }
 
-    /// A public collection interface that returns the ids
-    /// of nft locked for a given type
+    /// A public collection interface that requires the ability to lock and unlock NFTs and return the ids
+    /// of NFTs locked for a given type
     ///
-    pub resource interface LockedCollection {
-        pub fun getIDs(nftType: Type): [UInt64]?
+    access(all) resource interface LockedCollection {
+        access(all) view fun getIDs(nftType: Type): [UInt64]?
+        access(Operate) fun lock(token: @{NonFungibleToken.NFT}, duration: UInt64)
+        access(Operate) fun unlock(id: UInt64, nftType: Type): @{NonFungibleToken.NFT}
     }
 
-    /// A public collection interface allowing locking and unlocking of NFT
+    /// Deprecated in favor of Operate entitlement
     ///
-    pub resource interface LockProvider {
-        pub fun lock(token: @NonFungibleToken.NFT, duration: UInt64)
-        pub fun unlock(id: UInt64, nftType: Type): @NonFungibleToken.NFT
-    }
+    access(all) resource interface LockProvider: LockedCollection {}
+
+    /// Entitlement that grants the ability to operate the NFTLocker Collection
+    access(all) entitlement Operate
 
     /// An NFT Collection
     ///
-    pub resource Collection: LockedCollection, LockProvider {
-        pub var lockedNFTs: @{Type: {UInt64: NonFungibleToken.NFT}}
+    access(all) resource Collection: LockedCollection, LockProvider {
+        access(all) var lockedNFTs: @{Type: {UInt64: {NonFungibleToken.NFT}}}
 
         /// Unlock an NFT of a given type
         ///
-        pub fun unlock(id: UInt64, nftType: Type): @NonFungibleToken.NFT {
+        access(Operate) fun unlock(id: UInt64, nftType: Type): @{NonFungibleToken.NFT} {
             pre {
                 NFTLocker.canUnlockToken(
                     id: id,
@@ -135,7 +138,7 @@ pub contract NFTLocker {
 
         /// Lock an NFT of a given type
         ///
-        pub fun lock(token: @NonFungibleToken.NFT, duration: UInt64) {
+        access(Operate) fun lock(token: @{NonFungibleToken.NFT}, duration: UInt64) {
             let id: UInt64 = token.id
             let nftType: Type = token.getType()
 
@@ -146,11 +149,11 @@ pub contract NFTLocker {
             if self.lockedNFTs[nftType] == nil {
                 self.lockedNFTs[nftType] <-! {}
             }
-            let ref = &self.lockedNFTs[nftType] as &{UInt64: NonFungibleToken.NFT}?
+            let ref = &self.lockedNFTs[nftType] as auth(Insert) &{UInt64: {NonFungibleToken.NFT}}?
 
             let oldToken <- ref!.insert(key: id, <- token)
 
-            let nestedLockRef = &NFTLocker.lockedTokens[nftType] as &{UInt64: NFTLocker.LockedData}?
+            let nestedLockRef = &NFTLocker.lockedTokens[nftType] as auth(Insert) &{UInt64: NFTLocker.LockedData}?
             let lockedData = NFTLocker.LockedData(
                 id: id,
                 owner: self.owner!.address,
@@ -174,24 +177,20 @@ pub contract NFTLocker {
             destroy oldToken
         }
 
-        pub fun getIDs(nftType: Type): [UInt64]? {
+        access(all) view fun getIDs(nftType: Type): [UInt64]? {
             return self.lockedNFTs[nftType]?.keys
         }
 
-        destroy() {
-            destroy self.lockedNFTs
-        }
-
-        init() {
+        view init() {
             self.lockedNFTs <- {}
         }
     }
 
-    pub fun createEmptyCollection(): @Collection {
+    access(all) fun createEmptyCollection(): @Collection {
         return <- create Collection()
     }
 
-    init() {
+    view init() {
         self.CollectionStoragePath = /storage/NFTLockerCollection
         self.CollectionPublicPath = /public/NFTLockerCollection
 

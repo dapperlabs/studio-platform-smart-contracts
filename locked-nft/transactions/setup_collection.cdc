@@ -1,16 +1,21 @@
-import NonFungibleToken from "../contracts/NonFungibleToken.cdc"
-import NFTLocker from "../contracts/NFTLocker.cdc"
+import NonFungibleToken from "NonFungibleToken"
+import NFTLocker from "NFTLocker"
 
 transaction {
-    prepare(signer: AuthAccount) {
-        if signer.borrow<&NFTLocker.Collection>(from: NFTLocker.CollectionStoragePath) == nil {
-
-            let collection <- NFTLocker.createEmptyCollection()
-            signer.save(<-collection, to: NFTLocker.CollectionStoragePath)
-            signer.link<&NFTLocker.Collection{NFTLocker.LockedCollection}>(
-                NFTLocker.CollectionPublicPath,
-                target: NFTLocker.CollectionStoragePath
-            )
+    prepare(signer: auth(Storage, Capabilities) &Account) {
+        // Return early if the collection already exists
+        if signer.storage.borrow<&NFTLocker.Collection>(from: NFTLocker.CollectionStoragePath) != nil {
+            return
         }
+
+        // Create a new collection and save it to storage
+        signer.storage.save(<- NFTLocker.createEmptyCollection(), to: NFTLocker.CollectionStoragePath)
+
+        // Create a public capability for the collection
+        signer.capabilities.unpublish(NFTLocker.CollectionPublicPath)
+        signer.capabilities.publish(
+            signer.capabilities.storage.issue<&NFTLocker.Collection>(NFTLocker.CollectionStoragePath),
+            at: NFTLocker.CollectionPublicPath
+        )
     }
 }
