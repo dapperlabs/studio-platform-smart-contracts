@@ -170,11 +170,11 @@ access(all) contract PDS{
     /// Resource that defines the issuer of a pack.
     ///
     access(all) resource PackIssuer: PackIssuerCapReciever {
-        access(self) var cap: Capability<auth(Operate) &DistributionCreator>?
+        access(self) var cap: Capability<&DistributionCreator>?
 
-        /// Set the capability to create a distribution; the function is publicly accessible but requires an authorized DistributionCreator capability argument.
+        /// Set the capability to create a distribution; the function is publicly accessible but requires a capability argument to a DistrubutionCreator admin resource.
         ///
-        access(all) fun setDistCap(cap: Capability<auth(Operate) &DistributionCreator>) {
+        access(all) fun setDistCap(cap: Capability<&DistributionCreator>) {
             pre {
                 cap.check(): "Invalid capability"
             }
@@ -200,7 +200,7 @@ access(all) contract PDS{
     /// Resource that defines the creator of a distribution.
     ///
     access(all) resource DistributionCreator: IDistCreator {
-        access(Operate) fun createNewDist(sharedCap: @SharedCapabilities, title: String, metadata: {String: String}) {
+        access(contract) fun createNewDist(sharedCap: @SharedCapabilities, title: String, metadata: {String: String}) {
             let currentId = PDS.nextDistId
             PDS.DistSharedCap[currentId] <-! sharedCap
             PDS.Distributions[currentId] = DistInfo(title: title, metadata: metadata)
