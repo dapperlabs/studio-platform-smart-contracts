@@ -2,9 +2,9 @@ import NonFungibleToken from "NonFungibleToken"
 import ExampleNFT from "ExampleNFT"
 import MetadataViews from "MetadataViews"
 
-transaction {
+transaction (nftWithdrawCapPath: StoragePath) {
 
-    prepare(signer: auth(BorrowValue, IssueStorageCapabilityController, PublishCapability, SaveValue, UnpublishCapability) &Account) {
+    prepare(signer: auth(Storage, Capabilities) &Account) {
         let collectionData = ExampleNFT.resolveContractView(resourceType: nil, viewType: Type<MetadataViews.NFTCollectionData>()) as! MetadataViews.NFTCollectionData?
             ?? panic("ViewResolver does not resolve NFTCollectionData view")
 
@@ -13,11 +13,19 @@ transaction {
             return
         }
 
-        // Create a new empty collection
-        let collection <- ExampleNFT.createEmptyCollection(nftType: Type<@ExampleNFT.NFT>())
+        // Create and save collection to account storage
+        signer.storage.save(
+            <- ExampleNFT.createEmptyCollection(nftType: Type<@ExampleNFT.NFT>()),
+            to: collectionData.storagePath,
+        )
 
-        // save it to the account
-        signer.storage.save(<-collection, to: collectionData.storagePath)
+        // Create and save authorized collection capability to account storage
+        let withdrawCap = signer.capabilities.storage.issue<auth(NonFungibleToken.Withdraw) &ExampleNFT.Collection>(collectionData.storagePath)
+        signer.capabilities.storage.getController(byCapabilityID: withdrawCap.id)!.setTag("PDSwithdrawCap")
+        signer.storage.save(
+            withdrawCap,
+            to: nftWithdrawCapPath
+        )
 
         // create a public capability for the collection
         signer.capabilities.unpublish(collectionData.publicPath)
