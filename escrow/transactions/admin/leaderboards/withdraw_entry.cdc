@@ -10,7 +10,7 @@ transaction(leaderboardName: String, nftID: UInt64, ownerAddress: Address) {
             ?? panic("Could not borrow reference to the Collection resource")
 
         let depositCap = getAccount(ownerAddress)
-            .capabilities.get<&{NonFungibleToken.CollectionPublic}>(AllDay.CollectionPublicPath)
+            .capabilities.get<&{NonFungibleToken.Collection}>(AllDay.CollectionPublicPath)
 
         // Call transferNftToCollection function.
         collectionRef.transferNftToCollection(leaderboardName: leaderboardName, nftID: nftID, depositCap: depositCap)
