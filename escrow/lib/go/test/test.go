@@ -1,16 +1,20 @@
 package test
 
 import (
+	"context"
 	"io/ioutil"
 	"testing"
 
 	"github.com/onflow/cadence"
-	emulator "github.com/onflow/flow-emulator"
+	"github.com/onflow/flow-emulator/adapters"
+	"github.com/onflow/flow-emulator/convert"
+	"github.com/onflow/flow-emulator/emulator"
 	"github.com/onflow/flow-go-sdk"
 	"github.com/onflow/flow-go-sdk/crypto"
 	sdktemplates "github.com/onflow/flow-go-sdk/templates"
 	"github.com/onflow/flow-go-sdk/test"
 	nftcontracts "github.com/onflow/flow-nft/lib/go/contracts"
+	"github.com/rs/zerolog"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
@@ -25,8 +29,7 @@ const (
 )
 
 var (
-	ftAddress        = flow.HexToAddress("ee82856bf20e2aa6")
-	flowTokenAddress = flow.HexToAddress("0ae53cb6e3f42a79")
+	ftAddress = flow.HexToAddress("ee82856bf20e2aa6")
 )
 
 type Contracts struct {
@@ -38,9 +41,14 @@ type Contracts struct {
 	EscrowAddress        flow.Address
 }
 
-func deployNFTContract(t *testing.T, b *emulator.Blockchain) flow.Address {
-	nftCode := nftcontracts.NonFungibleToken()
-	nftAddress, err := b.CreateAccount(nil,
+func deployNFTContract(t *testing.T, b *emulator.Blockchain) (flow.Address, flow.Address) {
+
+	logger := zerolog.Nop()
+	adapter := adapters.NewSDKAdapter(&logger, b)
+	resolverAddress := deploy(t, b, adapter, "ViewResolver", nftcontracts.ViewResolver(), b.ServiceKey().AccountKey())
+	nftCode := nftcontracts.NonFungibleToken(resolverAddress.String())
+
+	nftAddress, err := adapter.CreateAccount(context.Background(), nil,
 		[]sdktemplates.Contract{
 			{
 				Name:   nonFungibleTokenName,
@@ -53,49 +61,34 @@ func deployNFTContract(t *testing.T, b *emulator.Blockchain) flow.Address {
 	_, err = b.CommitBlock()
 	require.NoError(t, err)
 
-	return nftAddress
-}
-
-func deployMetadataViewsContract(t *testing.T, b *emulator.Blockchain, nftAddress flow.Address) flow.Address {
-	metaViewCode := nftcontracts.MetadataViews(ftAddress, nftAddress)
-	metaViewAddress, err := b.CreateAccount(nil,
-		[]sdktemplates.Contract{
-			{
-				Name:   metadataViewsName,
-				Source: string(metaViewCode),
-			},
-		},
-	)
-	require.NoError(t, err)
-
-	_, err = b.CommitBlock()
-	require.NoError(t, err)
-
-	return metaViewAddress
+	return resolverAddress, nftAddress
 }
 
 func EscrowContracts(t *testing.T, b *emulator.Blockchain) Contracts {
 	accountKeys := test.AccountKeyGenerator()
 
-	nftAddress := deployNFTContract(t, b)
-	mvAddress := deployMetadataViewsContract(t, b, nftAddress)
+	logger := zerolog.Nop()
+	adapter := adapters.NewSDKAdapter(&logger, b)
+
+	resolverAddress, nftAddress := deployNFTContract(t, b)
+	mvAddress := deploy(t, b, adapter, "MetadataViews", nftcontracts.MetadataViews(ftAddress.String(), nftAddress.String(), resolverAddress.String()))
 
 	AllDayAccountKey, AllDaySigner := accountKeys.NewWithSigner()
-	royaltyAddress, err := b.CreateAccount(
+	royaltyAddress, err := adapter.CreateAccount(
+		context.Background(),
 		[]*flow.AccountKey{AllDayAccountKey},
 		nil,
 	)
 	require.NoError(t, err)
 
-	AllDayCode := LoadAllDay(nftAddress, mvAddress, royaltyAddress)
+	AllDayCode := LoadAllDay(nftAddress, mvAddress, resolverAddress, royaltyAddress)
 
-	AllDayAddress, err := b.CreateAccount(
+	AllDayAddress, err := adapter.CreateAccount(
+		context.Background(),
 		[]*flow.AccountKey{AllDayAccountKey},
 		nil,
 	)
 	require.NoError(t, err)
-
-	fundAccount(t, b, AllDayAddress, defaultAccountFunding)
 
 	tx1 := sdktemplates.AddAccountContract(
 		AllDayAddress,
@@ -106,7 +99,7 @@ func EscrowContracts(t *testing.T, b *emulator.Blockchain) Contracts {
 	)
 
 	tx1.
-		SetGasLimit(100).
+		SetComputeLimit(100).
 		SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
 		SetPayer(b.ServiceKey().Address)
 
@@ -133,7 +126,7 @@ func EscrowContracts(t *testing.T, b *emulator.Blockchain) Contracts {
 	)
 
 	tx1.
-		SetGasLimit(100).
+		SetComputeLimit(100).
 		SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
 		SetPayer(b.ServiceKey().Address)
 
@@ -155,12 +148,13 @@ func EscrowContracts(t *testing.T, b *emulator.Blockchain) Contracts {
 		MetadataViewsAddress: mvAddress,
 		RoyaltyAddress:       royaltyAddress,
 		AllDaySigner:         AllDaySigner,
+		EscrowAddress:        AllDayAddress,
 	}
 }
 
 // newEmulator returns a emulator object for testing
 func newEmulator() *emulator.Blockchain {
-	b, err := emulator.NewBlockchain()
+	b, err := emulator.New(emulator.WithStorageLimitEnabled(false))
 	if err != nil {
 		panic(err)
 	}
@@ -206,7 +200,8 @@ func submit(
 	shouldRevert bool,
 ) {
 	// submit the signed transaction
-	err := b.AddTransaction(*tx)
+	flowTx := convert.SDKTransactionToFlow(*tx)
+	err := b.AddTransaction(*flowTx)
 	require.NoError(t, err)
 
 	result, err := b.ExecuteNextTransaction()
@@ -259,7 +254,9 @@ func createAccount(t *testing.T, b *emulator.Blockchain) (sdk.Address, crypto.Si
 	accountKeys := test.AccountKeyGenerator()
 	accountKey, signer := accountKeys.NewWithSigner()
 
-	address, err := b.CreateAccount([]*sdk.AccountKey{accountKey}, nil)
+	logger := zerolog.Nop()
+	adapter := adapters.NewSDKAdapter(&logger, b)
+	address, err := adapter.CreateAccount(context.Background(), []*sdk.AccountKey{accountKey}, nil)
 	require.NoError(t, err)
 
 	return address, signer
@@ -274,7 +271,7 @@ func setupAllDay(
 ) {
 	tx := flow.NewTransaction().
 		SetScript(loadEscrowSetupAccountTransaction(contracts)).
-		SetGasLimit(100).
+		SetComputeLimit(100).
 		SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
 		SetPayer(b.ServiceKey().Address).
 		AddAuthorizer(userAddress)
@@ -299,4 +296,27 @@ func metadataDict(dict map[string]string) cadence.Dictionary {
 	}
 
 	return cadence.NewDictionary(pairs)
+}
+
+// Deploy a contract to a new account with the specified name, code, and keys
+func deploy(
+	t *testing.T,
+	b emulator.Emulator,
+	adapter *adapters.SDKAdapter,
+	name string,
+	code []byte,
+	keys ...*flow.AccountKey,
+) flow.Address {
+	address, err := adapter.CreateAccount(context.Background(),
+		keys,
+		[]sdktemplates.Contract{
+			{
+				Name:   name,
+				Source: string(code),
+			},
+		},
+	)
+	assert.NoError(t, err)
+
+	return address
 }

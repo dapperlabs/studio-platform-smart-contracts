@@ -9,12 +9,14 @@ import (
 // Handle relative paths by making these regular expressions
 
 const (
-	nftAddressPlaceholder     = "\"[^\"]*NonFungibleToken.cdc\""
-	ftAddressPlaceholder      = "\"[^\"]*FungibleToken.cdc\""
-	mvAddressPlaceholder      = "\"[^\"]*MetadataViews.cdc\""
-	AllDayAddressPlaceholder  = "\"[^\"]*AllDay.cdc\""
-	royaltyAddressPlaceholder = "0xALLDAYROYALTYADDRESS"
-	escrowAddressPlaceholder  = "\"[^\"]*Escrow.cdc\""
+	nftAddressPlaceholder          = "\"NonFungibleToken\""
+	ftAddressPlaceholder           = "\"FungibleToken\""
+	mvAddressPlaceholder           = "\"MetadataViews\""
+	viewResolverAddressPlaceholder = "\"ViewResolver\""
+	AllDayAddressPlaceholder       = "\"AllDay\""
+	royaltyAddressPlaceholder      = "0xALLDAYROYALTYADDRESS"
+	escrowAddressPlaceholder       = "\"Escrow\""
+	escrowAddressPlaceholderBis    = "0xf8d6e0586b0a20c7"
 )
 
 const (
@@ -81,10 +83,13 @@ func replaceAddresses(code []byte, contracts Contracts) []byte {
 	escrowRe := regexp.MustCompile(escrowAddressPlaceholder)
 	code = escrowRe.ReplaceAll(code, []byte("0x"+contracts.EscrowAddress.String()))
 
+	escrowReBis := regexp.MustCompile(escrowAddressPlaceholderBis)
+	code = escrowReBis.ReplaceAll(code, []byte("0x"+contracts.EscrowAddress.String()))
+
 	return code
 }
 
-func LoadAllDay(nftAddress flow.Address, metaAddress flow.Address, royaltyAddress flow.Address) []byte {
+func LoadAllDay(nftAddress, metaAddress, viewResolverAddress, royaltyAddress flow.Address) []byte {
 	code := readFile(AllDayPath)
 
 	nftRe := regexp.MustCompile(nftAddressPlaceholder)
@@ -95,6 +100,9 @@ func LoadAllDay(nftAddress flow.Address, metaAddress flow.Address, royaltyAddres
 
 	mvRe := regexp.MustCompile(mvAddressPlaceholder)
 	code = mvRe.ReplaceAll(code, []byte("0x"+metaAddress.String()))
+
+	vRe := regexp.MustCompile(viewResolverAddressPlaceholder)
+	code = vRe.ReplaceAll(code, []byte("0x"+viewResolverAddress.String()))
 
 	royaltyRe := regexp.MustCompile(royaltyAddressPlaceholder)
 	code = royaltyRe.ReplaceAll(code, []byte("0x"+royaltyAddress.String()))

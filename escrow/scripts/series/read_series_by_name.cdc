@@ -1,9 +1,9 @@
-import AllDay from "../../contracts/AllDay.cdc"
+import AllDay from "AllDay"
 
-// This script returns a Series struct for the given name,
-// if it exists
+// This script returns all the names for Set.
+// These can be related to Set structs via AllDay.getSetByName() .
 
-pub fun main(seriesName: String): AllDay.SeriesData {
-    return AllDay.getSeriesDataByName(name: seriesName)
+access(all) fun main(): [String] {
+    return AllDay.getAllSetNames()
 }
 
