@@ -50,22 +50,19 @@ access(all) contract Escrow {
         access(all) var metadata: {String: AnyStruct}
 
         // Adds an NFT entry to the leaderboard.
-        access(contract) fun addEntryToLeaderboard(nft: @{NonFungibleToken.NFT}, ownerAddress: Address, metadata: {String: AnyStruct}) {
+        access(contract) fun addEntryToLeaderboard(nft: @{NonFungibleToken.NFT}, ownerAddress: Address) {
             pre {
                 nft.isInstance(self.nftType): "This NFT cannot be used for leaderboard. NFT is not of the correct type."
             }
 
             let nftID = nft.id
 
-            // Create the entry and add it to the entries map
-            let entry = LeaderboardEntry(
+            // Create the entry and add it to the Leaderboard's entries map.
+            self.entriesData[nftID] = LeaderboardEntry(
                 nftID: nftID,
                 ownerAddress: ownerAddress,
-                metadata: metadata,
+                metadata: {},
             )
-
-            // Store the entry data in the leaderboard.
-            self.entriesData[nftID] = entry
 
             // Deposit the NFT into the leaderboard's NFT collection.
             self.collection.deposit(token: <-nft)
@@ -142,7 +139,7 @@ access(all) contract Escrow {
     // An interface containing the Collection function that gets leaderboards by name.
     access(all) resource interface ICollectionPublic {
         access(all) fun getLeaderboardInfo(name: String): LeaderboardInfo?
-        access(all) fun addEntryToLeaderboard(nft: @{NonFungibleToken.NFT}, leaderboardName: String, ownerAddress: Address, metadata: {String: AnyStruct})
+        access(all) fun addEntryToLeaderboard(nft: @{NonFungibleToken.NFT}, leaderboardName: String, ownerAddress: Address)
         access(Operate) fun createLeaderboard(name: String, nftType: Type, collection: @{NonFungibleToken.Collection})
         access(Operate) fun transferNftToCollection(leaderboardName: String, nftID: UInt64, depositCap: Capability<&{NonFungibleToken.Collection}>)
         access(Operate) fun burn(leaderboardName: String, nftID: UInt64)
@@ -161,8 +158,8 @@ access(all) contract Escrow {
 
         // Creates a new leaderboard and stores it.
         access(Operate) fun createLeaderboard(name: String, nftType: Type, collection: @{NonFungibleToken.Collection}) {
-            if self.leaderboards[name] != nil {
-                panic("Leaderboard already exists with this name")
+            pre{
+                self.leaderboards.containsKey(name) == false: "Leaderboard already exists with this name"
             }
 
             // Create and store leaderboard resource in the leaderboards dictionary.
@@ -174,46 +171,35 @@ access(all) contract Escrow {
 
         // Returns leaderboard info with the given name.
         access(all) fun getLeaderboardInfo(name: String): LeaderboardInfo? {
-            let leaderboard = &self.leaderboards[name] as &Leaderboard?
-            if leaderboard == nil {
-                return nil
+            if let leaderboard = &self.leaderboards[name] as &Leaderboard? {
+                return LeaderboardInfo(
+                    name: leaderboard.name,
+                    nftType: leaderboard.nftType,
+                    entriesLength: leaderboard.entriesLength
+                )
             }
-
-            return LeaderboardInfo(
-                name: leaderboard!.name,
-                nftType: leaderboard!.nftType,
-                entriesLength: leaderboard!.entriesLength
-            )
+            return nil
         }
 
         // Call addEntry.
-        access(all) fun addEntryToLeaderboard(nft: @{NonFungibleToken.NFT}, leaderboardName: String, ownerAddress: Address, metadata: {String: AnyStruct}) {
+        access(all) fun addEntryToLeaderboard(nft: @{NonFungibleToken.NFT}, leaderboardName: String, ownerAddress: Address) {
             let leaderboard = &self.leaderboards[leaderboardName] as &Leaderboard?
-            if leaderboard == nil {
-                panic("Leaderboard does not exist with this name")
-            }
-
-            leaderboard!.addEntryToLeaderboard(nft: <-nft, ownerAddress: ownerAddress, metadata: metadata)
+                ?? panic("Leaderboard does not exist with this name")
+            leaderboard.addEntryToLeaderboard(nft: <-nft, ownerAddress: ownerAddress)
         }
 
         // Calls transferNftToCollection.
         access(Operate) fun transferNftToCollection(leaderboardName: String, nftID: UInt64, depositCap: Capability<&{NonFungibleToken.Collection}>) {
-            let leaderboard = &self.leaderboards[leaderboardName] as &Leaderboard?
-            if leaderboard == nil {
-                panic("Leaderboard does not exist with this name")
-            }
-
-            leaderboard!.transferNftToCollection(nftID: nftID, depositCap: depositCap)
+            let leaderboard= &self.leaderboards[leaderboardName] as &Leaderboard?
+                ?? panic("Leaderboard does not exist with this name")
+            leaderboard.transferNftToCollection(nftID: nftID, depositCap: depositCap)
         }
 
         // Calls burn.
         access(Operate) fun burn(leaderboardName: String, nftID: UInt64) {
             let leaderboard = &self.leaderboards[leaderboardName] as &Leaderboard?
-            if leaderboard == nil {
-                panic("Leaderboard does not exist with this name")
-            }
-
-            leaderboard!.burn(nftID: nftID)
+                ?? panic("Leaderboard does not exist with this name")
+            leaderboard.burn(nftID: nftID)
         }
 
         // Collection resource initializer.
