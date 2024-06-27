@@ -49,7 +49,8 @@ access(all) contract Escrow {
         access(all) var entriesLength: Int
         access(all) var metadata: {String: AnyStruct}
 
-        // Adds an NFT entry to the leaderboard.
+        // Adds the provided NFT to the leaderboard and creates the corresponding entry with the provided ownerAddress, which is
+        // used to validate the deposit capability when calling transferNftToCollection.
         access(contract) fun addEntryToLeaderboard(nft: @{NonFungibleToken.NFT}, ownerAddress: Address) {
             pre {
                 nft.isInstance(self.nftType): "This NFT cannot be used for leaderboard. NFT is not of the correct type."
@@ -181,7 +182,8 @@ access(all) contract Escrow {
             return nil
         }
 
-        // Call addEntry.
+        // Adds the provided NFT to the leaderboard and creates the corresponding entry with the provided ownerAddress, which is
+        // used to validate the deposit capability when calling transferNftToCollection.
         access(all) fun addEntryToLeaderboard(nft: @{NonFungibleToken.NFT}, leaderboardName: String, ownerAddress: Address) {
             let leaderboard = &self.leaderboards[leaderboardName] as &Leaderboard?
                 ?? panic("Leaderboard does not exist with this name")
