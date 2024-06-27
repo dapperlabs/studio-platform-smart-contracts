@@ -17,3 +17,5 @@
 | ----------|:------------------:|-------------------------------------------------------------------------------------|
 | Testnet   | 0xb8589c236764adce | [Flow View Source](https://flow-view-source.com/testnet/account/0xb8589c236764adce) |
 | Mainnet   | 0x329feb3ab062d289 | [Flow View Source](https://flow-view-source.com/mainnet/account/0x329feb3ab062d289) |
+
+Giglabs contracts are [here](https://github.com/GigLabs/Flow/tree/main/contracts). Please refer to this for the latest contract update.
