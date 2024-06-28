@@ -1,0 +1,32 @@
+{
+	"contracts": {
+		"NFTProviderAggregator": "./contracts/NFTProviderAggregator.cdc",
+		"ExampleNFT": "./contracts/ExampleNFT.cdc",
+		"NonFungibleToken": "./contracts/NonFungibleToken.cdc"
+	},
+	"networks": {
+		"emulator": "127.0.0.1:3569",
+		"mainnet": "access.mainnet.nodes.onflow.org:9000",
+		"sandboxnet": "access.sandboxnet.nodes.onflow.org:9000",
+		"testnet": "access.devnet.nodes.onflow.org:9000"
+	},
+	"accounts": {
+		"supplier": {
+			"address": "01cf0e2f2f715450",
+			"key": "a4d41af5b137a7591bfb67d6d5c2a670a8d1dbd752e930eec2bac63ad1f3c6f8"
+		},
+		"emulator-account": {
+			"address": "f8d6e0586b0a20c7",
+			"key": "5142b36a7189fd3e336b535386b901f38400f446091f5ac3a67302cbbefa9978"
+		}
+	},
+	"deployments": {
+		"emulator": {
+			"emulator-account": [
+				"NFTProviderAggregator",
+				"NonFungibleToken",
+				"ExampleNFT"
+			]
+		}
+	}
+}
