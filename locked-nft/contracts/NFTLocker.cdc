@@ -79,13 +79,42 @@ access(all) contract NFTLocker {
     /// Determine if NFT can be unlocked
     ///
     access(all) view fun canUnlockToken(id: UInt64, nftType: Type): Bool {
-        if let lockedToken = (NFTLocker.lockedTokens[nftType]!)[id] {
-            if lockedToken.lockedUntil < UInt64(getCurrentBlock().timestamp) {
-                return true
+        if let lockedTokens = NFTLocker.lockedTokens[nftType] {
+            if let lockedToken = lockedTokens[id] {
+                if lockedToken.lockedUntil < UInt64(getCurrentBlock().timestamp) {
+                    return true
+                }
             }
         }
         return false
     }
+
+    /// The path to the NFTLocker Admin resource belonging to the Account
+    /// which the contract is deployed on
+    access(all) view fun GetAdminStoragePath(): StoragePath {
+        return /storage/NFTLockerAdmin
+    }
+
+    /// Admin resource
+    access(all) resource Admin {
+        access(all) fun expireLock(id: UInt64, nftType: Type) {
+            if let locker = &NFTLocker.lockedTokens[nftType] as auth(Mutate) &{UInt64: NFTLocker.LockedData}?{
+                if locker[id] != nil {
+                    // remove old locked data and insert new one with duration 0
+                    if let oldLockedData = locker.remove(key: id){
+                        let lockedData = NFTLocker.LockedData(
+                            id: id,
+                            owner: oldLockedData.owner,
+                            duration: 0,
+                            nftType: nftType
+                        )
+                        locker.insert(key: id, lockedData)
+                    }
+                }
+            }
+        }
+    }
+
 
     /// A public collection interface that requires the ability to lock and unlock NFTs and return the ids
     /// of NFTs locked for a given type
@@ -120,8 +149,8 @@ access(all) contract NFTLocker {
 
             let token <- self.lockedNFTs[nftType]?.remove(key: id)!!
 
-            if let lockedToken = NFTLocker.lockedTokens[nftType] {
-                lockedToken.remove(key: id)
+            if let lockedTokens = &NFTLocker.lockedTokens[nftType] as auth(Remove) &{UInt64: NFTLocker.LockedData}? {
+                lockedTokens.remove(key: id)
             }
             NFTLocker.totalLockedTokens = NFTLocker.totalLockedTokens - 1
 
@@ -190,9 +219,13 @@ access(all) contract NFTLocker {
         return <- create Collection()
     }
 
-    view init() {
+    init() {
         self.CollectionStoragePath = /storage/NFTLockerCollection
         self.CollectionPublicPath = /public/NFTLockerCollection
+
+        // Create an admin resource
+        let admin <- create Admin()
+        self.account.storage.save(<-admin, to: NFTLocker.GetAdminStoragePath())
 
         self.totalLockedTokens = 0
         self.lockedTokens = {}

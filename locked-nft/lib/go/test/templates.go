@@ -19,10 +19,12 @@ const (
 )
 
 const (
-	NFTLockerPath        = "../../../contracts/NFTLocker.cdc"
-	ExampleNFTPath       = "../../../contracts/ExampleNFT.cdc"
-	TransactionsRootPath = "../../../transactions"
-	ScriptsRootPath      = "../../../scripts"
+	NFTLockerPath                  = "../../../contracts/NFTLocker.cdc"
+	NFTLockerV2Path                = "../../../contracts/NFTLockerNew.cdc"
+	ExampleNFTPath                 = "../../../contracts/ExampleNFT.cdc"
+	MetadataViewsInterfaceFilePath = "../../../contracts/imports/MetadataViews.cdc"
+	TransactionsRootPath           = "../../../transactions"
+	ScriptsRootPath                = "../../../scripts"
 
 	// Accounts
 	SetupAccountTxPath       = TransactionsRootPath + "/setup_collection.cdc"
@@ -43,6 +45,7 @@ const (
 	GetInventoryScriptPath       = ScriptsRootPath + "/inventory.cdc"
 	LockNFTTxPath                = TransactionsRootPath + "/lock_nft.cdc"
 	UnlockNFTTxPath              = TransactionsRootPath + "/unlock_nft.cdc"
+	AdminUnlockNFTTxPath         = TransactionsRootPath + "/admin_unlock_nft.cdc"
 )
 
 // ------------------------------------------------------------
@@ -123,6 +126,13 @@ func unlockNFTTransaction(contracts Contracts) []byte {
 	)
 }
 
+func adminUnlockNFTTransaction(contracts Contracts) []byte {
+	return replaceAddresses(
+		readFile(AdminUnlockNFTTxPath),
+		contracts,
+	)
+}
+
 func DownloadFile(url string) ([]byte, error) {
 	// Get the data
 	resp, err := http.Get(url)
@@ -132,4 +142,11 @@ func DownloadFile(url string) ([]byte, error) {
 	defer resp.Body.Close()
 
 	return ioutil.ReadAll(resp.Body)
+}
+
+func LoadMetadataViews(ftAddress flow.Address, nftAddress flow.Address) []byte {
+	code := readFile(MetadataViewsInterfaceFilePath)
+	code = []byte(strings.Replace(strings.Replace(string(code), MetadataFTReplaceAddress, "0x"+ftAddress.String(), 1), MetadataNFTReplaceAddress, "0x"+nftAddress.String(), 1))
+
+	return code
 }

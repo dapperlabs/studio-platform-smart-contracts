@@ -292,4 +292,64 @@ func testUnlockNFT(
 		userSigner,
 		exampleNftID,
 	)
+
+	err := func() (err error) {
+		defer func() {
+			if r := recover(); r != nil {
+				err = r.(error)
+			}
+		}()
+		_ = getLockedTokenData(
+			t,
+			b,
+			contracts,
+			exampleNftID,
+		)
+		return err
+	}()
+	assert.Error(t, err)
+
+}
+
+func TestAdminUnLockNFT(t *testing.T) {
+	b := newEmulator()
+	contracts := NFTLockerDeployContracts(t, b)
+	var (
+		mintedNft1  uint64
+		userAddress flow.Address
+		userSigner  crypto.Signer
+	)
+	t.Run("Should be able to mint and lock an nft", func(t *testing.T) {
+		userAddress, userSigner = createAccount(t, b)
+		setupNFTLockerAccount(t, b, userAddress, userSigner, contracts)
+		setupExampleNFT(t, b, userAddress, userSigner, contracts)
+		exampleNftID1 := mintExampleNFT(
+			t,
+			b,
+			contracts,
+			false,
+			userAddress.String(),
+		)
+		mintedNft1 = exampleNftID1
+		testLockNFT(
+			t,
+			b,
+			contracts,
+			userAddress,
+			userSigner,
+			exampleNftID1,
+			false,
+		)
+	})
+
+	t.Run("Should fail unlocking an nft", func(t *testing.T) {
+		unlockNFT(t, b, contracts, true, userAddress, userSigner, mintedNft1)
+	})
+
+	t.Run("Should be able to admin unlock an nft", func(t *testing.T) {
+		adminUnlockNFT(t, b, contracts, false, mintedNft1)
+		// unlocking now should pass
+		unlockNFT(t, b, contracts, false, userAddress, userSigner, mintedNft1)
+	})
+
 }
