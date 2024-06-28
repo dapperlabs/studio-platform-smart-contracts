@@ -7,13 +7,15 @@ import (
 	"github.com/dapperlabs/studio-platform-smart-contracts/lib/go/templates"
 	"github.com/onflow/cadence"
 	jsoncdc "github.com/onflow/cadence/encoding/json"
+	"github.com/onflow/cadence/runtime/common"
 	"github.com/onflow/flow-go-sdk"
 	"github.com/onflow/flow-go-sdk/crypto"
 	"github.com/stretchr/testify/assert"
 )
 
 const (
-	distributionTitle = "TestDistribution"
+	distributionTitle         = "TestDistribution"
+	nftWithdrawCapStoragePath = "exampleNFTwithdrawCap"
 )
 
 // Create all required resources for different accounts
@@ -150,6 +152,32 @@ func TestCreateDistribution(t *testing.T) {
 		false,
 	)
 
+	t.Run("Should be able to link NFT provider capability", func(t *testing.T) {
+
+		// Assumes issuer is deployer of exampleNFT
+		tx := createTxWithTemplateAndAuthorizer(b,
+			templates.GenerateLinkExampleNFTProviderCapTx(nftAddress, exampleNFTAddress, metadataAddress),
+			exampleNFTAddress,
+		)
+		// Set argument: NFT provider path
+		tx.AddArgument(cadence.Path{Domain: common.PathDomainStorage, Identifier: nftWithdrawCapStoragePath})
+
+		serviceSigner, _ := b.ServiceKey().Signer()
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{
+				b.ServiceKey().Address,
+				exampleNFTAddress,
+			},
+			[]crypto.Signer{
+				serviceSigner,
+				exampleNFTSigner,
+			},
+			false,
+		)
+	})
+
 	t.Run("Should be able to set pack issuer capability", func(t *testing.T) {
 
 		// Assumes issuer is deployer of exampleNFT
@@ -184,7 +212,7 @@ func TestCreateDistribution(t *testing.T) {
 			exampleNFTAddress,
 		)
 		// Set argument: issuer address
-		// tx.AddArgument(cadence.Path{Domain: "private", Identifier: "exampleNFTprovider"})
+		tx.AddArgument(cadence.Path{Domain: common.PathDomainStorage, Identifier: nftWithdrawCapStoragePath})
 		tx.AddArgument(cadence.String(distributionTitle))
 		metadata := []cadence.KeyValuePair{{Key: cadence.String("TestKey"), Value: cadence.String("TestValue")}}
 		tx.AddArgument(cadence.NewDictionary(metadata))
@@ -265,24 +293,26 @@ func TestMintPackNFTs(t *testing.T) {
 		false,
 	)
 
-	// // Assumes issuer is deployer of exampleNFT
-	// script = templates.GenerateLinkExampleNFTProviderCapTx(nftAddress, exampleNFTAddress)
-	// tx = createTxWithTemplateAndAuthorizer(b, script, exampleNFTAddress)
-	// // Set argument: NFT provider path
-	// // tx.AddArgument(cadence.Path{Domain: "private", Identifier: "exampleNFTprovider"})
+	// Assumes issuer is deployer of exampleNFT
+	tx = createTxWithTemplateAndAuthorizer(b,
+		templates.GenerateLinkExampleNFTProviderCapTx(nftAddress, exampleNFTAddress, metadataAddress),
+		exampleNFTAddress,
+	)
+	// Set argument: NFT provider path
+	tx.AddArgument(cadence.Path{Domain: common.PathDomainStorage, Identifier: nftWithdrawCapStoragePath})
 
-	// signAndSubmit(
-	// 	t, b, tx,
-	// 	[]flow.Address{
-	// 		b.ServiceKey().Address,
-	// 		exampleNFTAddress,
-	// 	},
-	// 	[]crypto.Signer{
-	// 		serviceSigner,
-	// 		exampleNFTSigner,
-	// 	},
-	// 	false,
-	// )
+	signAndSubmit(
+		t, b, tx,
+		[]flow.Address{
+			b.ServiceKey().Address,
+			exampleNFTAddress,
+		},
+		[]crypto.Signer{
+			serviceSigner,
+			exampleNFTSigner,
+		},
+		false,
+	)
 
 	// Assumes issuer is deployer of exampleNFT
 	tx = createTxWithTemplateAndAuthorizer(b,
@@ -311,7 +341,7 @@ func TestMintPackNFTs(t *testing.T) {
 		exampleNFTAddress,
 	)
 	// Set argument: issuer address
-	// tx.AddArgument(cadence.Path{Domain: "private", Identifier: "exampleNFTprovider"})
+	tx.AddArgument(cadence.Path{Domain: common.PathDomainStorage, Identifier: nftWithdrawCapStoragePath})
 	tx.AddArgument(cadence.String(distributionTitle))
 	metadata := []cadence.KeyValuePair{{Key: cadence.String("TestKey"), Value: cadence.String("TestValue")}}
 	tx.AddArgument(cadence.NewDictionary(metadata))
@@ -420,24 +450,26 @@ func TestOpenPackNFT(t *testing.T) {
 		false,
 	)
 
-	// // Assumes issuer is deployer of exampleNFT
-	// script = templates.GenerateLinkExampleNFTProviderCapTx(nftAddress, exampleNFTAddress)
-	// tx = createTxWithTemplateAndAuthorizer(b, script, exampleNFTAddress)
-	// // Set argument: NFT provider path
-	// // tx.AddArgument(cadence.Path{Domain: "private", Identifier: "exampleNFTprovider"})
+	// Assumes issuer is deployer of exampleNFT
+	tx = createTxWithTemplateAndAuthorizer(b,
+		templates.GenerateLinkExampleNFTProviderCapTx(nftAddress, exampleNFTAddress, metadataAddress),
+		exampleNFTAddress,
+	)
+	// Set argument: NFT provider path
+	tx.AddArgument(cadence.Path{Domain: common.PathDomainStorage, Identifier: nftWithdrawCapStoragePath})
 
-	// signAndSubmit(
-	// 	t, b, tx,
-	// 	[]flow.Address{
-	// 		b.ServiceKey().Address,
-	// 		exampleNFTAddress,
-	// 	},
-	// 	[]crypto.Signer{
-	// 		serviceSigner,
-	// 		exampleNFTSigner,
-	// 	},
-	// 	false,
-	// )
+	signAndSubmit(
+		t, b, tx,
+		[]flow.Address{
+			b.ServiceKey().Address,
+			exampleNFTAddress,
+		},
+		[]crypto.Signer{
+			serviceSigner,
+			exampleNFTSigner,
+		},
+		false,
+	)
 
 	// Assumes issuer is deployer of exampleNFT
 	tx = createTxWithTemplateAndAuthorizer(b,
@@ -466,6 +498,7 @@ func TestOpenPackNFT(t *testing.T) {
 		exampleNFTAddress,
 	)
 	// Set argument: issuer address
+	tx.AddArgument(cadence.Path{Domain: common.PathDomainStorage, Identifier: nftWithdrawCapStoragePath})
 	tx.AddArgument(cadence.String(distributionTitle))
 	metadata := []cadence.KeyValuePair{{Key: cadence.String("TestKey"), Value: cadence.String("TestValue")}}
 	tx.AddArgument(cadence.NewDictionary(metadata))
