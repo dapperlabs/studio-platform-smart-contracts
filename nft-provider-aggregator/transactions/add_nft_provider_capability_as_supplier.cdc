@@ -1,5 +1,5 @@
-import NonFungibleToken from "../contracts/NonFungibleToken.cdc"
-import NFTProviderAggregator from "../contracts/NFTProviderAggregator.cdc"
+import NonFungibleToken from "NonFungibleToken"
+import NFTProviderAggregator from "NFTProviderAggregator"
 
 /// Transaction signed by a supplier to add a NFT provider capability to the parent Aggregator resource.
 ///
@@ -9,46 +9,43 @@ import NFTProviderAggregator from "../contracts/NFTProviderAggregator.cdc"
 /// the domain prefix (e.g., for "/storage/exampleNFTCollection", the ID is "exampleNFTCollection").
 ///
 transaction(
-    nftProviderPrivatePathID: String,
+    nftWithdrawCapStoragePathID: String,
     nftCollectionStoragePathID: String
     ) {
-    
-    let privatePath: PrivatePath
-    let storagePath: StoragePath
-    let supplierRef: &NFTProviderAggregator.Supplier
-    let nftProviderCapability: Capability<
-        &AnyResource{NonFungibleToken.Provider, NonFungibleToken.CollectionPublic}>
+
+    let nftWithdrawCapStoragePath: StoragePath
+    let nftCollectionStoragePath: StoragePath
+    let supplierRef: auth(NFTProviderAggregator.Operate) &NFTProviderAggregator.Supplier
+    let nftWithdrawCapability: Capability<auth(NonFungibleToken.Withdraw) &{NonFungibleToken.Collection}>
 
     prepare(
-        supplier: AuthAccount,
+        supplier: auth(BorrowValue, Storage, Capabilities) &Account,
     ) {
         // Convert provided string paths
-        self.privatePath = PrivatePath(identifier: nftProviderPrivatePathID)
+        self.nftWithdrawCapStoragePath = StoragePath(identifier: nftWithdrawCapStoragePathID)
             ?? panic("Provided NFT provider private path has invalid format!")
-        self.storagePath = StoragePath(identifier: nftCollectionStoragePathID)
+        self.nftCollectionStoragePath = StoragePath(identifier: nftCollectionStoragePathID)
             ?? panic("Provided NFT collection storage path has invalid format!")
 
         // Retrieve or create NFT provider capability
-        let retrievedCap = supplier.getCapability<
-            &AnyResource{NonFungibleToken.Provider, NonFungibleToken.CollectionPublic}>(
-                self.privatePath)
-        if retrievedCap.check() {
-            self.nftProviderCapability = retrievedCap
+        if let retrievedCap = supplier.storage.copy<Capability<auth(NonFungibleToken.Withdraw) &{NonFungibleToken.Collection}>>(
+                from: self.nftWithdrawCapStoragePath) {
+            self.nftWithdrawCapability = retrievedCap
         }
         else {
-            self.nftProviderCapability = supplier.link<
-                &AnyResource{NonFungibleToken.Provider, NonFungibleToken.CollectionPublic}>(
-                self.privatePath,
-                target: self.storagePath)!
+            self.nftWithdrawCapability = supplier.capabilities.storage.issue<
+                auth(NonFungibleToken.Withdraw) &{NonFungibleToken.Collection}>(
+                self.nftCollectionStoragePath)
+            supplier.storage.save(self.nftWithdrawCapability, to: self.nftWithdrawCapStoragePath)
         }
 
         // Create reference to Supplier resource from storage
-        self.supplierRef = supplier.borrow<&NFTProviderAggregator.Supplier>(
+        self.supplierRef = supplier.storage.borrow<auth(NFTProviderAggregator.Operate) &NFTProviderAggregator.Supplier>(
             from: NFTProviderAggregator.SupplierStoragePath)!
     }
 
     execute {
         // Add NFT provider capability
-        self.supplierRef.addNFTProviderCapability(nftProviderCapability: self.nftProviderCapability)
+        self.supplierRef.addNFTWithdrawCapability(self.nftWithdrawCapability)
     }
 }

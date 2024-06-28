@@ -1,5 +1,5 @@
-import NonFungibleToken from "../contracts/NonFungibleToken.cdc"
-import NFTProviderAggregator from "../contracts/NFTProviderAggregator.cdc"
+import NonFungibleToken from "NonFungibleToken"
+import NFTProviderAggregator from "NFTProviderAggregator"
 
 /// Transaction signed by a manager account to publish a private capability to its aggregated NFT provider
 /// to be later claimed by the recipient (who is trusted for the ability to use the capability itself but also for
@@ -13,31 +13,29 @@ transaction(
     capabilityPublicationID: String
     ) {
 
-    let aggregatedNFTProviderCap: Capability<
-        &AnyResource{NonFungibleToken.Provider}>
+    let aggregatedNFTWithdrawCap: Capability<
+        auth(NonFungibleToken.Withdraw) &{NonFungibleToken.Collection}>
 
     prepare(
-        manager: AuthAccount,
+        manager: auth(Capabilities, Storage, Inbox) &Account,
     ) {
         // Retrieve or create aggregated NFT provider capability
-        let retrievedCap = manager.getCapability<
-            &AnyResource{NonFungibleToken.Provider}>(
-            NFTProviderAggregator.AggregatedProviderPrivatePath)
-        if retrievedCap.check(){
-            self.aggregatedNFTProviderCap = retrievedCap
+        let aggregatedNFTWithdrawCapStoragePath = NFTProviderAggregator.convertPrivateToStoragePath(NFTProviderAggregator.AggregatedProviderPrivatePath)
+        if let retrievedCap = manager.storage.copy<Capability<auth(NonFungibleToken.Withdraw) &{NonFungibleToken.Collection}>>(
+                from: aggregatedNFTWithdrawCapStoragePath) {
+            self.aggregatedNFTWithdrawCap = retrievedCap
         }
         else {
-            self.aggregatedNFTProviderCap = manager.link<
-                &AnyResource{NonFungibleToken.Provider}>(
-                NFTProviderAggregator.AggregatedProviderPrivatePath,
-                target: NFTProviderAggregator.AggregatorStoragePath)!
+            self.aggregatedNFTWithdrawCap = manager.capabilities.storage.issue<
+                auth(NonFungibleToken.Withdraw) &{NonFungibleToken.Collection}>(
+                aggregatedNFTWithdrawCapStoragePath)
+            manager.storage.save(self.aggregatedNFTWithdrawCap, to: aggregatedNFTWithdrawCapStoragePath)
         }
 
         // Publish the aggregated NFT provider capability to recipient
         manager.inbox.publish(
-            self.aggregatedNFTProviderCap,
+            self.aggregatedNFTWithdrawCap,
             name: capabilityPublicationID,
             recipient: recipient)
     }
 }
- 

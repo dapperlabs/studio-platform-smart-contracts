@@ -2,7 +2,12 @@
 	"contracts": {
 		"NFTProviderAggregator": "./contracts/NFTProviderAggregator.cdc",
 		"ExampleNFT": "./contracts/ExampleNFT.cdc",
-		"NonFungibleToken": "./contracts/NonFungibleToken.cdc"
+		"AltExampleNFT": "./test/cadence/contracts/AltExampleNFT.cdc",
+		"NonFungibleToken": "./contracts/imports/NonFungibleToken.cdc",
+		"FungibleToken": "./contracts/imports/FungibleToken.cdc",
+		"MetadataViews": "./contracts/imports/MetadataViews.cdc",
+		"Burner" : "./contracts/imports/Burner.cdc",
+		"ViewResolver": "./contracts/imports/ViewResolver.cdc"
 	},
 	"networks": {
 		"emulator": "127.0.0.1:3569",

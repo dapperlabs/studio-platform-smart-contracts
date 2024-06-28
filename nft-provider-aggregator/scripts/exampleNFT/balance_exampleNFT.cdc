@@ -1,10 +1,7 @@
-import NonFungibleToken from "../../contracts/NonFungibleToken.cdc"
-import ExampleNFT from "../../contracts/ExampleNFT.cdc"
+import NonFungibleToken from "NonFungibleToken"
+import ExampleNFT from "ExampleNFT"
 
-pub fun main(account: Address): [UInt64] {
-    let receiver = getAccount(account)
-        .getCapability(ExampleNFT.CollectionPublicPath)!
-        .borrow<&{NonFungibleToken.CollectionPublic}>()!
-
-    return receiver.getIDs()
+access(all) fun main(account: Address): [UInt64] {
+    return getAccount(account)
+        .capabilities.borrow<&ExampleNFT.Collection>(ExampleNFT.CollectionPublicPath)!.getIDs()
 }

@@ -1,4 +1,4 @@
-import NonFungibleToken from "./NonFungibleToken.cdc"
+import NonFungibleToken from "NonFungibleToken"
 
 /// NFTProviderAggregator
 ///
@@ -21,7 +21,7 @@ import NonFungibleToken from "./NonFungibleToken.cdc"
 ///    3. Add a NFT provider capability (repeat as needed for each supplier and each collection) - the
 ///    transaction may be merged with that of step 2. Only NFT provider capabilities targeting collections of
 ///    valid NFT type can be added (i.e., the type defined when the Aggregator resource is created).
-/// 
+///
 /// Once the setup steps are completed, use the aggregated provider capability to withdraw NFTs scattered across
 /// the multiple collections added to the Aggregator resource.
 ///
@@ -30,154 +30,168 @@ import NonFungibleToken from "./NonFungibleToken.cdc"
 /// an Aggregator resource removes all the resource's NFT provider capabilities and render child Supplier
 /// resources inoperable, they should be destroyed too.
 ///
-pub contract NFTProviderAggregator {
+access(all) contract NFTProviderAggregator {
 
     /// Event emitted when an Aggregator resource is created
-    pub event AggregatorResourceInitialized(nftTypeIdentifier: String)
-    
+    access(all) event AggregatorResourceInitialized(nftTypeIdentifier: String)
+
     /// Event emitted when a Supplier resource is created
-    pub event SupplierResourceInitialized(
+    access(all) event SupplierResourceInitialized(
         nftTypeIdentifier: String,
         aggregatorUUID: UInt64,
         aggregatorAddressAtCreation: Address?
         )
-    
+
     /// Event emitted when a NFT Provider Capability is added
-    pub event NFTProviderCapabilityAdded(
+    access(all) event NFTWithdrawCapabilityAdded(
         nftTypeIdentifier: String,
         collectionUUID: UInt64,
         collectionAddressAtInsertion: Address
         )
-    
+
     /// Event emitted when a NFT Provider Capability is removed
-    pub event NFTProviderCapabilityRemoved(
+    access(all) event NFTWithdrawCapabilityRemoved(
         nftTypeIdentifier: String,
         collectionUUID: UInt64
         )
 
     /// Storage paths for Aggregator and Supplier resources
-    pub let AggregatorStoragePath: StoragePath
-    pub let SupplierStoragePath: StoragePath
-    
+    access(all) let AggregatorStoragePath: StoragePath
+    access(all) let SupplierStoragePath: StoragePath
+
     /// Public paths for Aggregator{SupplierPublic} capabilities
-    pub let SupplierPublicPath: PublicPath
+    access(all) let SupplierPublicPath: PublicPath
 
     /// Private paths for Aggregator{SupplierFactory}, Aggregator{SupplierAccess},
     /// and Aggregator{NonFungibleToken.Provider} capabilities
-    pub let SupplierFactoryPrivatePath: PrivatePath
-    pub let SupplierAccessPrivatePath: PrivatePath
-    pub let AggregatedProviderPrivatePath: PrivatePath
-    
+    access(all) let SupplierFactoryPrivatePath: PrivatePath
+    access(all) let SupplierAccessPrivatePath: PrivatePath
+    access(all) let AggregatedProviderPrivatePath: PrivatePath
+
     /// Interface that a supplier would commonly use for publicly exposing
     /// the Supplier resource's getter functions through a public capability
     ///
-    pub resource interface SupplierPublic {
-        pub fun getAggregatorUUID(): UInt64
-        pub fun getSupplierAddedCollectionUUIDs(): [UInt64]
-        pub fun getCollectionUUIDs(): [UInt64]
-        pub fun getIDs(): [UInt64]
+    access(all) resource interface SupplierPublic {
+        access(all) view fun getAggregatorUUID(): UInt64
+        access(all) view fun getSupplierAddedCollectionUUIDs(): [UInt64]
+        access(all) view fun getCollectionUUIDs(): [UInt64]
+        access(all) fun getIDs(): [UInt64]
     }
 
     /// Interface that a manager would commonly use for exposing the Aggregator resource's
     /// createSupplier function to each designated supplier through a private capability
     ///
-    pub resource interface SupplierFactory {
-        pub fun createSupplier(): @Supplier
+    access(all) resource interface SupplierFactory {
+        access(Operate) fun createSupplier(): @Supplier
     }
 
     /// Interface used by a manager for exposing core Aggregator resource's functions to the Supplier
     /// resource through a private capability passed to the Supplier at resource creation time
     ///
-    pub resource interface SupplierAccess {
-        access(contract) fun addNFTProviderCapability(
-            nftProviderCapability: Capability<
-            &AnyResource{NonFungibleToken.Provider, NonFungibleToken.CollectionPublic}>
-            ): UInt64
-        access(contract) fun removeNFTProviderCapability(collectionUUID: UInt64)
-        access(contract) fun getIDs(): [UInt64]
-        access(contract) fun getCollectionUUIDs(): [UInt64]
+    access(all) resource interface SupplierAccess {
+        access(Operate) fun addNFTWithdrawCapability(
+            _ cap: Capability<auth(NonFungibleToken.Withdraw) &{NonFungibleToken.Collection}>): UInt64
+        access(Operate) fun removeNFTWithdrawCapability(collectionUUID: UInt64)
+        access(all) fun getIDs(): [UInt64]
+        access(all) view fun getCollectionUUIDs(): [UInt64]
     }
+
+    /// Entitlement that grants the ability to operate the Escrow Collection
+    ///
+    access(all) entitlement Operate
 
     /// Resource saved in the manager's storage to aggregate NFT provider capabilities. Managers can
     /// let designated suppliers create Supplier resources to add and remove NFT provider capabilities.
     ///
-    pub resource Aggregator: NonFungibleToken.Provider, SupplierAccess, SupplierFactory {
+    access(all) resource Aggregator: NonFungibleToken.Provider, SupplierAccess, SupplierFactory {
         /// Constant NFT type identifier
         access(self) let nftTypeIdentifier: String
 
-        /// Constant useBorrowNFTSafe boolean - when true, the Aggregator's withdraw method will use
-        /// borrowNFTSafe instead of getIDs to check whether a given NFT ID is present in a collection
-        access(self) let useBorrowNFTSafe: Bool
-
         /// Constant supplier access capability that is passed to each child Supplier resource
-        access(self) let supplierAccessCapability: Capability<&Aggregator{SupplierAccess}>
+        access(self) let supplierAccessCapability: Capability<auth(Operate) &{SupplierAccess}>
 
         /// Dictionary of supplied NFT provider capabilities
-        access(self) var nftProviderCapabilities: {UInt64: Capability<
-        &AnyResource{NonFungibleToken.Provider, NonFungibleToken.CollectionPublic}>}
+        access(self) var nftWithdrawCapabilities: {UInt64: Capability<auth(NonFungibleToken.Withdraw) &{NonFungibleToken.Collection}>}
 
         /// Add NFT provider capability (may be called by Supplier or directly by Aggregator)
-        pub fun addNFTProviderCapability(
-            nftProviderCapability: Capability<
-            &AnyResource{NonFungibleToken.Provider, NonFungibleToken.CollectionPublic}>
+        access(Operate) fun addNFTWithdrawCapability(
+            _ cap: Capability<auth(NonFungibleToken.Withdraw) &{NonFungibleToken.Collection}>
             ): UInt64 {
             pre {
-                self.isNFTProviderCapabilityValid(
-                    nftProviderCapability: nftProviderCapability
-                ): "Invalid NFT provider capability!"
+                self.isNFTWithdrawCapabilityValid(cap): "Invalid NFT provider capability!"
             }
-            var collectionUUID = nftProviderCapability.borrow()!.uuid
-            self.nftProviderCapabilities.insert(
+            var collectionUUID = cap.borrow()!.uuid
+            self.nftWithdrawCapabilities.insert(
                 key: collectionUUID,
-                nftProviderCapability
+                cap
             )
-            emit NFTProviderCapabilityAdded(
+            emit NFTWithdrawCapabilityAdded(
                 nftTypeIdentifier: self.nftTypeIdentifier,
                 collectionUUID: collectionUUID,
-                collectionAddressAtInsertion: nftProviderCapability.address
+                collectionAddressAtInsertion: cap.address
                 )
             return collectionUUID
         }
-        
+
         /// Remove NFT provider capability; it can be called by Supplier, only for capability they
         /// added, or by Aggregator, for any capability
         ///
-        pub fun removeNFTProviderCapability(collectionUUID: UInt64) {
+        access(Operate) fun removeNFTWithdrawCapability(collectionUUID: UInt64) {
             pre {
-                self.nftProviderCapabilities.containsKey(
+                self.nftWithdrawCapabilities.containsKey(
                     collectionUUID
                     ): "NFT provider capability does not exist (not added yet or removed by Aggregator)!"
             }
-            self.nftProviderCapabilities.remove(key: collectionUUID)
-            emit NFTProviderCapabilityRemoved(nftTypeIdentifier: self.nftTypeIdentifier, collectionUUID: collectionUUID)
+            self.nftWithdrawCapabilities.remove(key: collectionUUID)
+            emit NFTWithdrawCapabilityRemoved(nftTypeIdentifier: self.nftTypeIdentifier, collectionUUID: collectionUUID)
         }
 
         /// Borrow the provider of an NFT located in one of multiple collections through iterating over each collection
         ///
-        pub fun borrowNFTProvider(id: UInt64): &AnyResource{NonFungibleToken.Provider, NonFungibleToken.CollectionPublic} {
-            for collectionUUID in self.nftProviderCapabilities.keys {
+        access(NonFungibleToken.Withdraw) fun borrowNFTProvider(id: UInt64): auth(NonFungibleToken.Withdraw) &{NonFungibleToken.Collection} {
+            for collectionUUID in self.nftWithdrawCapabilities.keys {
                 // Check capabilities can still be borrowed since a NFT provider capability may pass the
-                // pre-condition checks at the time of being added with the addNFTProviderCapability method but
+                // pre-condition checks at the time of being added with the addNFTWithdrawCapability method but
                 // may be unlinked later or the target collection be destroyed.
-                if self.nftProviderCapabilities[collectionUUID]!.check() {
+                if self.nftWithdrawCapabilities[collectionUUID]!.check() {
                     // Retrieve reference to the NFT provider
-                    let nftProviderRef = self.nftProviderCapabilities[collectionUUID]!.borrow()!
-                    // Check NFT provider UUID still matches that of the nftProviderCapabilities dictionary
+                    let nftProviderRef = self.nftWithdrawCapabilities[collectionUUID]!.borrow()!
+                    // Check NFT provider UUID still matches that of the nftWithdrawCapabilities dictionary
                     assert(
                         nftProviderRef.uuid == collectionUUID,
                         message: "NFT provider capability has invalid collection UUID! Must be removed."
                         )
-                    // Checks if NFT exists - one of two ways is used depending on the value of useBorrowNFTSafe
-                    //
-                    // While the getIDs() method exists in all NFT contracts, the borrowNFTSafe() is a recent
-                    // addition to the NonFungibleToken standard interface and therefore most NFT contracts don't
-                    // have an implementation for it yet. Unlike getIDs().contains(), borrowNFTSafe() allows a
-                    // constant time implementation to check if an NFT exists in a collection without panicking.
-                    // This is useful for large NFT collections where calling getIDs() may otherwise exceed the
-                    // computation limit.
-                    //
-                    if self.useBorrowNFTSafe && nftProviderRef.borrowNFTSafe(id: id) != nil
-                    || !self.useBorrowNFTSafe && nftProviderRef.getIDs().contains(id) { 
+                    // Checks if NFT exists
+                    if nftProviderRef.borrowNFT(id) != nil {
+                            // Check NFT provider capability targets a collection with valid NFT type
+                            assert(
+                                nftProviderRef.getType().identifier == self.nftTypeIdentifier,
+                                message: "NFT provider capability targets a collection with invalid NFT type! Must be removed."
+                            )
+                            return nftProviderRef
+                    }
+                }
+            }
+            panic("missing NFT")
+        }
+
+        /// Borrow the collection of an NFT located in one of multiple collections through iterating over each collection
+        ///
+        access(all) view fun borrowNFTCollection(id: UInt64): &{NonFungibleToken.Collection} {
+            for collectionUUID in self.nftWithdrawCapabilities.keys {
+                // Check capabilities can still be borrowed since a NFT provider capability may pass the
+                // pre-condition checks at the time of being added with the addNFTWithdrawCapability method but
+                // may be unlinked later or the target collection be destroyed.
+                if self.nftWithdrawCapabilities[collectionUUID]!.check() {
+                    // Retrieve reference to the NFT provider
+                    let nftProviderRef = self.nftWithdrawCapabilities[collectionUUID]!.borrow()!
+                    // Check NFT provider UUID still matches that of the nftWithdrawCapabilities dictionary
+                    assert(
+                        nftProviderRef.uuid == collectionUUID,
+                        message: "NFT provider capability has invalid collection UUID! Must be removed."
+                        )
+                    // Checks if NFT exists
+                    if nftProviderRef.borrowNFT(id) != nil {
                             // Check NFT provider capability targets a collection with valid NFT type
                             assert(
                                 nftProviderRef.getType().identifier == self.nftTypeIdentifier,
@@ -192,14 +206,14 @@ pub contract NFTProviderAggregator {
 
         /// Withdraw an NFT located in one of multiple collections through iterating over each collection
         ///
-        pub fun withdraw(withdrawID: UInt64): @NonFungibleToken.NFT {
-            return <- self.borrowNFTProvider(id: withdrawID).withdraw(withdrawID: withdrawID)    
+        access(NonFungibleToken.Withdraw) fun withdraw(withdrawID: UInt64): @{NonFungibleToken.NFT} {
+            return <- self.borrowNFTProvider(id: withdrawID).withdraw(withdrawID: withdrawID)
         }
 
         /// Borrow an NFT located in one of multiple collections through iterating over each collection
         ///
-        pub fun borrowNFT(id: UInt64): &NonFungibleToken.NFT {
-            return self.borrowNFTProvider(id: id).borrowNFT(id: id)
+        access(all) view fun borrowNFT(id: UInt64): &{NonFungibleToken.NFT} {
+            return self.borrowNFTCollection(id: id).borrowNFT(id)!
         }
 
         /// Create and return a Supplier resource
@@ -211,7 +225,7 @@ pub contract NFTProviderAggregator {
         ///
         /// @return Supplier resource
         ///
-        pub fun createSupplier(): @Supplier {
+        access(Operate) fun createSupplier(): @Supplier {
             return <- create Supplier(
                 supplierAccessCapability: self.supplierAccessCapability,
                 nftTypeIdentifier: self.nftTypeIdentifier,
@@ -220,18 +234,18 @@ pub contract NFTProviderAggregator {
                 )
         }
 
-        /// Return an array of the NFT IDs accessible through nftProviderCapabilities
+        /// Return an array of the NFT IDs accessible through nftWithdrawCapabilities
         ///
-        pub fun getIDs(): [UInt64] {
+        access(all) fun getIDs(): [UInt64] {
             let ids: [UInt64] = []
-            for collectionUUID in self.nftProviderCapabilities.keys {
+            for collectionUUID in self.nftWithdrawCapabilities.keys {
                 // Check capability can still be borrowed since a NFT provider capability may pass the
-                // pre-condition checks at the time of being added with the addNFTProviderCapability method
+                // pre-condition checks at the time of being added with the addNFTWithdrawCapability method
                 // but may be unlinked later or the target collection be destroyed.
-                if self.nftProviderCapabilities[collectionUUID]!.check() {
-                    let collectionRef = self.nftProviderCapabilities[
-                        collectionUUID]!.borrow()! as! &AnyResource{NonFungibleToken.CollectionPublic}
-                    // Check UUID still matches that of the nftProviderCapabilities dictionary
+                if self.nftWithdrawCapabilities[collectionUUID]!.check() {
+                    let collectionRef = self.nftWithdrawCapabilities[
+                        collectionUUID]!.borrow()!
+                    // Check UUID still matches that of the nftWithdrawCapabilities dictionary
                     assert(
                         collectionUUID == collectionRef.uuid,
                         message: "NFT provider capability has invalid collection UUID! Must be removed.!"
@@ -252,26 +266,25 @@ pub contract NFTProviderAggregator {
 
         /// Return an array of all the collection UUIDs
         ///
-        pub fun getCollectionUUIDs(): [UInt64] {
-            return self.nftProviderCapabilities.keys
+        access(all) view fun getCollectionUUIDs(): [UInt64] {
+            return self.nftWithdrawCapabilities.keys
         }
 
         /// Check whether a given NFT provider capability is valid
         ///
-        access(self) fun isNFTProviderCapabilityValid(
-            nftProviderCapability: Capability<
-            &AnyResource{NonFungibleToken.Provider, NonFungibleToken.CollectionPublic}>
+        access(self) view fun isNFTWithdrawCapabilityValid(
+            _ cap: Capability<auth(NonFungibleToken.Withdraw) &{NonFungibleToken.Collection}>
         ): Bool {
-            let nftProviderRef = nftProviderCapability.borrow()
+            let nftProviderRef = cap.borrow()
                 ?? panic("NFT provider couldn't be borrowed! Cannot be added.")
             // Check NFT provider capability targets a collection with valid NFT type
             assert(
                 nftProviderRef.getType().identifier == self.nftTypeIdentifier,
-                message: "NFT provider capability targets a collection with invalid NFT type! Cannot be added."
+                message: "Expected capability to target identifier: ".concat(self.nftTypeIdentifier).concat(" but got: ").concat(nftProviderRef.getType().identifier)
                 )
             // Check NFT provider capability doesn't already exist
-            for collectionUUID in self.nftProviderCapabilities.keys {
-                let _nftProviderRef = self.nftProviderCapabilities[collectionUUID]!.borrow()
+            for collectionUUID in self.nftWithdrawCapabilities.keys {
+                let _nftProviderRef = self.nftWithdrawCapabilities[collectionUUID]!.borrow()
                     ?? panic("NFT provider couldn't be borrowed! Must be removed.")
                 if _nftProviderRef.uuid == nftProviderRef.uuid {
                     panic("NFT provider capability already exists! Cannot be added.")
@@ -284,12 +297,10 @@ pub contract NFTProviderAggregator {
         ///
         init(
             nftTypeIdentifier: String,
-            useBorrowNFTSafe: Bool,
-            supplierAccessCapability: Capability<&Aggregator{SupplierAccess}>
+            supplierAccessCapability: Capability<auth(Operate)&{SupplierAccess}>
             ) {
-            self.nftProviderCapabilities = {}
+            self.nftWithdrawCapabilities = {}
             self.nftTypeIdentifier = nftTypeIdentifier
-            self.useBorrowNFTSafe = useBorrowNFTSafe
             self.supplierAccessCapability = supplierAccessCapability
             emit AggregatorResourceInitialized(nftTypeIdentifier: nftTypeIdentifier)
         }
@@ -299,7 +310,7 @@ pub contract NFTProviderAggregator {
     /// supplier accounts' storage, the primary function of which is to allow adding and removing NFT
     /// provider capabilities
     ///
-    pub resource Supplier: SupplierPublic {
+    access(all) resource Supplier: SupplierPublic {
         /// CollectionUUIDs of NFT provider capabilities added by the supplier
         access(self) var supplierAddedCollectionUUIDs: {UInt64: Bool}
 
@@ -307,71 +318,70 @@ pub contract NFTProviderAggregator {
         access(self) let aggregatorUUID: UInt64
 
         /// Constant supplier access capability used to borrow the parent Aggregator resource
-        access(self) let supplierAccessCapability: Capability<&Aggregator{SupplierAccess}>
+        access(self) let supplierAccessCapability: Capability<auth(Operate) &{SupplierAccess}>
 
         /// Borrow a reference to the parent Aggregator resource
-        access(self) fun borrowAggregator(): &Aggregator{SupplierAccess} {
+        access(self) view fun borrowAggregator(): auth(Operate) &{SupplierAccess} {
             return self.supplierAccessCapability.borrow()!
         }
-        
+
         /// Add NFT provider capability to parent Aggregator resource
         ///
-        pub fun addNFTProviderCapability(
-            nftProviderCapability: Capability<
-            &AnyResource{NonFungibleToken.Provider, NonFungibleToken.CollectionPublic}>
+        access(Operate) fun addNFTWithdrawCapability(
+            _ cap: Capability<auth(NonFungibleToken.Withdraw) &{NonFungibleToken.Collection}>
             ) {
-            
-            let collectionUUID = self.borrowAggregator().addNFTProviderCapability(
-                nftProviderCapability: nftProviderCapability
-            )
+
+            let collectionUUID = self.borrowAggregator().addNFTWithdrawCapability(cap)
             self.supplierAddedCollectionUUIDs.insert(key: collectionUUID, true)
         }
-        
+
         /// Remove NFT provider capability from parent Aggregator resource
         /// (can be called only for capabilities added by a given Supplier instance)
         ///
-        pub fun removeNFTProviderCapability(collectionUUID: UInt64) {
+        access(Operate) fun removeNFTWithdrawCapability(collectionUUID: UInt64) {
             pre {
                 self.supplierAddedCollectionUUIDs.containsKey(
                     collectionUUID): "Collection UUID does not exist in added collection UUIDs!"
             }
-            self.borrowAggregator().removeNFTProviderCapability(collectionUUID: collectionUUID)
+            self.borrowAggregator().removeNFTWithdrawCapability(collectionUUID: collectionUUID)
             self.supplierAddedCollectionUUIDs.remove(key: collectionUUID)
         }
 
         /// Return an array of the NFT IDs accessible through the Aggregator's provider capabilities
         ///
-        pub fun getIDs(): [UInt64] {
+        access(all) fun getIDs(): [UInt64] {
             return self.borrowAggregator().getIDs()
         }
 
         /// Return the UUID of linked Aggregator resource
         ///
-        pub fun getAggregatorUUID(): UInt64 {
+        access(all) view fun getAggregatorUUID(): UInt64 {
             return self.aggregatorUUID
         }
 
         /// Return an array of the collection UUIDs added by the supplier
         ///
-        pub fun getSupplierAddedCollectionUUIDs(): [UInt64] {
+        access(all) view fun getSupplierAddedCollectionUUIDs(): [UInt64] {
             return self.supplierAddedCollectionUUIDs.keys
         }
 
         /// Return an array of all the collection UUIDs for capabilities currently present in the parent
         /// manager
         ///
-        pub fun getCollectionUUIDs(): [UInt64] {
+        access(all) view fun getCollectionUUIDs(): [UInt64] {
             return self.borrowAggregator().getCollectionUUIDs()
         }
 
         /// Remove supplied NFT provider capabilities when the Supplier is destroyed
         ///
-        destroy() {
+        /// Executed by calling the Burner contract's burn method (i.e., conforms to the Burnable interface)
+        ///
+        access(contract) fun burnCallback() {
             for collectionUUID in self.supplierAddedCollectionUUIDs.keys {
-                // Check collectionUUID is present in the parent Aggregator resource's nftProviderCapabilities's
+                // Check collectionUUID is present in the parent Aggregator resource's nftWithdrawCapabilities's
                 // dictionary in case the manager already removed the capability
                 if self.getCollectionUUIDs().contains(collectionUUID) {
-                    self.removeNFTProviderCapability(collectionUUID: collectionUUID)
+                    self.removeNFTWithdrawCapability(collectionUUID: collectionUUID)
                 }
             }
         }
@@ -379,7 +389,7 @@ pub contract NFTProviderAggregator {
         /// Initialize fields at Supplier resource creation
         ///
         init(
-            supplierAccessCapability: Capability<&Aggregator{SupplierAccess}>,
+            supplierAccessCapability: Capability<auth(Operate) &{SupplierAccess}>,
             nftTypeIdentifier: String,
             aggregatorUUID: UInt64,
             aggregatorAddressAtCreation: Address?
@@ -401,23 +411,31 @@ pub contract NFTProviderAggregator {
     /// Create and return an Aggregator resource - anyone can call this function.
     ///
     /// @param nftTypeIdentifier: The type of NFTs that will be valid for the NFT providers added to the Aggregator resource.
-    /// @param useBorrowNFTSafe: A bool to choose whether to call borrowNFTSafe or getIDs().contains() when
-    ///    checking if a NFT exists.
     /// @param supplierAccessCapability: A capability targeting the storage path where the new Aggregator resource
     ///    will be saved at right after being created.
     ///
     /// @return Aggregator resource
     ///
-    pub fun createAggregator(
+    access(all) fun createAggregator(
         nftTypeIdentifier: String,
-        useBorrowNFTSafe: Bool,
-        supplierAccessCapability: Capability<&Aggregator{SupplierAccess}>
+        supplierAccessCapability: Capability<auth(Operate) &{SupplierAccess}>
         ): @Aggregator {
         return <- create Aggregator(
             nftTypeIdentifier: nftTypeIdentifier,
-            useBorrowNFTSafe: useBorrowNFTSafe,
             supplierAccessCapability: supplierAccessCapability
             )
+    }
+
+    /// Convert a private path to a storage path using a "_PrivateCap" suffix convention, used for saving Aggregator and Supplier resources
+    ///
+    access(all) view fun convertPrivateToStoragePath(_ privatePath : PrivatePath) : StoragePath {
+        return StoragePath(identifier: privatePath.toString().replaceAll(of: "private/", with: "").concat("_PrivateCap"))!
+    }
+
+    /// Convert a private path to a storage path using a "_PrivateCap" suffix convention, used for saving Aggregator and Supplier resources
+    ///
+    access(all) view fun getPrivateCapPathFromStoragePath(storagePath : StoragePath) : StoragePath {
+        return StoragePath(identifier: storagePath.toString().replaceAll(of: "storage/", with: "").concat("_PrivateCap"))!
     }
 
     /// Initialize fields at contract creation

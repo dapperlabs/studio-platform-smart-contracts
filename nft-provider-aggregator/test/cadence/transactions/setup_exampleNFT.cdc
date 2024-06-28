@@ -1,34 +1,27 @@
-import NonFungibleToken from "../../contracts/NonFungibleToken.cdc"
-import ExampleNFT from "../../contracts/ExampleNFT.cdc"
+import NonFungibleToken from "NonFungibleToken"
+import AltExampleNFT from "AltExampleNFT"
+import MetadataViews from "MetadataViews"
 
-transaction (
-    nftCollectionPublicPathID: String,
-    nftCollectionStoragePathID: String
-) {
-
-    let storagePath: StoragePath
-    let publicPath: PublicPath
-
-    prepare(signer: AuthAccount) {
-
-        self.storagePath = StoragePath(identifier: nftCollectionStoragePathID)
-            ?? panic("Provided NFT provider private path has invalid format!")
-        self.publicPath = PublicPath(identifier: nftCollectionPublicPathID)
-            ?? panic("Provided NFT collection storage path has invalid format!")
-
+/// This transaction sets up the signer's account to hold AltExampleNFT NFTs if it hasn't already been configured.
+///
+transaction {
+    prepare(signer: auth(Storage, Capabilities) &Account) {
         // Return early if the account already has a collection
-        if signer.borrow<&ExampleNFT.Collection>(from: self.storagePath) != nil {
+        if signer.storage.borrow<&AltExampleNFT.Collection>(from: AltExampleNFT.CollectionStoragePath) != nil {
             return
         }
 
-        // create a new empty collection
-        let collection <- ExampleNFT.createEmptyCollection()
+        let collectionData = AltExampleNFT.resolveContractView(resourceType: nil, viewType: Type<MetadataViews.NFTCollectionData>()) as! MetadataViews.NFTCollectionData?
+            ?? panic("ViewResolver does not resolve NFTCollectionData view")
 
-        // save it to the account
-        signer.save(<-collection, to: self.storagePath)
+        // Create a new collection and save it to the account storage
+        signer.storage.save(<- AltExampleNFT.createEmptyCollection(nftType: Type<@AltExampleNFT.NFT>()), to: collectionData.storagePath)
 
-        // create a public capability for the collection
-        signer.link<&NonFungibleToken.Collection{NonFungibleToken.CollectionPublic}>(self.publicPath, target: self.storagePath)
-        assert(signer.getCapability<&{NonFungibleToken.CollectionPublic}>(self.publicPath).check(), message: "did not link pub cap");
+        // Create a public capability for the collection
+        signer.capabilities.unpublish(AltExampleNFT.CollectionPublicPath)
+        signer.capabilities.publish(
+            signer.capabilities.storage.issue<&AltExampleNFT.Collection>(collectionData.storagePath),
+            at: collectionData.publicPath
+        )
     }
 }

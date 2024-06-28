@@ -1,20 +1,24 @@
-import NonFungibleToken from "../../contracts/NonFungibleToken.cdc"
-import ExampleNFT from "../../contracts/ExampleNFT.cdc"
+import NonFungibleToken from "NonFungibleToken"
+import ExampleNFT from "ExampleNFT"
+import MetadataViews from "MetadataViews"
 
 transaction(recipient: Address) {
 
     let minter: &ExampleNFT.NFTMinter
+    let collectionPublicPath: PublicPath
+    let receiver: &ExampleNFT.Collection
 
-    prepare(signer: AuthAccount) {
-        self.minter = signer
-            .borrow<&ExampleNFT.NFTMinter>(from: ExampleNFT.MinterStoragePath)!
+    prepare(signer: auth(BorrowValue) &Account) {
+        self.minter = signer.storage.borrow<&ExampleNFT.NFTMinter>(from: ExampleNFT.MinterStoragePath)!
+
+        let collectionData = ExampleNFT.resolveContractView(resourceType: nil, viewType: Type<MetadataViews.NFTCollectionData>()) as! MetadataViews.NFTCollectionData?
+            ?? panic("ViewResolver does not resolve NFTCollectionData view")
+        self.collectionPublicPath = collectionData.publicPath
+
+        self.receiver = getAccount(recipient).capabilities.borrow<&ExampleNFT.Collection>(self.collectionPublicPath)!
     }
 
     execute {
-        let receiver = getAccount(recipient)
-            .getCapability(ExampleNFT.CollectionPublicPath)!
-            .borrow<&{NonFungibleToken.CollectionPublic}>()!
-
-        self.minter.mintNFT(recipient: receiver)
+        self.receiver.deposit(token: <- self.minter.mintNFT(name: "", description: "", thumbnail: "", royalties: []))
     }
 }

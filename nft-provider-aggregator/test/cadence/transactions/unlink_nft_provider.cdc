@@ -1,14 +1,13 @@
-import NonFungibleToken from "../../../contracts/NonFungibleToken.cdc"
-import ExampleNFT from "../../../contracts/ExampleNFT.cdc"
-import NFTProviderAggregator from "../../../contracts/NFTProviderAggregator.cdc"
+import NonFungibleToken from "NonFungibleToken"
+import ExampleNFT from "ExampleNFT"
+import NFTProviderAggregator from "NFTProviderAggregator"
 
 transaction() {
-    
     prepare(
-        signer: AuthAccount,
+        signer: auth(LoadValue) &Account,
     ) {
         // Signer unlinks their NFT provider capability
-        let exampleNFTProviderPath: PrivatePath = /private/exampleNFTProvider
-        signer.unlink(exampleNFTProviderPath)
+        let exampleNFTWithdrawCapPath: StoragePath = /storage/exampleNFTProvider
+        signer.storage.load<Capability<auth(NonFungibleToken.Withdraw) &ExampleNFT.Collection>>(from: exampleNFTWithdrawCapPath)
     }
 }

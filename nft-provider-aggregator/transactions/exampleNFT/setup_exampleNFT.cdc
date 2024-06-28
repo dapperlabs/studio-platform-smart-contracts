@@ -1,21 +1,27 @@
-import NonFungibleToken from "../../contracts/NonFungibleToken.cdc"
-import ExampleNFT from "../../contracts/ExampleNFT.cdc"
+import NonFungibleToken from "NonFungibleToken"
+import ExampleNFT from "ExampleNFT"
+import MetadataViews from "MetadataViews"
 
-transaction () {
-    prepare(signer: AuthAccount) {
+/// This transaction sets up the signer's account to hold ExampleNFT NFTs if it hasn't already been configured.
+///
+transaction {
+    prepare(signer: auth(Storage, Capabilities) &Account) {
         // Return early if the account already has a collection
-        if signer.borrow<&ExampleNFT.Collection>(from: ExampleNFT.CollectionStoragePath) != nil {
+        if signer.storage.borrow<&ExampleNFT.Collection>(from: ExampleNFT.CollectionStoragePath) != nil {
             return
         }
 
-        // create a new empty collection
-        let collection <- ExampleNFT.createEmptyCollection()
+        let collectionData = ExampleNFT.resolveContractView(resourceType: nil, viewType: Type<MetadataViews.NFTCollectionData>()) as! MetadataViews.NFTCollectionData?
+            ?? panic("ViewResolver does not resolve NFTCollectionData view")
 
-        // save it to the account
-        signer.save(<-collection, to: ExampleNFT.CollectionStoragePath)
+        // Create a new collection and save it to the account storage
+        signer.storage.save(<- ExampleNFT.createEmptyCollection(nftType: Type<@ExampleNFT.NFT>()), to: collectionData.storagePath)
 
-        // create a public capability for the collection
-        signer.link<&NonFungibleToken.Collection{NonFungibleToken.CollectionPublic}>(ExampleNFT.CollectionPublicPath, target: ExampleNFT.CollectionStoragePath)
-        assert(signer.getCapability<&{NonFungibleToken.CollectionPublic}>(ExampleNFT.CollectionPublicPath).check(), message: "did not link pub cap");
+        // Create a public capability for the collection
+        signer.capabilities.unpublish(ExampleNFT.CollectionPublicPath)
+        signer.capabilities.publish(
+            signer.capabilities.storage.issue<&ExampleNFT.Collection>(collectionData.storagePath),
+            at: collectionData.publicPath
+        )
     }
 }

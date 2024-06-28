@@ -1,6 +1,6 @@
-import NonFungibleToken from "../contracts/NonFungibleToken.cdc"
-import ExampleNFT from "../contracts/ExampleNFT.cdc"
-import NFTProviderAggregator from "../contracts/NFTProviderAggregator.cdc"
+import NonFungibleToken from "NonFungibleToken"
+import ExampleNFT from "ExampleNFT"
+import NFTProviderAggregator from "NFTProviderAggregator"
 
 /// Transaction signed by a manager account to transfer a NFT from aggregated NFT provider
 /// to the recipient's collection.
@@ -10,27 +10,26 @@ import NFTProviderAggregator from "../contracts/NFTProviderAggregator.cdc"
 ///
 transaction(recipient: Address, withdrawID: UInt64) {
 
-    let depositRef: &AnyResource{NonFungibleToken.CollectionPublic}
-    let aggregatedProviderRef: &AnyResource{NonFungibleToken.Provider}
+    let depositRef: &{NonFungibleToken.CollectionPublic}
+    let aggregatedProviderRef: auth(NonFungibleToken.Withdraw) &{NonFungibleToken.Provider}
 
     prepare(
-        signer: AuthAccount,
+        signer: auth(BorrowValue, Storage) &Account,
     ) {
         // Get recipient account
         let recipient = getAccount(recipient)
 
         // Borrow a public reference to the receivers collection
         self.depositRef = recipient
-            .getCapability(ExampleNFT.CollectionPublicPath)!
-            .borrow<&AnyResource{NonFungibleToken.CollectionPublic}>()!
+            .capabilities.borrow<&{NonFungibleToken.CollectionPublic}>(ExampleNFT.CollectionPublicPath)!
 
         // Borrow a reference to the signer's aggregated provider
         // Note: The capability is a claimed capability stored in StoragePath instead of the usual
         // CapabilityPath.
-        self.aggregatedProviderRef = signer.load<
-        Capability<&AnyResource{NonFungibleToken.Provider}>>(
+        self.aggregatedProviderRef = signer.storage.load<
+        Capability<auth(NonFungibleToken.Withdraw) &{NonFungibleToken.Provider}>>(
             from: NFTProviderAggregator.AggregatorStoragePath)!.borrow()
-            ?? panic("Could not get capability and borrow reference")        
+            ?? panic("Could not get capability and borrow reference")
     }
 
     execute {
