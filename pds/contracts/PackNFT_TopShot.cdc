@@ -154,18 +154,6 @@ access(all) contract PackNFT: NonFungibleToken, IPackNFT {
         ///
         access(all) let issuer: Address
 
-        /// Reveal a Sealed Pack resource.
-        ///
-        access(NonFungibleToken.Update) fun reveal(openRequest: Bool) {
-            PackNFT.revealRequest(id: self.id, openRequest: openRequest)
-        }
-
-        /// Open a Revealed Pack resource.
-        ///
-        access(NonFungibleToken.Update) fun open() {
-            PackNFT.openRequest(id: self.id)
-        }
-
         /// Event emitted when a NFT is destroyed (replaces Burned event before Cadence 1.0 update)
         ///
         access(all) event ResourceDestroyed(id: UInt64 = self.id)
@@ -330,6 +318,26 @@ access(all) contract PackNFT: NonFungibleToken, IPackNFT {
             destroy oldToken
         }
 
+        /// Emit a RevealRequest event to signal a Sealed Pack NFT should be revealed.
+        ///
+        access(NonFungibleToken.Update) fun emitRevealRequestEvent(id: UInt64, openRequest: Bool) {
+            pre {
+                self.borrowNFT(id) != nil: "NFT with provided ID must exist in the collection"
+                PackNFT.borrowPackRepresentation(id: id)!.status.rawValue == Status.Sealed.rawValue: "Pack status must be Sealed for reveal request"
+            }
+            emit RevealRequest(id: id, openRequest: openRequest)
+        }
+
+        /// Emit an OpenRequest event to signal a Revealed Pack NFT should be opened.
+        ///
+        access(NonFungibleToken.Update) fun emitOpenRequestEvent(id: UInt64) {
+            pre {
+                self.borrowNFT(id) != nil: "NFT with provided ID must exist in the collection"
+                PackNFT.borrowPackRepresentation(id: id)!.status.rawValue == Status.Revealed.rawValue: "Pack status must be Revealed for open request"
+            }
+            emit OpenRequest(id: id)
+        }
+
         /// Return an array of the IDs that are in the collection.
         ///
         access(all) view fun getIDs(): [UInt64] {
@@ -370,22 +378,6 @@ access(all) contract PackNFT: NonFungibleToken, IPackNFT {
         access(all) fun createEmptyCollection(): @{NonFungibleToken.Collection} {
             return <-PackNFT.createEmptyCollection(nftType: Type<@NFT>())
         }
-    }
-
-    /// Emit a RevealRequest event to signal a Sealed Pack NFT should be revealed.
-    ///
-    access(contract) fun revealRequest(id: UInt64, openRequest: Bool ) {
-        let p = PackNFT.borrowPackRepresentation(id: id) ?? panic ("No such pack")
-        assert(p.status.rawValue == Status.Sealed.rawValue, message: "Pack status must be Sealed for reveal request")
-        emit RevealRequest(id: id, openRequest: openRequest)
-    }
-
-    /// Emit an OpenRequest event to signal a Revealed Pack NFT should be opened.
-    ///
-    access(contract) fun openRequest(id: UInt64) {
-        let p = PackNFT.borrowPackRepresentation(id: id) ?? panic ("No such pack")
-        assert(p.status.rawValue == Status.Revealed.rawValue, message: "Pack status must be Revealed for open request")
-        emit OpenRequest(id: id)
     }
 
     access(all) fun publicReveal(id: UInt64, nfts: [{IPackNFT.Collectible}], salt: String) {

@@ -2,7 +2,7 @@ import PDS from "PDS"
 
 transaction (issuer: Address) {
     prepare(pds: auth(Capabilities) &Account) {
-        let cap = pds.capabilities.storage.issue<auth(PDS.CreateDist) &PDS.DistributionCreator>(PDS.DistCreatorStoragePath)
+        let cap = pds.capabilities.storage.issue<&PDS.DistributionCreator>(PDS.DistCreatorStoragePath)
         if !cap.check() {
             panic("cannot borrow such capability")
         }

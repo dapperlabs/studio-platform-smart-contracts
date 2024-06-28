@@ -2,15 +2,18 @@ import PackNFT from "PackNFT"
 import NonFungibleToken from "NonFungibleToken"
 
 transaction() {
-    prepare (issuer: AuthAccount) {
+    prepare (issuer: auth(Storage, Capabilities) &Account) {
 
         // Check if account already have a PackIssuer resource, if so destroy it
-        if issuer.borrow<&PackNFT.Collection>(from: PackNFT.CollectionStoragePath) == nil {
-            issuer.save(<- PackNFT.createEmptyCollection(), to: PackNFT.CollectionStoragePath);
-            issuer.link<&{NonFungibleToken.CollectionPublic}>(PackNFT.CollectionPublicPath, target: PackNFT.CollectionStoragePath)
-        ??  panic("Could not link Collection Pub Path");
-        }
+        if issuer.storage.borrow<&PackNFT.Collection>(from: PackNFT.CollectionStoragePath) == nil {
+            let collection <- PackNFT.createEmptyCollection(nftType: Type<@PackNFT.NFT>())
 
+            issuer.storage.save(<- collection, to: PackNFT.CollectionStoragePath);
+            issuer.capabilities.publish(
+                issuer.capabilities.storage.issue<&PackNFT.Collection>(PackNFT.CollectionStoragePath),
+                at: PackNFT.CollectionPublicPath
+            ) 
+        }
     } 
 }
  
