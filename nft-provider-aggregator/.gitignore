@@ -1,0 +1,14 @@
+#env
+.vscode
+
+#misc
+.DS_Store
+
+#dependencies
+test/node_modules
+
+# emulator datastore
+flowdb
+
+#private conf
+*.private.json

@@ -1,4 +1,4 @@
-import NFTLocker from "../contracts/NFTLocker.cdc"
+import NFTLocker from "NFTLocker"
 
 transaction() {
 
