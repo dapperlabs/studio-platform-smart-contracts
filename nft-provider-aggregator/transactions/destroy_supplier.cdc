@@ -1,16 +1,17 @@
-import NonFungibleToken from "../contracts/NonFungibleToken.cdc"
-import NFTProviderAggregator from "../contracts/NFTProviderAggregator.cdc"
+import NFTProviderAggregator from "NFTProviderAggregator"
+import Burner from "Burner"
 
 /// Transaction signed by a supplier account to destroy their Supplier resource
 ///
 transaction() {
-    
+
     prepare(
-        supplier: AuthAccount,
+        supplier: auth(LoadValue) &Account,
     ) {
         // Load and destroy the Aggregator resource
-        destroy supplier.load<@NFTProviderAggregator.Supplier>(
+        Burner.burn(<- supplier.storage.load<@NFTProviderAggregator.Supplier>(
             from: NFTProviderAggregator.SupplierStoragePath
             )
+        )
     }
 }

@@ -26,9 +26,11 @@ removes all the resource's NFT provider capabilities and render child `Supplier`
 
 ## Architecture Considerations
 
+> July 2024 Update: NFT Provider Aggregator was created prior to Cadence 1.0 and then updated for Cadence 1.0 with the goal of ensuring backwards compatibility. Even though Cadence 1.0 introduced relevant new features that  (e.g., the ability to add tags to keep track of capability usage), this current version of NFT Provider Aggregator doesn't have any architecture changes compared to the pre-Cadence 1.0 version.
+
 The use of the `Supplier` resource allows:
 - Explicitly keeping track of the NFT provider capabilities that are expected to be valid all in one place, the parent `Aggregator` resource, and emitting dedicated events when a capability is added or removed.
-- Reversibly exposing NFT provider capabilities to the parent `Aggregator` resource without the capabilities being retrievable individually by the **manager**. This is made possible by the `Aggregator` resource’s `nftProviderCapabilities` dictionary being defined with `access(self)` access control and devoid of any getter function, though, if the `NFTProviderAggregator` contract is updatable, a contract update may potentially change that.
+- Reversibly exposing NFT provider capabilities to the parent `Aggregator` resource without the capabilities being retrievable individually by the **manager**. This is made possible by the `Aggregator` resource’s `nftWithdrawCapabilities` dictionary being defined with `access(self)` access control and devoid of any getter function, though, if the `NFTProviderAggregator` contract is updatable, a contract update may potentially change that.
 
 > Note: Another architecture to aggregate NFT providers exists where **suppliers** link NFT provider capabilities at custom private paths and directly publish them to the **manager** holding the `Aggregator` resource, thus bypassing the need for the `Supplier` resource. It should be noted that:
 > - Off-chain records may be needed to keep track of each private path where a NFT provider capability was linked, even if it was then unlinked by the **supplier** to revoke **manager** access because it is important to be aware that the **manager** would regain access if it is linked at the same path again later.
