@@ -16,7 +16,7 @@ transaction {
 
             // create a public capability for the collection
             signer.capabilities.publish(
-                issuer.capabilities.storage.issue<&DapperSport.Collection>(DapperSport.CollectionStoragePath),
+                signer.capabilities.storage.issue<&DapperSport.Collection>(DapperSport.CollectionStoragePath),
                 at: DapperSport.CollectionPublicPath
             )
         }
