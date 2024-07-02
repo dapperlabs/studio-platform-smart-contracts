@@ -29,7 +29,7 @@ transaction(
         )
 
         // Create supplier access capability (used for Supplier resource factory)
-        let supplierAccessCapability = signer.capabilities.storage.issue<auth(NFTProviderAggregator.Operate) &{NFTProviderAggregator.SupplierAccess}>(
+        let supplierAccessCapability = signer.capabilities.storage.issue<auth(NFTProviderAggregator.Operate) &NFTProviderAggregator.Aggregator>(
             NFTProviderAggregator.AggregatorStoragePath
         )
 

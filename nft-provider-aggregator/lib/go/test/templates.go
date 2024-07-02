@@ -85,7 +85,7 @@ func replaceAddresses(code []byte, contracts Contracts) []byte {
 	return code
 }
 
-func LoadNftProviderAggregator(nftAddress, metadataViewsAddr, viewResolver flow.Address) []byte {
+func LoadNftProviderAggregator(nftAddress, metadataViewsAddr, viewResolverAddr, burnerAddr flow.Address) []byte {
 	code := readFile(NFTProviderAggregatorPath)
 
 	nftRe := regexp.MustCompile(nftAddressPlaceholder)
@@ -95,10 +95,13 @@ func LoadNftProviderAggregator(nftAddress, metadataViewsAddr, viewResolver flow.
 	code = metadataViewsRe.ReplaceAll(code, []byte("0x"+metadataViewsAddr.String()))
 
 	viewResolverRe := regexp.MustCompile(viewResolverAddressPlaceholder)
-	code = viewResolverRe.ReplaceAll(code, []byte("0x"+viewResolver.String()))
+	code = viewResolverRe.ReplaceAll(code, []byte("0x"+viewResolverAddr.String()))
 
 	ftRe := regexp.MustCompile(ftAddressPlaceholder)
 	code = ftRe.ReplaceAll(code, []byte("0x"+ftAddress.String()))
+
+	burnerRe := regexp.MustCompile(burnerPlaceholder)
+	code = burnerRe.ReplaceAll(code, []byte("0x"+burnerAddr.String()))
 
 	return code
 }

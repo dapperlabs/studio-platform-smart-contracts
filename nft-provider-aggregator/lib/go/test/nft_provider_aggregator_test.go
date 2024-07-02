@@ -214,5 +214,11 @@ func TestNFTProviderAggregator(t *testing.T) {
 			supplier1Signer,
 			false,
 		)
+		nftId := mintExampleNFT(t, b, contracts, supplier1Address, false)
+		transferFromAggregatedNftProviderAsManager(t, b, contracts,
+			contracts.NFTProviderAggregatorAddress,
+			nftId,
+			true,
+		)
 	})
 }

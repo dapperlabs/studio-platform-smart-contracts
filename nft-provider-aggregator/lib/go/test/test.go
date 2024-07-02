@@ -42,7 +42,7 @@ type Contracts struct {
 	NFTProviderAggregatorSigner  crypto.Signer
 }
 
-func deployNFTContracts(t *testing.T, b *emulator.Blockchain) (flow.Address, flow.Address, flow.Address) {
+func deployNFTContracts(t *testing.T, b *emulator.Blockchain) (flow.Address, flow.Address, flow.Address, flow.Address) {
 	logger := zerolog.Nop()
 	adapter := adapters.NewSDKAdapter(&logger, b)
 	resolverAddress := deploy(t, adapter, "ViewResolver", nftcontracts.ViewResolver(), b.ServiceKey().AccountKey())
@@ -65,18 +65,20 @@ func deployNFTContracts(t *testing.T, b *emulator.Blockchain) (flow.Address, flo
 
 	metadataViewsAddr := deploy(t, adapter, "MetadataViews", nftcontracts.MetadataViews(ftAddress.String(), nftAddress.String(), resolverAddress.String()), b.ServiceKey().AccountKey())
 
-	return nftAddress, metadataViewsAddr, resolverAddress
+	burnerAddr := deploy(t, adapter, "Burner", readFile(BurnerContractPath), b.ServiceKey().AccountKey())
+
+	return nftAddress, metadataViewsAddr, resolverAddress, burnerAddr
 }
 
 func NFTProviderAggregatorDeployContracts(t *testing.T, b *emulator.Blockchain) Contracts {
 	accountKeys := test.AccountKeyGenerator()
 
-	nftAddress, metadataViewsAddr, resolverAddress := deployNFTContracts(t, b)
+	nftAddress, metadataViewsAddr, resolverAddress, burnerAddr := deployNFTContracts(t, b)
 	logger := zerolog.Nop()
 	adapter := adapters.NewSDKAdapter(&logger, b)
 
 	nftProviderAggregatorAccountKey, nftProviderAggregatorSigner := accountKeys.NewWithSigner()
-	nftProviderAggregator := LoadNftProviderAggregator(nftAddress, metadataViewsAddr, resolverAddress)
+	nftProviderAggregator := LoadNftProviderAggregator(nftAddress, metadataViewsAddr, resolverAddress, burnerAddr)
 
 	nftProviderAggregatorAddress, err := adapter.CreateAccount(context.Background(),
 		[]*flow.AccountKey{nftProviderAggregatorAccountKey},
@@ -142,34 +144,10 @@ func NFTProviderAggregatorDeployContracts(t *testing.T, b *emulator.Blockchain) 
 	_, err = b.CommitBlock()
 	require.NoError(t, err)
 
-	// Deploy Burner contract
-	burnerContract := sdktemplates.Contract{
-		Name:   "Burner",
-		Source: string(readFile(BurnerContractPath)),
-	}
-	tx = flow.NewTransaction().
-		AddRawArgument(jsoncdc.MustEncode(cadence.String(burnerContract.Name))).
-		AddRawArgument(jsoncdc.MustEncode(cadence.String(burnerContract.SourceHex()))).
-		AddAuthorizer(nftProviderAggregatorAddress)
-	tx.SetScript([]byte(addContractScript))
-	tx.SetComputeLimit(200).
-		SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
-		SetPayer(b.ServiceKey().Address)
-
-	signAndSubmit(
-		t, b, tx,
-		[]flow.Address{b.ServiceKey().Address, nftProviderAggregatorAddress},
-		[]crypto.Signer{signer, nftProviderAggregatorSigner},
-		false,
-	)
-
-	_, err = b.CommitBlock()
-	require.NoError(t, err)
-
 	return Contracts{
 		nftAddress,
 		nftProviderAggregatorAddress,
-		nftProviderAggregatorAddress,
+		burnerAddr,
 		resolverAddress,
 		metadataViewsAddr,
 		nftProviderAggregatorAddress,
