@@ -1,23 +1,23 @@
-import NonFungibleToken from 0x{{.NonFungibleToken}}
-import DapperSport from 0x{{.DapperSport}}
+import NonFungibleToken from "NonFungibleToken"
+import DapperSport from "DapperSport"
 
 // This transaction configures an account to hold DapperSport NFTs.
 
 transaction {
-    prepare(signer: AuthAccount) {
+    prepare(signer: auth(Storage, Capabilities) &Account) {
         // if the account doesn't already have a collection
-        if signer.borrow<&DapperSport.Collection>(from: DapperSport.CollectionStoragePath) == nil {
+        if signer.storage.borrow<&DapperSport.Collection>(from: DapperSport.CollectionStoragePath) == nil {
 
             // create a new empty collection
-            let collection <- DapperSport.createEmptyCollection()
+            let collection <- DapperSport.createEmptyCollection(nftType: Type<@DapperSport.NFT>())
 
             // save it to the account
-            signer.save(<-collection, to: DapperSport.CollectionStoragePath)
+            signer.storage.save(<-collection, to: DapperSport.CollectionStoragePath)
 
             // create a public capability for the collection
-            signer.link<&DapperSport.Collection{NonFungibleToken.CollectionPublic, DapperSport.MomentNFTCollectionPublic}>(
-                DapperSport.CollectionPublicPath,
-                target: DapperSport.CollectionStoragePath
+            signer.capabilities.publish(
+                issuer.capabilities.storage.issue<&DapperSport.Collection>(DapperSport.CollectionStoragePath),
+                at: DapperSport.CollectionPublicPath
             )
         }
     }
