@@ -1,5 +1,6 @@
 import PDS from "PDS"
 import ExampleNFT from "ExampleNFT"
+import MetadataViews from "MetadataViews"
 
 transaction (distId: UInt64, nftIDs: [UInt64]) {
     prepare(pds: auth(BorrowValue) &Account) {
