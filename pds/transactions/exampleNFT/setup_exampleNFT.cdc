@@ -1,21 +1,24 @@
-import NonFungibleToken from 0x{{.NonFungibleToken}}
-import ExampleNFT from 0x{{.ExampleNFT}}
+import NonFungibleToken from "NonFungibleToken"
+import ExampleNFT from "ExampleNFT"
 
-transaction () {
-    prepare(signer: AuthAccount) {
-        // Return early if the account already has a collection
-        if signer.borrow<&ExampleNFT.Collection>(from: ExampleNFT.CollectionStoragePath) != nil {
-            return
+// This transaction configures an account to hold ExampleNFT NFTs.
+
+transaction {
+    prepare(signer: auth(Storage, Capabilities) &Account) {
+        // if the account doesn't already have a collection
+        if signer.storage.borrow<&ExampleNFT.Collection>(from: ExampleNFT.CollectionStoragePath) == nil {
+
+            // create a new empty collection
+            let collection <- ExampleNFT.createEmptyCollection(nftType: Type<@ExampleNFT.NFT>())
+
+            // save it to the account
+            signer.storage.save(<-collection, to: ExampleNFT.CollectionStoragePath)
+
+            // create a public capability for the collection
+            signer.capabilities.publish(
+                signer.capabilities.storage.issue<&ExampleNFT.Collection>(ExampleNFT.CollectionStoragePath),
+                at: ExampleNFT.CollectionPublicPath
+            )
         }
-
-        // create a new empty collection
-        let collection <- ExampleNFT.createEmptyCollection()
-
-        // save it to the account
-        signer.save(<-collection, to: ExampleNFT.CollectionStoragePath)
-
-        // create a public capability for the collection
-        signer.link<&NonFungibleToken.Collection{NonFungibleToken.CollectionPublic}>(ExampleNFT.CollectionPublicPath, target: ExampleNFT.CollectionStoragePath)
-        assert(signer.getCapability<&{NonFungibleToken.CollectionPublic}>(ExampleNFT.CollectionPublicPath).check(), message: "did not link pub cap");
     }
 }
