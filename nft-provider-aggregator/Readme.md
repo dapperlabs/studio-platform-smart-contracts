@@ -70,7 +70,7 @@ The transactions included in this repository and listed below are all single-sig
 
 - `claim_aggregated_nft_provider_capability.cdc`
 
-- `unpublish_capability.cdc`
+- `unpublish_inbox_capability.cdc`
 
 #### Resource Destruction:
 

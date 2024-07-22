@@ -31,11 +31,11 @@ transaction(
         if let retrievedCap = supplier.storage.copy<Capability<auth(NonFungibleToken.Withdraw) &{NonFungibleToken.Collection}>>(
                 from: self.nftWithdrawCapStoragePath) {
             self.nftWithdrawCapability = retrievedCap
-        }
-        else {
+        } else {
             self.nftWithdrawCapability = supplier.capabilities.storage.issue<
                 auth(NonFungibleToken.Withdraw) &{NonFungibleToken.Collection}>(
                 self.nftCollectionStoragePath)
+            supplier.capabilities.storage.getController(byCapabilityID: self.nftWithdrawCapability.id)!.setTag("nft-provider-aggregator")
             supplier.storage.save(self.nftWithdrawCapability, to: self.nftWithdrawCapStoragePath)
         }
 
@@ -46,6 +46,7 @@ transaction(
 
     execute {
         // Add NFT provider capability
-        self.supplierRef.addNFTWithdrawCapability(self.nftWithdrawCapability)
+        let collectionUUID = self.supplierRef.addNFTWithdrawCapability(self.nftWithdrawCapability)
+        log(collectionUUID)
     }
 }

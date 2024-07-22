@@ -65,8 +65,8 @@ func TestNFTProviderAggregator(t *testing.T) {
 	)
 
 	var (
-		supplier1NftId, supplier2NftId uint64
-		managerCollectionUUID          uint64
+		supplier1NftId, supplier2NftId                 uint64
+		managerCollectionUUID, supplier2CollectionUUID uint64
 	)
 
 	// Setup accounts and mint NFTs
@@ -92,7 +92,7 @@ func TestNFTProviderAggregator(t *testing.T) {
 	})
 
 	t.Run("should be able to add a NFT provider capability as manager", func(t *testing.T) {
-		collectionUUIDs := addNftProviderAsManager(t, b, contracts,
+		collectionUUIDs := addNftWithdrawCapAsManager(t, b, contracts,
 			nftWithdrawCapStoragePathID,
 			nftCollectionStoragePathID,
 			false,
@@ -102,7 +102,7 @@ func TestNFTProviderAggregator(t *testing.T) {
 	})
 
 	t.Run("should NOT be able to add a NFT provider capability that is already existing as manager", func(t *testing.T) {
-		addNftProviderAsManager(t, b, contracts,
+		addNftWithdrawCapAsManager(t, b, contracts,
 			nftWithdrawCapStoragePathID,
 			nftCollectionStoragePathID,
 			true,
@@ -119,7 +119,7 @@ func TestNFTProviderAggregator(t *testing.T) {
 	})
 
 	t.Run("should NOT be able to add a NFT provider capability that targets a collection with invalid NFT type", func(t *testing.T) {
-		addNftProviderAsSupplier(t, b, contracts,
+		addNftWithdrawCapAsSupplier(t, b, contracts,
 			nftWithdrawCapStoragePathID,
 			"invalidStoragePath",
 			supplier1Address,
@@ -129,7 +129,7 @@ func TestNFTProviderAggregator(t *testing.T) {
 	})
 
 	t.Run("should be able to add a NFT provider capability as supplier", func(t *testing.T) {
-		addNftProviderAsSupplier(t, b, contracts,
+		addNftWithdrawCapAsSupplier(t, b, contracts,
 			nftWithdrawCapStoragePathID,
 			nftCollectionStoragePathID,
 			supplier1Address,
@@ -139,7 +139,7 @@ func TestNFTProviderAggregator(t *testing.T) {
 	})
 
 	t.Run("should NOT be able to add a NFT provider capability that is already existing as supplier", func(t *testing.T) {
-		addNftProviderAsSupplier(t, b, contracts,
+		addNftWithdrawCapAsSupplier(t, b, contracts,
 			nftWithdrawCapStoragePathID,
 			nftCollectionStoragePathID,
 			supplier1Address,
@@ -155,13 +155,15 @@ func TestNFTProviderAggregator(t *testing.T) {
 			supplier2Signer,
 			false,
 		)
-		addNftProviderAsSupplier(t, b, contracts,
+		uuids := addNftWithdrawCapAsSupplier(t, b, contracts,
 			nftWithdrawCapStoragePathID,
 			nftCollectionStoragePathID,
 			supplier2Address,
 			supplier2Signer,
 			false,
 		)
+		assert.Len(t, uuids, 1)
+		supplier2CollectionUUID = uuids[0]
 		transferFromAggregatedNftProviderAsManager(t, b, contracts,
 			contracts.NFTProviderAggregatorAddress,
 			supplier1NftId,
@@ -171,6 +173,25 @@ func TestNFTProviderAggregator(t *testing.T) {
 			contracts.NFTProviderAggregatorAddress,
 			supplier2NftId,
 			false,
+		)
+	})
+
+	t.Run("should be able to withdraw NFTs from Aggregator's aggregated provider even if supplier's own collection is empty but manager's is not", func(t *testing.T) {
+		nftIDs := getExampleNFTCollectionIds(t, b, contracts, supplier1Address)
+		assert.Nil(t, nftIDs)
+		transferFromAggregatedNftProviderAsManager(t, b, contracts,
+			contracts.NFTProviderAggregatorAddress,
+			supplier1NftId,
+			false,
+		)
+	})
+
+	t.Run("should NOT be able to remove a NFT provider capability added by a separate supplier as supplier", func(t *testing.T) {
+		removeNftWithdrawCapAsSupplier(t, b, contracts,
+			supplier2CollectionUUID,
+			supplier1Address,
+			supplier1Signer,
+			true,
 		)
 	})
 
@@ -215,6 +236,47 @@ func TestNFTProviderAggregator(t *testing.T) {
 			false,
 		)
 		nftId := mintExampleNFT(t, b, contracts, supplier1Address, false)
+		transferFromAggregatedNftProviderAsManager(t, b, contracts,
+			contracts.NFTProviderAggregatorAddress,
+			nftId,
+			true,
+		)
+	})
+
+	t.Run("should be able to withdraw NFTs from Aggregator's aggregated provider even if manager's capability gets revoked but supplier's does not", func(t *testing.T) {
+		nftId := mintExampleNFT(t, b, contracts, supplier2Address, false)
+
+		revokeWithdrawCapability(t, b, contracts,
+			contracts.NFTProviderAggregatorAddress,
+			contracts.NFTProviderAggregatorSigner,
+			false,
+		)
+		transferFromAggregatedNftProviderAsManager(t, b, contracts,
+			contracts.NFTProviderAggregatorAddress,
+			nftId,
+			false,
+		)
+	})
+
+	t.Run("should NOT be able to withdraw NFTs in manager's collection using Aggregator's aggregated provider if manager has revoked their NFT provider capability", func(t *testing.T) {
+		nftId := mintExampleNFT(t, b, contracts, contracts.NFTProviderAggregatorAddress, false)
+		transferFromAggregatedNftProviderAsManager(t, b, contracts,
+			contracts.NFTProviderAggregatorAddress,
+			nftId,
+			true,
+		)
+	})
+
+	t.Run("should be able to nullify the aggregated NFT provider and child Supplier resources when the Aggregator resource is destroyed", func(t *testing.T) {
+		nftId := mintExampleNFT(t, b, contracts, supplier2Address, false)
+		transferFromAggregatedNftProviderAsManager(t, b, contracts,
+			contracts.NFTProviderAggregatorAddress,
+			nftId,
+			false,
+		)
+		destroyAggregator(t, b, contracts,
+			false,
+		)
 		transferFromAggregatedNftProviderAsManager(t, b, contracts,
 			contracts.NFTProviderAggregatorAddress,
 			nftId,

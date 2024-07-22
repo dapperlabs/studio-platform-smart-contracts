@@ -313,6 +313,11 @@ access(all) contract NFTProviderAggregator {
     /// supplier accounts' storage, the primary function of which is to allow adding and removing NFT
     /// provider capabilities
     ///
+    /// Warning: If/when this resource is not needed anymore, it should be destroyed using the destroy_supplier.cdc
+    /// transaction to ensure all the NFT provider capabilities added by the supplier are removed from the parent
+    /// Aggregator resource (the transaction calls Burner.burn, which in turn calls the burnCallback); alternatively,
+    /// the supplier can remove the capabilities themselves before destroying the Supplier resource using removeNFTWithdrawCapability.
+    ///
     access(all) resource Supplier: SupplierPublic, Burner.Burnable {
         /// CollectionUUIDs of NFT provider capabilities added by the supplier
         access(self) var supplierAddedCollectionUUIDs: {UInt64: Bool}
@@ -337,10 +342,11 @@ access(all) contract NFTProviderAggregator {
         ///
         access(Operate) fun addNFTWithdrawCapability(
             _ cap: Capability<auth(NonFungibleToken.Withdraw) &{NonFungibleToken.Collection}>
-            ) {
+            ): UInt64 {
 
             let collectionUUID = self.borrowAuthAggregator().addNFTWithdrawCapability(cap)
             self.supplierAddedCollectionUUIDs.insert(key: collectionUUID, true)
+            return collectionUUID
         }
 
         /// Remove NFT provider capability from parent Aggregator resource

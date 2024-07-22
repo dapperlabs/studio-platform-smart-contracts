@@ -27,12 +27,11 @@ transaction() {
 
     execute {
         // Destroy the Supplier resource
-        let burnableResource <- self.supplierResource as @{Burner.Burnable}
-        Burner.burn(<- burnableResource)
+        Burner.burn(<- self.supplierResource)
     }
 
     post {
-        self.aggregatorRef.getCollectionUUIDs().length == self.aggregatorCollectionUUIDsCountBefore + self.supplierAddedCollectionUUIDsCount:
+        self.aggregatorCollectionUUIDsCountBefore == self.aggregatorRef.getCollectionUUIDs().length + self.supplierAddedCollectionUUIDsCount:
             "Supplier collection providers were not removed from the Aggregator"
     }
 }

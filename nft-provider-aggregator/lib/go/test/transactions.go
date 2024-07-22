@@ -137,7 +137,7 @@ func bootstrapSupplierResource(
 	)
 }
 
-func addNftProviderAsManager(
+func addNftWithdrawCapAsManager(
 	t *testing.T,
 	b *emulator.Blockchain,
 	contracts Contracts,
@@ -185,7 +185,7 @@ func addNftProviderAsManager(
 	return collectionUUIDs
 }
 
-func addNftProviderAsSupplier(
+func addNftWithdrawCapAsSupplier(
 	t *testing.T,
 	b *emulator.Blockchain,
 	contracts Contracts,

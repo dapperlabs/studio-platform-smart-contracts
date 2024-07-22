@@ -24,11 +24,12 @@ const (
 	NonFungibleTokenPath      = "../../../contracts/imports/NonFungibleToken.cdc"
 
 	// ExampleNFT Transactions
-	ExampleNftLinkWithdrawCapPath = TransactionsRootPath + "/exampleNFT/link_providerCap_exampleNFT.cdc"
-	ExampleNftMintPath            = TransactionsRootPath + "/exampleNFT/mint_exampleNFT.cdc"
-	ExampleNftMintBatchedPath     = TransactionsRootPath + "/exampleNFT/mint_exampleNFTBatched.cdc"
-	ExampleNftSetupPath           = TransactionsRootPath + "/exampleNFT/setup_exampleNFT.cdc"
-	ExampleNftTransferPath        = TransactionsRootPath + "/exampleNFT/transfer_exampleNFT.cdc"
+	ExampleNftLinkWithdrawCapPath   = TransactionsRootPath + "/exampleNFT/link_providerCap_exampleNFT.cdc"
+	ExampleNftMintPath              = TransactionsRootPath + "/exampleNFT/mint_exampleNFT.cdc"
+	ExampleNftMintBatchedPath       = TransactionsRootPath + "/exampleNFT/mint_exampleNFTBatched.cdc"
+	ExampleNftSetupPath             = TransactionsRootPath + "/exampleNFT/setup_exampleNFT.cdc"
+	ExampleNftTransferPath          = TransactionsRootPath + "/exampleNFT/transfer_exampleNFT.cdc"
+	ExampleNftRevokeWithdrawCapPath = TransactionsRootPath + "/exampleNFT/revoke_withdraw_cap.cdc"
 
 	// ExampleNFT Scripts
 	ExampleNftGetIdsPath = ScriptsRootPath + "/exampleNFT/balance_exampleNFT.cdc"
@@ -47,7 +48,7 @@ const (
 	RemoveNftWithdrawCapAsSupplierPath                = TransactionsRootPath + "/remove_nft_provider_capability_as_supplier.cdc"
 	TransferFromAggregatedNftProviderAsManagerPath    = TransactionsRootPath + "/transfer_from_aggregated_nft_provider_as_manager.cdc"
 	TransferFromAggregatedNftProviderAsThirdPartyPath = TransactionsRootPath + "/transfer_from_aggregated_nft_provider_as_thirdparty.cdc"
-	UnpublishCapPath                                  = TransactionsRootPath + "/unpublish_capability.cdc"
+	UnpublishInboxCapPath                             = TransactionsRootPath + "/unpublish_inbox_capability.cdc"
 
 	// NFTProviderAggregator Scripts
 	GetAggregatorUuidPath               = ScriptsRootPath + "/get_aggregator_uuid.cdc"
