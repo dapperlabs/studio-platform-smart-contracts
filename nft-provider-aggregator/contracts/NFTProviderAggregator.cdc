@@ -3,7 +3,7 @@ import Burner from "Burner"
 
 /// NFTProviderAggregator
 ///
-/// A general-purpose contract for aggregating multiple NFT providers into a single provider capability
+/// A general-purpose contract for aggregating multiple NFT providers into a single withdraw capability
 /// conforming to the NonFungibleToken standard.
 ///
 /// There are two types of accounts:

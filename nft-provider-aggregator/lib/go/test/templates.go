@@ -35,19 +35,19 @@ const (
 	ExampleNftGetIdsPath = ScriptsRootPath + "/exampleNFT/balance_exampleNFT.cdc"
 
 	// NFTProviderAggregator Transactions
-	AddNftWithdrawCapAsManagerPath                    = TransactionsRootPath + "/add_nft_provider_capability_as_manager.cdc"
-	AddNftWithdrawCapAsSupplierPath                   = TransactionsRootPath + "/add_nft_provider_capability_as_supplier.cdc"
+	AddNftWithdrawCapAsManagerPath                    = TransactionsRootPath + "/add_nft_withdraw_capability_as_manager.cdc"
+	AddNftWithdrawCapAsSupplierPath                   = TransactionsRootPath + "/add_nft_withdraw_capability_as_supplier.cdc"
 	BootstrapAggregatorPath                           = TransactionsRootPath + "/bootstrap_aggregator.cdc"
 	BootstrapSupplierPath                             = TransactionsRootPath + "/bootstrap_supplier.cdc"
-	ClaimAggregatedNftWithdrawCapPath                 = TransactionsRootPath + "/claim_aggregated_nft_provider_capability.cdc"
+	ClaimAggregatedNftWithdrawCapPath                 = TransactionsRootPath + "/claim_aggregated_nft_withdraw_capability.cdc"
 	DestroyAggregatorPath                             = TransactionsRootPath + "/destroy_aggregator.cdc"
 	DestroySupplierPath                               = TransactionsRootPath + "/destroy_supplier.cdc"
 	PublishAdditionalSupplierFactoryCapPath           = TransactionsRootPath + "/publish_additional_supplier_factory_capabilities.cdc"
-	PublishAggregatedNftWithdrawCapPath               = TransactionsRootPath + "/publish_aggregated_nft_provider_capability.cdc"
-	RemoveNftWithdrawCapAsManagerPath                 = TransactionsRootPath + "/remove_nft_provider_capability_as_manager.cdc"
-	RemoveNftWithdrawCapAsSupplierPath                = TransactionsRootPath + "/remove_nft_provider_capability_as_supplier.cdc"
-	TransferFromAggregatedNftProviderAsManagerPath    = TransactionsRootPath + "/transfer_from_aggregated_nft_provider_as_manager.cdc"
-	TransferFromAggregatedNftProviderAsThirdPartyPath = TransactionsRootPath + "/transfer_from_aggregated_nft_provider_as_thirdparty.cdc"
+	PublishAggregatedNftWithdrawCapPath               = TransactionsRootPath + "/publish_aggregated_nft_withdraw_capability.cdc"
+	RemoveNftWithdrawCapAsManagerPath                 = TransactionsRootPath + "/remove_nft_withdraw_capability_as_manager.cdc"
+	RemoveNftWithdrawCapAsSupplierPath                = TransactionsRootPath + "/remove_nft_withdraw_capability_as_supplier.cdc"
+	TransferFromAggregatedNftProviderAsManagerPath    = TransactionsRootPath + "/transfer_from_aggregated_nft_withdraw_as_manager.cdc"
+	TransferFromAggregatedNftProviderAsThirdPartyPath = TransactionsRootPath + "/transfer_from_aggregated_nft_withdraw_as_thirdparty.cdc"
 	UnpublishInboxCapPath                             = TransactionsRootPath + "/unpublish_inbox_capability.cdc"
 
 	// NFTProviderAggregator Scripts
