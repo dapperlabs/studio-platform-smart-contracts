@@ -94,7 +94,6 @@ The scripts included in this repository and listed below are scripts that access
 
 ```
 git clone git@github.com:dapperlabs/nft-provider-aggregator.git
-cd ./nft-provider-aggregator/test
-npm install
-npm test
+cd ./nft-provider-aggregator
+make test
 ```
