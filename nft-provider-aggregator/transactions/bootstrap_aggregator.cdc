@@ -17,7 +17,7 @@ transaction(
     ) {
 
     prepare(
-        signer: auth(BorrowValue, SaveValue, Capabilities, Inbox) &Account,
+        signer: auth(BorrowValue, SaveValue, IssueStorageCapabilityController, PublishInboxCapability) &Account,
     ) {
         assert(
             suppliers.length == capabilityPublicationIDs.length,

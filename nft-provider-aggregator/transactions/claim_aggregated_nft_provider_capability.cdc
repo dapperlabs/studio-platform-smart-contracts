@@ -14,11 +14,11 @@ transaction(
     ) {
 
     prepare(
-        signer: auth(Inbox, SaveValue) &Account,
+        signer: auth(ClaimInboxCapability, SaveValue) &Account,
     ) {
         // Claim the aggregated NFT provider capability published by the manager
         let capability = signer.inbox.claim<
-            &{NonFungibleToken.Provider}>(
+            auth(NonFungibleToken.Withdraw) &{NonFungibleToken.Provider}>(
             capabilityPublicationID,
             provider: manager
             ) ?? panic("Could not claim capability!")
@@ -26,6 +26,7 @@ transaction(
         // Save capability to storage
         // Note: It is not possible to store claimed capabilities in CapabilityPath at the moment
         // (like the link() method does, so we store in StoragePath)
-        signer.storage.save(capability, to: NFTProviderAggregator.AggregatorStoragePath)
+        let aggregatedNFTWithdrawCapStoragePath = NFTProviderAggregator.convertPrivateToStoragePath(NFTProviderAggregator.AggregatedProviderPrivatePath)
+        signer.storage.save(capability, to: aggregatedNFTWithdrawCapStoragePath)
     }
 }

@@ -14,23 +14,26 @@ transaction(
     ) {
 
     let aggregatedNFTWithdrawCap: Capability<
-        auth(NonFungibleToken.Withdraw) &{NonFungibleToken.Collection}>
+        auth(NonFungibleToken.Withdraw) &{NonFungibleToken.Provider}>
 
     prepare(
-        manager: auth(Capabilities, Storage, Inbox) &Account,
+        manager: auth(IssueStorageCapabilityController, CopyValue, SaveValue, PublishInboxCapability) &Account,
     ) {
         // Retrieve or create aggregated NFT provider capability
         let aggregatedNFTWithdrawCapStoragePath = NFTProviderAggregator.convertPrivateToStoragePath(NFTProviderAggregator.AggregatedProviderPrivatePath)
-        if let retrievedCap = manager.storage.copy<Capability<auth(NonFungibleToken.Withdraw) &{NonFungibleToken.Collection}>>(
+        if let retrievedCap = manager.storage.copy<Capability<auth(NonFungibleToken.Withdraw) &{NonFungibleToken.Provider}>>(
                 from: aggregatedNFTWithdrawCapStoragePath) {
             self.aggregatedNFTWithdrawCap = retrievedCap
-        }
-        else {
+        } else {
             self.aggregatedNFTWithdrawCap = manager.capabilities.storage.issue<
-                auth(NonFungibleToken.Withdraw) &{NonFungibleToken.Collection}>(
-                aggregatedNFTWithdrawCapStoragePath)
+                auth(NonFungibleToken.Withdraw) &{NonFungibleToken.Provider}>(
+                NFTProviderAggregator.AggregatorStoragePath)
+            self.aggregatedNFTWithdrawCap.check()
+
             manager.storage.save(self.aggregatedNFTWithdrawCap, to: aggregatedNFTWithdrawCapStoragePath)
         }
+        assert(self.aggregatedNFTWithdrawCap.check(), message: "Capability is invalid")
+
 
         // Publish the aggregated NFT provider capability to recipient
         manager.inbox.publish(

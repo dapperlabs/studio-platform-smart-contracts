@@ -12,7 +12,7 @@ transaction(
     ) {
 
     prepare(
-        manager: auth(Storage, Inbox) &Account,
+        manager: auth(LoadValue, SaveValue, PublishInboxCapability) &Account,
     ) {
         assert(
             suppliers.length == capabilityPublicationIDs.length,

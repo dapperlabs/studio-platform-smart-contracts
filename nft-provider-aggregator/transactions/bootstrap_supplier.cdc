@@ -17,7 +17,7 @@ transaction(
     let supplierPublicCapability: Capability<&{NFTProviderAggregator.SupplierPublic}>
 
     prepare(
-        supplier: auth(BorrowValue, SaveValue, Inbox, Capabilities) &Account,
+        supplier: auth(BorrowValue, SaveValue, ClaimInboxCapability, IssueStorageCapabilityController, PublishCapability) &Account,
     ) {
         // Claim the aggregated NFT provider capability published by the manager
         let supplierFactoryCapability = supplier.inbox.claim<

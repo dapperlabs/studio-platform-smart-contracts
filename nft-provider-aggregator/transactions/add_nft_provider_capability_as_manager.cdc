@@ -19,7 +19,7 @@ transaction(
     let nftWithdrawCapability: Capability<auth(NonFungibleToken.Withdraw) &{NonFungibleToken.Collection}>
 
     prepare(
-        manager: auth(BorrowValue, Storage, Capabilities) &Account,
+        manager: auth(CopyValue, BorrowValue, SaveValue, GetStorageCapabilityController, IssueStorageCapabilityController) &Account,
     ) {
         // Convert provided string paths
         self.nftWithdrawCapStoragePath = StoragePath(identifier: nftWithdrawCapStoragePathID)

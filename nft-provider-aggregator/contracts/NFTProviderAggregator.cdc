@@ -448,7 +448,7 @@ access(all) contract NFTProviderAggregator {
 
     /// Convert a private path to a storage path using a "_PrivateCap" suffix convention, used for saving Aggregator and Supplier resources
     ///
-    access(all) view fun getPrivateCapPathFromStoragePath(storagePath : StoragePath) : StoragePath {
+    access(all) view fun getPrivateCapPathFromStoragePath(_ storagePath : StoragePath) : StoragePath {
         return StoragePath(identifier: storagePath.toString().replaceAll(of: "storage/", with: "").concat("_PrivateCap"))!
     }
 

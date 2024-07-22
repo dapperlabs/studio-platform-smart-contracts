@@ -10,26 +10,29 @@ import NFTProviderAggregator from "NFTProviderAggregator"
 ///
 transaction(recipient: Address, withdrawID: UInt64) {
 
-    let depositRef: &{NonFungibleToken.CollectionPublic}
+    let depositRef: &{NonFungibleToken.Collection}
     let aggregatedProviderRef: auth(NonFungibleToken.Withdraw) &{NonFungibleToken.Provider}
 
     prepare(
-        signer: auth(BorrowValue, Storage) &Account,
+        signer: auth(BorrowValue, CopyValue) &Account,
     ) {
         // Get recipient account
         let recipient = getAccount(recipient)
 
         // Borrow a public reference to the receivers collection
         self.depositRef = recipient
-            .capabilities.borrow<&{NonFungibleToken.CollectionPublic}>(ExampleNFT.CollectionPublicPath)!
+            .capabilities.borrow<&{NonFungibleToken.Collection}>(ExampleNFT.CollectionPublicPath)!
 
-        // Borrow a reference to the signer's aggregated provider
-        // Note: The capability is a claimed capability stored in StoragePath instead of the usual
-        // CapabilityPath.
-        self.aggregatedProviderRef = signer.storage.load<
+        // Retrieve the aggregated NFT provider's withdraw capability from storage
+        let aggregatedNFTWithdrawCapStoragePath = NFTProviderAggregator.convertPrivateToStoragePath(NFTProviderAggregator.AggregatedProviderPrivatePath)
+        let aggregatedWithdrawCap: Capability<auth(NonFungibleToken.Withdraw) &{NonFungibleToken.Provider}> = signer.storage.copy<
         Capability<auth(NonFungibleToken.Withdraw) &{NonFungibleToken.Provider}>>(
-            from: NFTProviderAggregator.AggregatorStoragePath)!.borrow()
-            ?? panic("Could not get capability and borrow reference")
+            from: aggregatedNFTWithdrawCapStoragePath)
+            ?? panic("Could not retrieve capability from storage!")
+
+        // Borrow a reference to the nft provider aggregator's withdraw capability
+        self.aggregatedProviderRef = aggregatedWithdrawCap.borrow()
+            ?? panic("Could not borrow reference from capability!")
     }
 
     execute {

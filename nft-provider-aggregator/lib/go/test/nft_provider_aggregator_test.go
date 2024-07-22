@@ -186,6 +186,31 @@ func TestNFTProviderAggregator(t *testing.T) {
 		)
 	})
 
+	t.Run("should be able to publish the manager's aggregated NFT provider capability", func(t *testing.T) {
+		publishAggregatedNftWithdrawCap(t, b, contracts,
+			thirdPartyAddress,
+			capabilityPublicationID3,
+			false,
+		)
+	})
+
+	t.Run("should be able to claim the manager's aggregated NFT provider capability and withdraw from it", func(t *testing.T) {
+		nftId := mintExampleNFT(t, b, contracts, contracts.NFTProviderAggregatorAddress, false)
+		claimAggregatedNftWithdrawCap(t, b, contracts,
+			capabilityPublicationID3,
+			thirdPartyAddress,
+			thirdPartySigner,
+			false,
+		)
+		transferFromAggregatedNftProviderAsThirdParty(t, b, contracts,
+			thirdPartyAddress,
+			nftId,
+			thirdPartyAddress,
+			thirdPartySigner,
+			false,
+		)
+	})
+
 	t.Run("should NOT be able to remove a NFT provider capability added by a separate supplier as supplier", func(t *testing.T) {
 		removeNftWithdrawCapAsSupplier(t, b, contracts,
 			supplier2CollectionUUID,
@@ -209,23 +234,6 @@ func TestNFTProviderAggregator(t *testing.T) {
 			contracts.NFTProviderAggregatorAddress,
 			supplier2NftId,
 			true,
-		)
-	})
-
-	t.Run("should be able to publish the manager's aggregated NFT provider capability", func(t *testing.T) {
-		publishAggregatedNftWithdrawCap(t, b, contracts,
-			thirdPartyAddress,
-			capabilityPublicationID3,
-			false,
-		)
-	})
-
-	t.Run("should be able to claim the manager's aggregated NFT provider capability and withdraw from it", func(t *testing.T) {
-		claimAggregatedNftWithdrawCap(t, b, contracts,
-			capabilityPublicationID3,
-			thirdPartyAddress,
-			thirdPartySigner,
-			false,
 		)
 	})
 

@@ -503,7 +503,7 @@ func transferFromAggregatedNftProviderAsManager(
 	)
 }
 
-func transferFromAggregatedNftProviderAsSupplier(
+func transferFromAggregatedNftProviderAsThirdParty(
 	t *testing.T,
 	b *emulator.Blockchain,
 	contracts Contracts,
@@ -540,64 +540,29 @@ func transferFromAggregatedNftProviderAsSupplier(
 	)
 }
 
-func unpublishCapability(
+func revokeWithdrawCapability(
 	t *testing.T,
 	b *emulator.Blockchain,
 	contracts Contracts,
-	capabilityPublicationID string,
+	senderAddress flow.Address,
+	senderSigner crypto.Signer,
 	shouldRevert bool,
 ) *types.TransactionResult {
 	// Create transaction
 	tx := flow.NewTransaction().
-		SetScript(loadScript(contracts, UnpublishCapPath)).
+		SetScript(loadScript(contracts, ExampleNftRevokeWithdrawCapPath)).
 		SetComputeLimit(100).
 		SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
 		SetPayer(b.ServiceKey().Address).
-		AddAuthorizer(contracts.NFTProviderAggregatorAddress)
-
-	// Add arguments to transaction
-	cadenceCapabilityPublicationID, _ := cadence.NewString(capabilityPublicationID)
-	if err := tx.AddArgument(cadenceCapabilityPublicationID); err != nil {
-		t.Error(err)
-	}
+		AddAuthorizer(senderAddress)
 
 	// Sign and submit transaction
 	signer, err := b.ServiceKey().Signer()
 	require.NoError(t, err)
 	return signAndSubmit(
 		t, b, tx,
-		[]flow.Address{b.ServiceKey().Address, contracts.NFTProviderAggregatorAddress},
-		[]crypto.Signer{signer, contracts.NFTProviderAggregatorSigner},
+		[]flow.Address{b.ServiceKey().Address, senderAddress},
+		[]crypto.Signer{signer, senderSigner},
 		shouldRevert,
 	)
 }
-
-// func transferPinNFT(
-// 	t *testing.T,
-// 	b *emulator.Blockchain,
-// 	contracts Contracts,
-// 	senderAddress flow.Address,
-// 	senderSigner crypto.Signer,
-// 	nftID uint64,
-// 	recipientAddress flow.Address,
-// 	shouldRevert bool,
-// ) {
-// 	tx := flow.NewTransaction().
-// 		SetScript(loadPinnacleTransferNFTTransaction(contracts)).
-// 		SetComputeLimit(100).
-// 		SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
-// 		SetPayer(b.ServiceKey().Address).
-// 		AddAuthorizer(senderAddress)
-// 	tx.AddArgument(cadence.BytesToAddress(recipientAddress.Bytes()))
-// 	tx.AddArgument(cadence.NewUInt64(nftID))
-
-// 	signer, err := b.ServiceKey().Signer()
-// 	require.NoError(t, err)
-
-// 	signAndSubmit(
-// 		t, b, tx,
-// 		[]flow.Address{b.ServiceKey().Address, senderAddress},
-// 		[]crypto.Signer{signer, senderSigner},
-// 		shouldRevert,
-// 	)
-// }
