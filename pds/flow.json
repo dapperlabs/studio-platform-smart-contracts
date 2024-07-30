@@ -1,0 +1,38 @@
+{
+	"contracts": {
+		"IPackNFT": {
+			"source": "./contracts/IPackNFT.cdc",
+			"aliases": {
+				"mainnet": "18ddf0823a55a0ee",
+				"testnet": "d8f6346999b983f5"
+			}
+		},
+		"NonFungibleToken": {
+			"source": "./contracts/imports/NonFungibleToken.cdc",
+			"aliases": {
+				"emulator": "f8d6e0586b0a20c7",
+				"mainnet": "1d7e57aa55817448",
+				"testnet": "631e88ae7f1d7c20"
+			}
+		}
+	},
+	"networks": {
+		"emulator": "127.0.0.1:3569",
+		"mainnet": "access.mainnet.nodes.onflow.org:9000",
+		"sandboxnet": "access.sandboxnet.nodes.onflow.org:9000",
+		"testnet": "access.devnet.nodes.onflow.org:9000"
+	},
+	"accounts": {
+		"emulator-account": {
+			"address": "f8d6e0586b0a20c7",
+			"key": "e61daee1414c57a52a1f7120e89daaf71ce3e16f396273e08142313fc4eea1d7"
+		}
+	},
+	"deployments": {
+		"testnet": {
+			"testnet-platform-admin": [
+				"IPackNFT"
+			]
+		}
+	}
+}
