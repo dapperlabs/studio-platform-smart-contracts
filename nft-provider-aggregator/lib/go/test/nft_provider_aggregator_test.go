@@ -16,6 +16,10 @@ func TestNftProviderAggregatorDeployContracts(t *testing.T) {
 	NFTProviderAggregatorDeployContracts(t, b)
 }
 
+const (
+	withdrawCapTag = "nft-provider-aggregator"
+)
+
 func TestExampleNFTSetupAndMinting(t *testing.T) {
 	b := newEmulator()
 	contracts := NFTProviderAggregatorDeployContracts(t, b)
@@ -95,6 +99,7 @@ func TestNFTProviderAggregator(t *testing.T) {
 		collectionUUIDs := addNftWithdrawCapAsManager(t, b, contracts,
 			nftWithdrawCapStoragePathID,
 			nftCollectionStoragePathID,
+			withdrawCapTag,
 			false,
 		)
 		assert.Len(t, collectionUUIDs, 1)
@@ -105,6 +110,7 @@ func TestNFTProviderAggregator(t *testing.T) {
 		addNftWithdrawCapAsManager(t, b, contracts,
 			nftWithdrawCapStoragePathID,
 			nftCollectionStoragePathID,
+			withdrawCapTag,
 			true,
 		)
 	})
@@ -122,6 +128,7 @@ func TestNFTProviderAggregator(t *testing.T) {
 		addNftWithdrawCapAsSupplier(t, b, contracts,
 			nftWithdrawCapStoragePathID,
 			"invalidStoragePath",
+			withdrawCapTag,
 			supplier1Address,
 			supplier1Signer,
 			true,
@@ -132,6 +139,7 @@ func TestNFTProviderAggregator(t *testing.T) {
 		addNftWithdrawCapAsSupplier(t, b, contracts,
 			nftWithdrawCapStoragePathID,
 			nftCollectionStoragePathID,
+			withdrawCapTag,
 			supplier1Address,
 			supplier1Signer,
 			false,
@@ -142,6 +150,7 @@ func TestNFTProviderAggregator(t *testing.T) {
 		addNftWithdrawCapAsSupplier(t, b, contracts,
 			nftWithdrawCapStoragePathID,
 			nftCollectionStoragePathID,
+			withdrawCapTag,
 			supplier1Address,
 			supplier1Signer,
 			true,
@@ -158,6 +167,7 @@ func TestNFTProviderAggregator(t *testing.T) {
 		uuids := addNftWithdrawCapAsSupplier(t, b, contracts,
 			nftWithdrawCapStoragePathID,
 			nftCollectionStoragePathID,
+			withdrawCapTag,
 			supplier2Address,
 			supplier2Signer,
 			false,
@@ -255,6 +265,7 @@ func TestNFTProviderAggregator(t *testing.T) {
 		nftId := mintExampleNFT(t, b, contracts, supplier2Address, false)
 
 		revokeWithdrawCapability(t, b, contracts,
+			withdrawCapTag,
 			contracts.NFTProviderAggregatorAddress,
 			contracts.NFTProviderAggregatorSigner,
 			false,

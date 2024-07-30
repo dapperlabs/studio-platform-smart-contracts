@@ -7,10 +7,13 @@ import NFTProviderAggregator from "NFTProviderAggregator"
 /// the domain prefix (e.g., for "/private/exampleNFTProvider", the ID is "exampleNFTProvider").
 /// @param nftCollectionStoragePathID: The storage path ID of the NFT collection to add - the ID is the path without
 /// the domain prefix (e.g., for "/storage/exampleNFTCollection", the ID is "exampleNFTCollection").
+/// @param withdrawCapabilityTag: The tag to set on the capability controller to keep track of the capability being
+/// supplied to a NFT provider aggregator and faciliate revokation when needed
 ///
 transaction(
     nftWithdrawCapStoragePathID: String,
-    nftCollectionStoragePathID: String
+    nftCollectionStoragePathID: String,
+    withdrawCapabilityTag: String
     ) {
 
     let nftWithdrawCapStoragePath: StoragePath
@@ -35,7 +38,7 @@ transaction(
             self.nftWithdrawCapability = supplier.capabilities.storage.issue<
                 auth(NonFungibleToken.Withdraw) &{NonFungibleToken.Collection}>(
                 self.nftCollectionStoragePath)
-            supplier.capabilities.storage.getController(byCapabilityID: self.nftWithdrawCapability.id)!.setTag("nft-provider-aggregator")
+            supplier.capabilities.storage.getController(byCapabilityID: self.nftWithdrawCapability.id)!.setTag(withdrawCapabilityTag)
             supplier.storage.save(self.nftWithdrawCapability, to: self.nftWithdrawCapStoragePath)
         }
 

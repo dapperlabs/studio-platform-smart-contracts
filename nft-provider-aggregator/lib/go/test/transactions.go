@@ -143,6 +143,7 @@ func addNftWithdrawCapAsManager(
 	contracts Contracts,
 	nftWithdrawCapStoragePathID string,
 	nftCollectionStoragePathID string,
+	withdrawCapTag string,
 	shouldRevert bool,
 ) []uint64 {
 	// Create transaction
@@ -160,6 +161,10 @@ func addNftWithdrawCapAsManager(
 	}
 	cadenceNftCollectionStoragePathID, _ := cadence.NewString(nftCollectionStoragePathID)
 	if err := tx.AddArgument(cadenceNftCollectionStoragePathID); err != nil {
+		t.Error(err)
+	}
+	cadenceWithdrawCapTag, _ := cadence.NewString(withdrawCapTag)
+	if err := tx.AddArgument(cadenceWithdrawCapTag); err != nil {
 		t.Error(err)
 	}
 
@@ -191,6 +196,7 @@ func addNftWithdrawCapAsSupplier(
 	contracts Contracts,
 	nftWithdrawCapStoragePathID string,
 	nftCollectionStoragePathID string,
+	withdrawCapTag string,
 	senderAddress flow.Address,
 	senderSigner crypto.Signer,
 	shouldRevert bool,
@@ -210,6 +216,10 @@ func addNftWithdrawCapAsSupplier(
 	}
 	cadenceNftCollectionStoragePathID, _ := cadence.NewString(nftCollectionStoragePathID)
 	if err := tx.AddArgument(cadenceNftCollectionStoragePathID); err != nil {
+		t.Error(err)
+	}
+	cadenceWithdrawCapTag, _ := cadence.NewString(withdrawCapTag)
+	if err := tx.AddArgument(cadenceWithdrawCapTag); err != nil {
 		t.Error(err)
 	}
 
@@ -516,7 +526,7 @@ func transferFromAggregatedNftProviderAsThirdParty(
 	// Create transaction
 	tx := flow.NewTransaction().
 		SetScript(loadScript(contracts, TransferFromAggregatedNftProviderAsThirdPartyPath)).
-		SetComputeLimit(100).
+		SetComputeLimit(200).
 		SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
 		SetPayer(b.ServiceKey().Address).
 		AddAuthorizer(senderAddress)
@@ -544,6 +554,7 @@ func revokeWithdrawCapability(
 	t *testing.T,
 	b *emulator.Blockchain,
 	contracts Contracts,
+	withdrawCapTag string,
 	senderAddress flow.Address,
 	senderSigner crypto.Signer,
 	shouldRevert bool,
@@ -555,6 +566,12 @@ func revokeWithdrawCapability(
 		SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
 		SetPayer(b.ServiceKey().Address).
 		AddAuthorizer(senderAddress)
+
+	// Add arguments to transaction
+	cadenceWithdrawCapTag, _ := cadence.NewString(withdrawCapTag)
+	if err := tx.AddArgument(cadenceWithdrawCapTag); err != nil {
+		t.Error(err)
+	}
 
 	// Sign and submit transaction
 	signer, err := b.ServiceKey().Signer()

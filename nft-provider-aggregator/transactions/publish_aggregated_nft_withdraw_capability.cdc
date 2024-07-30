@@ -28,7 +28,6 @@ transaction(
             self.aggregatedNFTWithdrawCap = manager.capabilities.storage.issue<
                 auth(NonFungibleToken.Withdraw) &{NonFungibleToken.Provider}>(
                 NFTProviderAggregator.AggregatorStoragePath)
-            self.aggregatedNFTWithdrawCap.check()
 
             manager.storage.save(self.aggregatedNFTWithdrawCap, to: aggregatedNFTWithdrawCapStoragePath)
         }

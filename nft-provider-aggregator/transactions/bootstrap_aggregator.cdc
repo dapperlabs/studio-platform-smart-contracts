@@ -36,7 +36,7 @@ transaction(
         // Save Aggregator resource capability to storage
         signer.storage.save(
             supplierAccessCapability,
-            to: StoragePath(identifier: NFTProviderAggregator.SupplierStoragePath.toString().replaceAll(of: "storage/", with: "").concat("_PrivateCap"))!
+            to: NFTProviderAggregator.getPrivateCapPathFromStoragePath(NFTProviderAggregator.SupplierStoragePath)
         )
 
         // Create Aggregator resource and save to storage
@@ -54,7 +54,7 @@ transaction(
         // Save supplier resource capability to storage
         signer.storage.save(
             supplierFactoryCapability,
-            to: StoragePath(identifier: NFTProviderAggregator.AggregatorStoragePath.toString().replaceAll(of: "storage/", with: "").concat("_PrivateCap"))!
+            to:  NFTProviderAggregator.getPrivateCapPathFromStoragePath(NFTProviderAggregator.AggregatorStoragePath)
         )
 
         // Publish supplier factory capability to designated recipients
