@@ -1,7 +1,6 @@
 import Crypto
 import NonFungibleToken from 0x{{.NonFungibleToken}}
 
-
 pub contract interface IPackNFT{
     /// StoragePath for Collection Resource
     ///
@@ -80,29 +79,21 @@ pub contract interface IPackNFT{
         pub let id: UInt64
         pub let issuer: Address
         pub fun reveal(openRequest: Bool)
-        pub fun open() 
+        pub fun open()
     }
-    
+
     pub resource interface IPackNFTOwnerOperator{
         pub fun reveal(openRequest: Bool)
-        pub fun open() 
+        pub fun open()
     }
-    
+
     pub resource interface IPackNFTCollectionPublic {
         pub fun deposit(token: @NonFungibleToken.NFT)
         pub fun getIDs(): [UInt64]
         pub fun borrowNFT(id: UInt64): &NonFungibleToken.NFT
-        pub fun borrowPackNFT(id: UInt64): &IPackNFT.NFT? {
-            // If the result isn't nil, the id of the returned reference
-            // should be the same as the argument to the function
-            post {
-                (result == nil) || (result!.id == id):
-                    "Cannot borrow PackNFT reference: The ID of the returned reference is incorrect"
-            }
-        }
     }
 
     access(contract) fun revealRequest(id: UInt64, openRequest: Bool)
     access(contract) fun openRequest(id: UInt64)
-    pub fun publicReveal(id: UInt64, nfts: [{IPackNFT.Collectible}], salt: String) 
+    pub fun publicReveal(id: UInt64, nfts: [{IPackNFT.Collectible}], salt: String)
 }
