@@ -1,41 +1,33 @@
-import Golazos from "../../contracts/Golazos.cdc"
-import MetadataViews from 0x{{.MetadataViewsAddress}}
+import Golazos from "Golazos"
+import MetadataViews from "MetadataViews"
 
- pub struct NFTCollectionData {
-        pub let storagePath: StoragePath
+ access(all) struct NFTCollectionData {
+        access(all) let storagePath: StoragePath
 
-        pub let publicPath: PublicPath
+        access(all) let publicPath: PublicPath
 
-        pub let providerPath: PrivatePath
+        access(all) let publicCollection: Type
 
-        pub let publicCollection: Type
-
-        pub let publicLinkedType: Type
-
-        pub let providerLinkedType: Type
+        access(all) let publicLinkedType: Type
 
         init(
             storagePath: StoragePath,
             publicPath: PublicPath,
-            providerPath: PrivatePath,
             publicCollection: Type,
             publicLinkedType: Type,
-            providerLinkedType: Type
         ) {
             self.storagePath=storagePath
             self.publicPath=publicPath
-            self.providerPath = providerPath
             self.publicCollection=publicCollection
             self.publicLinkedType=publicLinkedType
-            self.providerLinkedType = providerLinkedType
         }
     }
 
-pub fun main(address: Address, id: UInt64): NFTCollectionData {
+access(all) fun main(address: Address, id: UInt64): NFTCollectionData {
     let account = getAccount(address)
 
-    let collectionRef = account.getCapability(Golazos.CollectionPublicPath)
-                            .borrow<&{Golazos.MomentNFTCollectionPublic}>()!
+    let collectionRef = account.capabilities.borrow<&Golazos.Collection>(Golazos.CollectionPublicPath)
+                            ?? panic("Could not borrow a reference of the public collection")
 
     let nft = collectionRef.borrowMomentNFT(id: id)!
     
@@ -43,9 +35,7 @@ pub fun main(address: Address, id: UInt64): NFTCollectionData {
     let data = nft.resolveView(Type<MetadataViews.NFTCollectionData>())! as! MetadataViews.NFTCollectionData
     return NFTCollectionData(storagePath: data.storagePath,
             publicPath: data.publicPath,
-            providerPath: data.providerPath,
             publicCollection: data.publicCollection,
-            publicLinkedType: data.publicLinkedType,
-            providerLinkedType: data.providerLinkedType)
+            publicLinkedType: data.publicLinkedType)
 }
 

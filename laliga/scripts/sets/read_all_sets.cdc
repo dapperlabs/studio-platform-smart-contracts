@@ -1,9 +1,9 @@
-import Golazos from "../../contracts/Golazos.cdc"
+import Golazos from "Golazos"
 
 // This script returns all the Set structs.
 // This will eventually be *long*.
 
-pub fun main(): [Golazos.SetData] {
+access(all) fun main(): [Golazos.SetData] {
     let sets: [Golazos.SetData] = []
     var id: UInt64 = 1
     // Note < , as nextSetID has not yet been used

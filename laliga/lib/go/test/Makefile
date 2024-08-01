@@ -1,6 +1,6 @@
 .PHONY: test
 test:
-	go test ./...
+	CGO_RNABLED=0 go test -tags=no_cgo ./...
 
 .PHONY: ci
 ci: test

@@ -1,8 +1,8 @@
-import Golazos from "../../contracts/Golazos.cdc"
+import Golazos from "Golazos"
 
 // This script returns an Edition for an id number, if it exists.
 
-pub fun main(editionID: UInt64): Golazos.EditionData {
+access(all) fun main(editionID: UInt64): Golazos.EditionData {
     return Golazos.getEditionData(id: editionID)!
 }
 
