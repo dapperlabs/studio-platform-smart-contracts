@@ -17,7 +17,6 @@ transaction(recipientAddress: Address, editionIDs: [UInt64], counts: [UInt64]) {
         // borrow a public reference to the receivers collection
         self.recipient = recipientAccount.capabilities.borrow<&Golazos.Collection>(Golazos.CollectionPublicPath)
             ?? panic("Could not borrow a reference to the collection receiver")
-
     }
 
     pre {
