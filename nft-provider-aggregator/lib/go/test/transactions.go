@@ -204,7 +204,7 @@ func addNftWithdrawCapAsSupplier(
 	// Create transaction
 	tx := flow.NewTransaction().
 		SetScript(loadScript(contracts, AddNftWithdrawCapAsSupplierPath)).
-		SetComputeLimit(100).
+		SetComputeLimit(200).
 		SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
 		SetPayer(b.ServiceKey().Address).
 		AddAuthorizer(senderAddress)

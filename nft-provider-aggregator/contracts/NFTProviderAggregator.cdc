@@ -93,7 +93,7 @@ access(all) contract NFTProviderAggregator {
     ///
     access(all) resource interface SupplierAccess {
         access(Operate) fun addNFTWithdrawCapability(
-            _ cap: Capability<auth(NonFungibleToken.Withdraw) &{NonFungibleToken.Collection}>): UInt64
+            _ cap: Capability<auth(NonFungibleToken.Withdraw) &{NonFungibleToken.Provider, NonFungibleToken.CollectionPublic}>): UInt64
         access(Operate) fun removeNFTWithdrawCapability(collectionUUID: UInt64)
         access(all) fun getIDs(): [UInt64]
         access(all) view fun getCollectionUUIDs(): [UInt64]
@@ -114,17 +114,17 @@ access(all) contract NFTProviderAggregator {
         access(self) let supplierAccessCapability: Capability<auth(Operate) &Aggregator>
 
         /// Dictionary of supplied NFT provider capabilities
-        access(self) var nftWithdrawCapabilities: {UInt64: Capability<auth(NonFungibleToken.Withdraw) &{NonFungibleToken.Collection}>}
+        access(self) var nftProviderCapabilities: {UInt64: Capability<auth(NonFungibleToken.Withdraw) &{NonFungibleToken.Provider, NonFungibleToken.CollectionPublic}>}
 
         /// Add NFT provider capability (may be called by Supplier or directly by Aggregator)
         access(Operate) fun addNFTWithdrawCapability(
-            _ cap: Capability<auth(NonFungibleToken.Withdraw) &{NonFungibleToken.Collection}>
+            _ cap: Capability<auth(NonFungibleToken.Withdraw) &{NonFungibleToken.Provider, NonFungibleToken.CollectionPublic}>
             ): UInt64 {
             pre {
                 self.isNFTWithdrawCapabilityValid(cap): "Invalid NFT provider capability!"
             }
             var collectionUUID = cap.borrow()!.uuid
-            self.nftWithdrawCapabilities.insert(
+            self.nftProviderCapabilities.insert(
                 key: collectionUUID,
                 cap
             )
@@ -141,25 +141,25 @@ access(all) contract NFTProviderAggregator {
         ///
         access(Operate) fun removeNFTWithdrawCapability(collectionUUID: UInt64) {
             pre {
-                self.nftWithdrawCapabilities.containsKey(
+                self.nftProviderCapabilities.containsKey(
                     collectionUUID
                     ): "NFT provider capability does not exist (not added yet or removed by Aggregator)!"
             }
-            self.nftWithdrawCapabilities.remove(key: collectionUUID)
+            self.nftProviderCapabilities.remove(key: collectionUUID)
             emit NFTWithdrawCapabilityRemoved(nftTypeIdentifier: self.nftTypeIdentifier, collectionUUID: collectionUUID)
         }
 
         /// Borrow the provider of an NFT located in one of multiple collections through iterating over each collection
         ///
-        access(NonFungibleToken.Withdraw) fun borrowNFTProvider(id: UInt64): auth(NonFungibleToken.Withdraw) &{NonFungibleToken.Collection} {
-            for collectionUUID in self.nftWithdrawCapabilities.keys {
+        access(NonFungibleToken.Withdraw) fun borrowNFTProvider(id: UInt64): auth(NonFungibleToken.Withdraw) &{NonFungibleToken.Provider, NonFungibleToken.CollectionPublic} {
+            for collectionUUID in self.nftProviderCapabilities.keys {
                 // Check capabilities can still be borrowed since a NFT provider capability may pass the
                 // pre-condition checks at the time of being added with the addNFTWithdrawCapability method but
                 // may be unlinked later or the target collection be destroyed.
-                if self.nftWithdrawCapabilities[collectionUUID]!.check() {
+                if self.nftProviderCapabilities[collectionUUID]!.check() {
                     // Retrieve reference to the NFT provider
-                    let nftProviderRef = self.nftWithdrawCapabilities[collectionUUID]!.borrow()!
-                    // Check NFT provider UUID still matches that of the nftWithdrawCapabilities dictionary
+                    let nftProviderRef = self.nftProviderCapabilities[collectionUUID]!.borrow()!
+                    // Check NFT provider UUID still matches that of the nftProviderCapabilities dictionary
                     assert(
                         nftProviderRef.uuid == collectionUUID,
                         message: "NFT provider capability has invalid collection UUID! Must be removed."
@@ -180,15 +180,15 @@ access(all) contract NFTProviderAggregator {
 
         /// Borrow the collection of an NFT located in one of multiple collections through iterating over each collection
         ///
-        access(all) view fun borrowNFTCollection(id: UInt64): &{NonFungibleToken.Collection} {
-            for collectionUUID in self.nftWithdrawCapabilities.keys {
+        access(all) view fun borrowNFTCollection(id: UInt64): &{NonFungibleToken.Provider, NonFungibleToken.CollectionPublic} {
+            for collectionUUID in self.nftProviderCapabilities.keys {
                 // Check capabilities can still be borrowed since a NFT provider capability may pass the
                 // pre-condition checks at the time of being added with the addNFTWithdrawCapability method but
                 // may be unlinked later or the target collection be destroyed.
-                if self.nftWithdrawCapabilities[collectionUUID]!.check() {
+                if self.nftProviderCapabilities[collectionUUID]!.check() {
                     // Retrieve reference to the NFT provider
-                    let nftProviderRef = self.nftWithdrawCapabilities[collectionUUID]!.borrow()!
-                    // Check NFT provider UUID still matches that of the nftWithdrawCapabilities dictionary
+                    let nftProviderRef = self.nftProviderCapabilities[collectionUUID]!.borrow()!
+                    // Check NFT provider UUID still matches that of the nftProviderCapabilities dictionary
                     assert(
                         nftProviderRef.uuid == collectionUUID,
                         message: "NFT provider capability has invalid collection UUID! Must be removed."
@@ -237,18 +237,18 @@ access(all) contract NFTProviderAggregator {
                 )
         }
 
-        /// Return an array of the NFT IDs accessible through nftWithdrawCapabilities
+        /// Return an array of the NFT IDs accessible through nftProviderCapabilities
         ///
         access(all) fun getIDs(): [UInt64] {
             let ids: [UInt64] = []
-            for collectionUUID in self.nftWithdrawCapabilities.keys {
+            for collectionUUID in self.nftProviderCapabilities.keys {
                 // Check capability can still be borrowed since a NFT provider capability may pass the
                 // pre-condition checks at the time of being added with the addNFTWithdrawCapability method
                 // but may be unlinked later or the target collection be destroyed.
-                if self.nftWithdrawCapabilities[collectionUUID]!.check() {
-                    let collectionRef = self.nftWithdrawCapabilities[
+                if self.nftProviderCapabilities[collectionUUID]!.check() {
+                    let collectionRef = self.nftProviderCapabilities[
                         collectionUUID]!.borrow()!
-                    // Check UUID still matches that of the nftWithdrawCapabilities dictionary
+                    // Check UUID still matches that of the nftProviderCapabilities dictionary
                     assert(
                         collectionUUID == collectionRef.uuid,
                         message: "NFT provider capability has invalid collection UUID! Must be removed.!"
@@ -270,13 +270,13 @@ access(all) contract NFTProviderAggregator {
         /// Return an array of all the collection UUIDs
         ///
         access(all) view fun getCollectionUUIDs(): [UInt64] {
-            return self.nftWithdrawCapabilities.keys
+            return self.nftProviderCapabilities.keys
         }
 
         /// Check whether a given NFT provider capability is valid
         ///
         access(self) view fun isNFTWithdrawCapabilityValid(
-            _ cap: Capability<auth(NonFungibleToken.Withdraw) &{NonFungibleToken.Collection}>
+            _ cap: Capability<auth(NonFungibleToken.Withdraw) &{NonFungibleToken.Provider, NonFungibleToken.CollectionPublic}>
         ): Bool {
             let nftProviderRef = cap.borrow()
                 ?? panic("NFT provider couldn't be borrowed! Cannot be added.")
@@ -286,8 +286,8 @@ access(all) contract NFTProviderAggregator {
                 message: "Expected capability to target identifier: ".concat(self.nftTypeIdentifier).concat(" but got: ").concat(nftProviderRef.getType().identifier)
                 )
             // Check NFT provider capability doesn't already exist
-            for collectionUUID in self.nftWithdrawCapabilities.keys {
-                let _nftProviderRef = self.nftWithdrawCapabilities[collectionUUID]!.borrow()
+            for collectionUUID in self.nftProviderCapabilities.keys {
+                let _nftProviderRef = self.nftProviderCapabilities[collectionUUID]!.borrow()
                     ?? panic("NFT provider couldn't be borrowed! Must be removed.")
                 if _nftProviderRef.uuid == nftProviderRef.uuid {
                     panic("NFT provider capability already exists! Cannot be added.")
@@ -302,7 +302,7 @@ access(all) contract NFTProviderAggregator {
             nftTypeIdentifier: String,
             supplierAccessCapability: Capability<auth(Operate) &Aggregator>
             ) {
-            self.nftWithdrawCapabilities = {}
+            self.nftProviderCapabilities = {}
             self.nftTypeIdentifier = nftTypeIdentifier
             self.supplierAccessCapability = supplierAccessCapability
             emit AggregatorResourceInitialized(nftTypeIdentifier: nftTypeIdentifier)
@@ -341,7 +341,7 @@ access(all) contract NFTProviderAggregator {
         /// Add NFT provider capability to parent Aggregator resource
         ///
         access(Operate) fun addNFTWithdrawCapability(
-            _ cap: Capability<auth(NonFungibleToken.Withdraw) &{NonFungibleToken.Collection}>
+            _ cap: Capability<auth(NonFungibleToken.Withdraw) &{NonFungibleToken.Provider, NonFungibleToken.CollectionPublic}>
             ): UInt64 {
 
             let collectionUUID = self.borrowAuthAggregator().addNFTWithdrawCapability(cap)
@@ -392,7 +392,7 @@ access(all) contract NFTProviderAggregator {
         ///
         access(contract) fun burnCallback() {
             for collectionUUID in self.supplierAddedCollectionUUIDs.keys {
-                // Check collectionUUID is present in the parent Aggregator resource's nftWithdrawCapabilities's
+                // Check collectionUUID is present in the parent Aggregator resource's nftProviderCapabilities's
                 // dictionary in case the manager already removed the capability
                 if self.getCollectionUUIDs().contains(collectionUUID) {
                     self.removeNFTWithdrawCapability(collectionUUID: collectionUUID)

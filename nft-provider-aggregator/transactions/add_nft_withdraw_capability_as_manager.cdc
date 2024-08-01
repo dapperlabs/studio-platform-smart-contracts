@@ -19,7 +19,7 @@ transaction(
     let nftWithdrawCapStoragePath: StoragePath
     let nftCollectionStoragePath: StoragePath
     let aggregatorRef: auth(NFTProviderAggregator.Operate) &NFTProviderAggregator.Aggregator
-    let nftWithdrawCapability: Capability<auth(NonFungibleToken.Withdraw) &{NonFungibleToken.Collection}>
+    let nftWithdrawCapability: Capability<auth(NonFungibleToken.Withdraw) &{NonFungibleToken.Provider, NonFungibleToken.CollectionPublic}>
 
     prepare(
         manager: auth(CopyValue, BorrowValue, SaveValue, GetStorageCapabilityController, IssueStorageCapabilityController) &Account,
@@ -31,7 +31,7 @@ transaction(
             ?? panic("Provided NFT collection storage path has invalid format!")
 
         // Retrieve or create NFT provider capability
-        if let retrievedCap = manager.storage.copy<Capability<auth(NonFungibleToken.Withdraw) &{NonFungibleToken.Collection}>>(
+        if let retrievedCap = manager.storage.copy<Capability<auth(NonFungibleToken.Withdraw) &{NonFungibleToken.Provider, NonFungibleToken.CollectionPublic}>>(
                 from: self.nftWithdrawCapStoragePath) {
             self.nftWithdrawCapability = retrievedCap
         } else {
