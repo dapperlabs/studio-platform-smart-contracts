@@ -1,23 +1,26 @@
 package test
 
 import (
+	"context"
+	"github.com/onflow/flow-emulator/convert"
+	"github.com/rs/zerolog"
 	"io/ioutil"
 	"strings"
 	"testing"
 
 	"github.com/onflow/cadence"
-	emulator "github.com/onflow/flow-emulator"
+	"github.com/onflow/flow-emulator/adapters"
+	emulator "github.com/onflow/flow-emulator/emulator"
 	"github.com/onflow/flow-emulator/types"
 	ftcontracts "github.com/onflow/flow-ft/lib/go/contracts"
 	"github.com/onflow/flow-go-sdk"
+	sdk "github.com/onflow/flow-go-sdk"
 	"github.com/onflow/flow-go-sdk/crypto"
 	sdktemplates "github.com/onflow/flow-go-sdk/templates"
 	"github.com/onflow/flow-go-sdk/test"
 	nftcontracts "github.com/onflow/flow-nft/lib/go/contracts"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-
-	sdk "github.com/onflow/flow-go-sdk"
 )
 
 const (
@@ -33,6 +36,8 @@ var (
 )
 
 type Contracts struct {
+	BurnerAddress       flow.Address
+	ViewResolverAddress flow.Address
 	NFTAddress          flow.Address
 	MetadataViewAddress flow.Address
 	GolazosAddress      flow.Address
@@ -40,74 +45,38 @@ type Contracts struct {
 	FtAddress           flow.Address
 }
 
-func deployNFTContract(t *testing.T, b *emulator.Blockchain) flow.Address {
-	nftCode := nftcontracts.NonFungibleToken()
-	nftAddress, err := b.CreateAccount(nil,
-		[]sdktemplates.Contract{
-			{
-				Name:   nonFungibleTokenName,
-				Source: string(nftCode),
-			},
-		},
-	)
-	require.NoError(t, err)
-
-	_, err = b.CommitBlock()
-	require.NoError(t, err)
-
-	return nftAddress
-}
-
-func deployFTContract(t *testing.T, b *emulator.Blockchain) flow.Address {
-	ftCode := ftcontracts.FungibleToken()
-	ftAddress, err := b.CreateAccount(nil,
-		[]sdktemplates.Contract{
-			{
-				Name:   fungibleTokenName,
-				Source: string(ftCode),
-			},
-		},
-	)
-	require.NoError(t, err)
-
-	_, err = b.CommitBlock()
-	require.NoError(t, err)
-
-	return ftAddress
-}
-
 func GolazosDeployContracts(t *testing.T, b *emulator.Blockchain) Contracts {
+	logger := zerolog.Nop()
+	adapter := adapters.NewSDKAdapter(&logger, b)
+
+	resolverAddress := deploy(t, adapter, "ViewResolver", nftcontracts.ViewResolver(), b.ServiceKey().AccountKey())
+	burnerAddress := deploy(t, adapter, "Burner", readFile(BurnerPath), b.ServiceKey().AccountKey())
+
+	nftCode := nftcontracts.NonFungibleToken(resolverAddress.String())
+	nftAddress := deploy(t, adapter, nonFungibleTokenName, nftCode, b.ServiceKey().AccountKey())
+
+	ftCode := ftcontracts.FungibleToken(resolverAddress.String(), burnerAddress.String())
+	ftAddress := deploy(t, adapter, fungibleTokenName, ftCode, b.ServiceKey().AccountKey())
+
 	accountKeys := test.AccountKeyGenerator()
 
-	nftAddress := deployNFTContract(t, b)
-	ftAddress := deployFTContract(t, b)
-	metadataCode := LoadMetadataViews(ftAddress, nftAddress)
-	metadataViewsAddr, err := b.CreateAccount(nil, []sdktemplates.Contract{
-		{
-			Name:   "MetadataViews",
-			Source: string(metadataCode),
-		},
-	})
-	if !assert.NoError(t, err) {
-		t.Log(err.Error())
-	}
-	_, err = b.CommitBlock()
-	assert.NoError(t, err)
+	metadataCode := nftcontracts.MetadataViews(ftAddress.String(), nftAddress.String(), resolverAddress.String())
+	metadataViewsAddr := deploy(t, adapter, "MetadataViews", metadataCode, b.ServiceKey().AccountKey())
 
 	GolazosAccountKey, GolazosSigner := accountKeys.NewWithSigner()
-	GolazosCode := LoadGolazos(nftAddress, metadataViewsAddr, ftAddress)
-
-	GolazosAddress, err := b.CreateAccount(
-		[]*flow.AccountKey{GolazosAccountKey},
+	golazosAddress, err := adapter.CreateAccount(context.Background(),
+		[]*sdk.AccountKey{GolazosAccountKey},
 		nil,
 	)
 	require.NoError(t, err)
-	GolazosCode = []byte(strings.ReplaceAll(string(GolazosCode), "{{.GolazosAddress}}", GolazosAddress.String()))
 
-	fundAccount(t, b, GolazosAddress, defaultAccountFunding)
+	GolazosCode := LoadGolazos(nftAddress, metadataViewsAddr, ftAddress, resolverAddress)
+	GolazosCode = []byte(strings.ReplaceAll(string(GolazosCode), royaltyAddressPlaceholder, "0x"+golazosAddress.String()))
+
+	//fundAccount(t, b, GolazosAddress, defaultAccountFunding)
 
 	tx1 := sdktemplates.AddAccountContract(
-		GolazosAddress,
+		golazosAddress,
 		sdktemplates.Contract{
 			Name:   "Golazos",
 			Source: string(GolazosCode),
@@ -115,7 +84,7 @@ func GolazosDeployContracts(t *testing.T, b *emulator.Blockchain) Contracts {
 	)
 
 	tx1.
-		SetGasLimit(100).
+		SetComputeLimit(100).
 		SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
 		SetPayer(b.ServiceKey().Address)
 
@@ -124,7 +93,7 @@ func GolazosDeployContracts(t *testing.T, b *emulator.Blockchain) Contracts {
 
 	signAndSubmit(
 		t, b, tx1,
-		[]flow.Address{b.ServiceKey().Address, GolazosAddress},
+		[]flow.Address{b.ServiceKey().Address, golazosAddress},
 		[]crypto.Signer{signer, GolazosSigner},
 		false,
 	)
@@ -133,9 +102,11 @@ func GolazosDeployContracts(t *testing.T, b *emulator.Blockchain) Contracts {
 	require.NoError(t, err)
 
 	return Contracts{
+		burnerAddress,
+		resolverAddress,
 		nftAddress,
 		metadataViewsAddr,
-		GolazosAddress,
+		golazosAddress,
 		GolazosSigner,
 		ftAddress,
 	}
@@ -143,7 +114,7 @@ func GolazosDeployContracts(t *testing.T, b *emulator.Blockchain) Contracts {
 
 // newEmulator returns a emulator object for testing
 func newEmulator() *emulator.Blockchain {
-	b, err := emulator.NewBlockchain()
+	b, err := emulator.New(emulator.WithStorageLimitEnabled(false))
 	if err != nil {
 		panic(err)
 	}
@@ -189,7 +160,8 @@ func submit(
 	shouldRevert bool,
 ) *types.TransactionResult {
 	// submit the signed transaction
-	err := b.AddTransaction(*tx)
+	flowTx := convert.SDKTransactionToFlow(*tx)
+	err := b.AddTransaction(*flowTx)
 	require.NoError(t, err)
 
 	result, err := b.ExecuteNextTransaction()
@@ -243,7 +215,10 @@ func createAccount(t *testing.T, b *emulator.Blockchain) (sdk.Address, crypto.Si
 	accountKeys := test.AccountKeyGenerator()
 	accountKey, signer := accountKeys.NewWithSigner()
 
-	address, err := b.CreateAccount([]*sdk.AccountKey{accountKey}, nil)
+	logger := zerolog.Nop()
+	adapter := adapters.NewSDKAdapter(&logger, b)
+
+	address, err := adapter.CreateAccount(context.Background(), []*sdk.AccountKey{accountKey}, nil)
 	require.NoError(t, err)
 
 	return address, signer
@@ -258,7 +233,7 @@ func setupGolazos(
 ) {
 	tx := flow.NewTransaction().
 		SetScript(loadGolazosSetupAccountTransaction(contracts)).
-		SetGasLimit(100).
+		SetComputeLimit(100).
 		SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
 		SetPayer(b.ServiceKey().Address).
 		AddAuthorizer(userAddress)
@@ -282,7 +257,7 @@ func setupAccount(
 	contracts Contracts,
 ) (sdk.Address, crypto.Signer) {
 	setupGolazos(t, b, address, signer, contracts)
-	fundAccount(t, b, address, defaultAccountFunding)
+	//fundAccount(t, b, address, defaultAccountFunding)
 
 	return address, signer
 }
@@ -297,4 +272,26 @@ func metadataDict(dict map[string]string) cadence.Dictionary {
 	}
 
 	return cadence.NewDictionary(pairs)
+}
+
+// Deploy a contract to a new account with the specified name, code, and keys
+func deploy(
+	t *testing.T,
+	adapter *adapters.SDKAdapter,
+	name string,
+	code []byte,
+	keys ...*flow.AccountKey,
+) flow.Address {
+	address, err := adapter.CreateAccount(context.Background(),
+		keys,
+		[]sdktemplates.Contract{
+			{
+				Name:   name,
+				Source: string(code),
+			},
+		},
+	)
+	assert.NoError(t, err)
+
+	return address
 }

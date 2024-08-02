@@ -1,12 +1,12 @@
-import NonFungibleToken from "../../contracts/NonFungibleToken.cdc"
-import Golazos from "../../contracts/Golazos.cdc"
+import NonFungibleToken from "NonFungibleToken"
+import Golazos from "Golazos"
 
 // This script returns an array of all the NFT IDs in an account's collection.
 
-pub fun main(address: Address): [UInt64] {
+access(all) fun main(address: Address): [UInt64] {
     let account = getAccount(address)
 
-    let collectionRef = account.getCapability(Golazos.CollectionPublicPath).borrow<&{NonFungibleToken.CollectionPublic}>()
+    let collectionRef = account.capabilities.borrow<&Golazos.Collection>(Golazos.CollectionPublicPath)
         ?? panic("Could not borrow capability from public collection")
     
     return collectionRef.getIDs()

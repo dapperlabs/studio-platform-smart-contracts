@@ -1,9 +1,9 @@
-import Golazos from "../../contracts/Golazos.cdc"
+import Golazos from "Golazos"
 
 // This script returns all the Edition structs.
 // This will be *long*.
 
-pub fun main(): [Golazos.EditionData] {
+access(all) fun main(): [Golazos.EditionData] {
     let editions: [Golazos.EditionData] = []
     var id: UInt64 = 1
     // Note < , as nextEditionID has not yet been used

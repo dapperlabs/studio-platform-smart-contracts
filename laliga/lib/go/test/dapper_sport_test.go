@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"testing"
 
-	emulator "github.com/onflow/flow-emulator"
+	emulator "github.com/onflow/flow-emulator/emulator"
 	"github.com/onflow/flow-go-sdk"
 	"github.com/stretchr/testify/assert"
 )
@@ -674,15 +674,11 @@ func testMintMomentNFT(
 		)
 		assert.Equal(t, "GolazosNFTCollection", nftCollectionDataView.StoragePath)
 		assert.Equal(t, "GolazosNFTCollection", nftCollectionDataView.PublicPath)
-		assert.Equal(t, "GolazosCollection", nftCollectionDataView.ProviderPath)
-		assert.Equal(t, fmt.Sprintf("&A.%s.Golazos.Collection{A.%s.Golazos.MomentNFTCollectionPublic}",
-			contracts.GolazosAddress.Hex(), contracts.GolazosAddress.Hex()), nftCollectionDataView.PublicCollection)
-		assert.Equal(t, fmt.Sprintf("&A.%s.Golazos.Collection{A.%s.Golazos.MomentNFTCollectionPublic,A.%s.NonFungibleToken.CollectionPublic,A.%s.NonFungibleToken.Receiver,A.%s.MetadataViews.ResolverCollection}",
-			contracts.GolazosAddress.Hex(), contracts.GolazosAddress.Hex(), contracts.NFTAddress.Hex(), contracts.NFTAddress.Hex(), contracts.MetadataViewAddress.Hex()),
+		assert.Equal(t, fmt.Sprintf("&A.%s.Golazos.Collection",
+			contracts.GolazosAddress.Hex()), nftCollectionDataView.PublicCollection)
+		assert.Equal(t, fmt.Sprintf("&A.%s.Golazos.Collection",
+			contracts.GolazosAddress.Hex()),
 			nftCollectionDataView.PublicLinkedType)
-		assert.Equal(t, fmt.Sprintf("&A.%s.Golazos.Collection{A.%s.Golazos.MomentNFTCollectionPublic,A.%s.NonFungibleToken.CollectionPublic,A.%s.NonFungibleToken.Provider,A.%s.MetadataViews.ResolverCollection}",
-			contracts.GolazosAddress.Hex(), contracts.GolazosAddress.Hex(), contracts.NFTAddress.Hex(), contracts.NFTAddress.Hex(), contracts.MetadataViewAddress.Hex()),
-			nftCollectionDataView.ProviderLinkedType)
 
 		traitsView := getMomentNFTTraitsMetadataView(
 			t,
