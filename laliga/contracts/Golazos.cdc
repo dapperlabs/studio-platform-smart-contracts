@@ -142,13 +142,11 @@ access(all) contract Golazos: NonFungibleToken {
         /// initializer
         //
         view init (id: UInt64) {
-            if let series = &Golazos.seriesByID[id] as &Golazos.Series?{
-                self.id = series.id
-                self.name = series.name
-                self.active = series.active
-            } else {
-                panic("series does not exist")
-            }
+            let series = &Golazos.seriesByID[id] as &Golazos.Series?
+                ?? panic("series does not exist")
+            self.id = series.id
+            self.name = series.name
+            self.active = series.active
             
         }
     }
@@ -245,15 +243,13 @@ access(all) contract Golazos: NonFungibleToken {
         /// initializer
         ///
         view init (id: UInt64) {
-            if let set = &Golazos.setByID[id] as &Golazos.Set?{
-                self.id = id
-                self.name = set.name
-                self.locked = set.locked
-                self.setPlaysInEditions = set.getSetPlaysInEditions()
-            } else {
-                panic("set does not exist")
-            }
-            
+            let set = &Golazos.setByID[id] as &Golazos.Set?
+                ?? panic("set does not exist")
+
+            self.id = id
+            self.name = set.name
+            self.locked = set.locked
+            self.setPlaysInEditions = set.getSetPlaysInEditions()
         }
     }
 
@@ -359,13 +355,12 @@ access(all) contract Golazos: NonFungibleToken {
         /// initializer
         ///
         view init (id: UInt64) {
-            if let play = &Golazos.playByID[id] as &Golazos.Play? {
-                self.id = id
-                self.classification = play.classification
-                self.metadata = play.getMetadata()
-            } else {
-                panic("play does not exist")
-            }
+            let play = &Golazos.playByID[id] as &Golazos.Play?
+                ?? panic("play does not exist")
+
+            self.id = id
+            self.classification = play.classification
+            self.metadata = play.getMetadata()
         }
     }
 
@@ -427,18 +422,15 @@ access(all) contract Golazos: NonFungibleToken {
         /// initializer
         ///
         view init (id: UInt64) {
-            if let edition = &Golazos.editionByID[id] as &Golazos.Edition?{
-                self.id = id
-                self.seriesID = edition.seriesID
-                self.playID = edition.playID
-                self.setID = edition.setID
-                self.maxMintSize = edition.maxMintSize
-                self.tier = edition.tier
-                self.numMinted = edition.numMinted
-            } else {
-                panic("edition does not exist")
-            }
-            
+            let edition = &Golazos.editionByID[id] as &Golazos.Edition?
+                ?? panic("edition does not exist")
+            self.id = id
+            self.seriesID = edition.seriesID
+            self.playID = edition.playID
+            self.setID = edition.setID
+            self.maxMintSize = edition.maxMintSize
+            self.tier = edition.tier
+            self.numMinted = edition.numMinted
         }
     }
 
@@ -892,7 +884,7 @@ access(all) contract Golazos: NonFungibleToken {
 
         /// borrowMomentNFT gets a reference to an NFT in the collection
         ///
-        access(all) fun borrowMomentNFT(id: UInt64): &Golazos.NFT? {
+        access(all) view fun borrowMomentNFT(id: UInt64): &Golazos.NFT? {
             return self.borrowNFT(id) as! &Golazos.NFT?
         }
 
@@ -926,11 +918,9 @@ access(all) contract Golazos: NonFungibleToken {
 
     /// An interface containing the Admin function that allows minting NFTs
     ///
+    /// This is no longer used for defining access control anymore.
+    /// Keeping this because removing it is not a valid change for contract update
     access(all) resource interface NFTMinter {
-        // Mint a single NFT
-        // The Edition for the given ID must already exist
-        //
-        access(all) fun mintNFT(editionID: UInt64): @Golazos.NFT
     }
 
     /// A resource that allows managing metadata and minting NFTs

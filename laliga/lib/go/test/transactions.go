@@ -12,54 +12,6 @@ import (
 )
 
 // ------------------------------------------------------------
-// Setup
-// ------------------------------------------------------------
-//func fundAccount(
-//	t *testing.T,
-//	b *emulator.Blockchain,
-//	receiverAddress flow.Address,
-//	amount string,
-//) {
-//	fttemplates.Environment{
-//		Network:                           "",
-//		FungibleTokenAddress:              ftAddress.String(),
-//		ExampleTokenAddress:               "",
-//		TokenForwardingAddress:            "",
-//		PrivateForwardingAddress:          "",
-//		MetadataViewsAddress:              "",
-//		FungibleTokenMetadataViewsAddress: "",
-//		ViewResolverAddress:               "",
-//		BurnerAddress:                     "",
-//		SwitchboardAddress:                "",
-//	}
-//	script := fttemplates.GenerateMintTokensScript(
-//		ftAddress,
-//		flowTokenAddress,
-//		flowTokenName,
-//	)
-//
-//	tx := flow.NewTransaction().
-//		SetScript(script).
-//		SetGasLimit(100).
-//		SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
-//		SetPayer(b.ServiceKey().Address).
-//		AddAuthorizer(b.ServiceKey().Address)
-//
-//	tx.AddArgument(cadence.NewAddress(receiverAddress))
-//	tx.AddArgument(cadenceUFix64(amount))
-//
-//	signer, err := b.ServiceKey().Signer()
-//	require.NoError(t, err)
-//
-//	signAndSubmit(
-//		t, b, tx,
-//		[]flow.Address{b.ServiceKey().Address},
-//		[]crypto.Signer{signer},
-//		false,
-//	)
-//}
-
-// ------------------------------------------------------------
 // Series
 // ------------------------------------------------------------
 func createSeries(
