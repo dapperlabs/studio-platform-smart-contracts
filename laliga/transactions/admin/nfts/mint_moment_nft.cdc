@@ -4,12 +4,12 @@ import Golazos from "Golazos"
 transaction(recipientAddress: Address, editionID: UInt64) {
     
     // local variable for storing the minter reference
-    let minter: &Golazos.Admin
+    let minter: auth(Golazos.Mint) &Golazos.Admin
     let recipient: &Golazos.Collection
 
     prepare(signer: auth(BorrowValue) &Account) {
         // borrow a reference to the NFTMinter resource in storage
-        self.minter = signer.storage.borrow<&Golazos.Admin>(from: Golazos.AdminStoragePath)
+        self.minter = signer.storage.borrow<auth(Golazos.Mint) &Golazos.Admin>(from: Golazos.AdminStoragePath)
             ?? panic("Could not borrow a reference to the NFT minter")
 
         // get the recipients public account object

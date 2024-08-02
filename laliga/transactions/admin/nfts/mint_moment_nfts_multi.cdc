@@ -3,7 +3,7 @@ import Golazos from "Golazos"
 transaction(recipientAddress: Address, editionIDs: [UInt64], counts: [UInt64]) {
     
     // local variable for storing the minter reference
-    let minter: &Golazos.Admin
+    let minter: auth(Golazos.Mint) &Golazos.Admin
     let recipient: &Golazos.Collection
 
     prepare(signer: auth(BorrowValue) &Account) {
@@ -15,7 +15,7 @@ transaction(recipientAddress: Address, editionIDs: [UInt64], counts: [UInt64]) {
         let recipientAccount = getAccount(recipientAddress)
 
         // borrow a public reference to the receivers collection
-        self.recipient = recipientAccount.capabilities.borrow<&Golazos.Collection>(Golazos.CollectionPublicPath)
+        self.recipient = recipientAccount.capabilities.borrow<auth(Golazos.Mint) &Golazos.Collection>(Golazos.CollectionPublicPath)
             ?? panic("Could not borrow a reference to the collection receiver")
     }
 

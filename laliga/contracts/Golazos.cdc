@@ -780,17 +780,8 @@ access(all) contract Golazos: NonFungibleToken {
 
     /// A public collection interface that allows Moment NFTs to be borrowed
     ///
-    access(all) resource interface MomentNFTCollectionPublic : NonFungibleToken.CollectionPublic {
-        access(all) fun batchDeposit(tokens: @{NonFungibleToken.Collection})
-        access(all) fun borrowMomentNFT(id: UInt64): &Golazos.NFT? {
-            // If the result isn't nil, the id of the returned reference
-            // should be the same as the argument to the function
-            post {
-                (result == nil) || (result?.id == id):
-                    "Cannot borrow Moment NFT reference: The ID of the returned reference is incorrect"
-            }
-        }
-    }
+    /// Deprecated: This is no longer used for defining access control anymore.
+    access(all) resource interface MomentNFTCollectionPublic : NonFungibleToken.CollectionPublic {}
 
     /// An NFT Collection
     ///
@@ -916,6 +907,12 @@ access(all) contract Golazos: NonFungibleToken {
     // Admin
     //------------------------------------------------------------
 
+     /// Entitlement that grants the ability to mint Golazos NFTs
+    access(all) entitlement Mint
+
+    /// Entitlement that grants the ability to operate admin functions
+    access(all) entitlement Operate
+
     /// An interface containing the Admin function that allows minting NFTs
     ///
     /// This is no longer used for defining access control anymore.
@@ -928,7 +925,7 @@ access(all) contract Golazos: NonFungibleToken {
     access(all) resource Admin: NFTMinter {
         /// Borrow a Series
         ///
-        access(all) view fun borrowSeries(id: UInt64): &Golazos.Series {
+        access(self) view fun borrowSeries(id: UInt64): &Golazos.Series {
             pre {
                 Golazos.seriesByID[id] != nil: "Cannot borrow series, no such id"
             }
@@ -938,7 +935,7 @@ access(all) contract Golazos: NonFungibleToken {
 
         /// Borrow a Set
         ///
-        access(all) view fun borrowSet(id: UInt64): &Golazos.Set {
+        access(self) view fun borrowSet(id: UInt64): &Golazos.Set {
             pre {
                 Golazos.setByID[id] != nil: "Cannot borrow Set, no such id"
             }
@@ -948,7 +945,7 @@ access(all) contract Golazos: NonFungibleToken {
 
         /// Borrow a Play
         ///
-        access(all) view fun borrowPlay(id: UInt64): &Golazos.Play {
+        access(self) view fun borrowPlay(id: UInt64): &Golazos.Play {
             pre {
                 Golazos.playByID[id] != nil: "Cannot borrow Play, no such id"
             }
@@ -958,7 +955,7 @@ access(all) contract Golazos: NonFungibleToken {
 
         /// Borrow an Edition
         ///
-        access(all) view fun borrowEdition(id: UInt64): &Golazos.Edition {
+        access(self) view fun borrowEdition(id: UInt64): &Golazos.Edition {
             pre {
                 Golazos.editionByID[id] != nil: "Cannot borrow edition, no such id"
             }
@@ -968,7 +965,7 @@ access(all) contract Golazos: NonFungibleToken {
 
         /// Create a Series
         ///
-        access(all) fun createSeries(name: String): UInt64 {
+        access(Operate) fun createSeries(name: String): UInt64 {
             // Create and store the new series
             let series <- create Golazos.Series(
                 name: name,
@@ -982,7 +979,7 @@ access(all) contract Golazos: NonFungibleToken {
 
         /// Close a Series
         ///
-        access(all) fun closeSeries(id: UInt64): UInt64 {
+        access(Operate) fun closeSeries(id: UInt64): UInt64 {
             if let series = &Golazos.seriesByID[id] as &Golazos.Series? {
                 series.close()
                 return series.id
@@ -992,7 +989,7 @@ access(all) contract Golazos: NonFungibleToken {
 
         /// Create a Set
         ///
-        access(all) fun createSet(name: String): UInt64 {
+        access(Operate) fun createSet(name: String): UInt64 {
             // Create and store the new set
             let set <- create Golazos.Set(
                 name: name,
@@ -1006,7 +1003,7 @@ access(all) contract Golazos: NonFungibleToken {
 
         /// Locks a Set
         ///
-        access(all) fun lockSet(id: UInt64): UInt64 {
+        access(Operate) fun lockSet(id: UInt64): UInt64 {
             if let set = &Golazos.setByID[id] as &Golazos.Set? {
                 set.lock()
                 return set.id
@@ -1016,7 +1013,7 @@ access(all) contract Golazos: NonFungibleToken {
 
         /// Create a Play
         ///
-        access(all) fun createPlay(classification: String, metadata: {String: String}): UInt64 {
+        access(Operate) fun createPlay(classification: String, metadata: {String: String}): UInt64 {
             // Create and store the new play
             let play <- create Golazos.Play(
                 classification: classification,
@@ -1031,7 +1028,7 @@ access(all) contract Golazos: NonFungibleToken {
 
         /// Create an Edition
         ///
-        access(all) fun createEdition(
+        access(Operate) fun createEdition(
             seriesID: UInt64,
             setID: UInt64,
             playID: UInt64,
@@ -1052,7 +1049,7 @@ access(all) contract Golazos: NonFungibleToken {
 
         /// Close an Edition
         ///
-        access(all) fun closeEdition(id: UInt64): UInt64 {
+        access(Operate) fun closeEdition(id: UInt64): UInt64 {
             if let edition = &Golazos.editionByID[id] as &Golazos.Edition? {
                 edition.close()
                 return edition.id
@@ -1063,7 +1060,7 @@ access(all) contract Golazos: NonFungibleToken {
         /// Mint a single NFT
         /// The Edition for the given ID must already exist
         ///
-        access(all) fun mintNFT(editionID: UInt64): @Golazos.NFT {
+        access(Mint) fun mintNFT(editionID: UInt64): @Golazos.NFT {
             pre {
                 // Make sure the edition we are creating this NFT in exists
                 Golazos.editionByID.containsKey(editionID): "No such EditionID"
