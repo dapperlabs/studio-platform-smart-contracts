@@ -1,6 +1,6 @@
-import NonFungibleToken from "../contracts/NonFungibleToken.cdc"
-import ExampleNFT from "../contracts/ExampleNFT.cdc"
-import NFTProviderAggregator from "../contracts/NFTProviderAggregator.cdc"
+import NonFungibleToken from "NonFungibleToken"
+import ExampleNFT from "ExampleNFT"
+import NFTProviderAggregator from "NFTProviderAggregator"
 
 /// Transaction signed by a manager account to transfer a NFT from aggregated NFT provider
 /// to the recipient's collection.
@@ -10,23 +10,22 @@ import NFTProviderAggregator from "../contracts/NFTProviderAggregator.cdc"
 ///
 transaction(recipient: Address, withdrawID: UInt64) {
 
-    let depositRef: &AnyResource{NonFungibleToken.CollectionPublic}
-    let aggregatorRef: &NFTProviderAggregator.Aggregator
+    let depositRef: &{NonFungibleToken.CollectionPublic}
+    let aggregatorRef: auth(NonFungibleToken.Withdraw) &NFTProviderAggregator.Aggregator
 
     prepare(
-        manager: AuthAccount,
+        manager: auth(BorrowValue) &Account,
     ) {
         // Get recipient account
         let recipient = getAccount(recipient)
 
         // Borrow a public reference to the receivers collection
         self.depositRef = recipient
-            .getCapability(ExampleNFT.CollectionPublicPath)!
-            .borrow<&AnyResource{NonFungibleToken.CollectionPublic}>()!
+            .capabilities.borrow<&{NonFungibleToken.CollectionPublic}>(ExampleNFT.CollectionPublicPath)!
 
         // Create reference to Aggregator
-        self.aggregatorRef = manager.borrow<&NFTProviderAggregator.Aggregator>(
-            from: NFTProviderAggregator.AggregatorStoragePath)!    
+        self.aggregatorRef = manager.storage.borrow<auth(NonFungibleToken.Withdraw) &NFTProviderAggregator.Aggregator>(
+            from: NFTProviderAggregator.AggregatorStoragePath)!
     }
 
     execute {
