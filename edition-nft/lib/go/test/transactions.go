@@ -1,11 +1,11 @@
 package test
 
 import (
+	"github.com/stretchr/testify/assert"
 	"testing"
 
 	"github.com/onflow/cadence"
-	emulator "github.com/onflow/flow-emulator"
-	fttemplates "github.com/onflow/flow-ft/lib/go/templates"
+	emulator "github.com/onflow/flow-emulator/emulator"
 	"github.com/onflow/flow-go-sdk"
 	"github.com/onflow/flow-go-sdk/crypto"
 )
@@ -13,35 +13,6 @@ import (
 //------------------------------------------------------------
 // Setup
 //------------------------------------------------------------
-func fundAccount(
-	t *testing.T,
-	b *emulator.Blockchain,
-	receiverAddress flow.Address,
-	amount string,
-) {
-	script := fttemplates.GenerateMintTokensScript(
-		ftAddress,
-		flowTokenAddress,
-		flowTokenName,
-	)
-
-	tx := flow.NewTransaction().
-		SetScript(script).
-		SetGasLimit(100).
-		SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
-		SetPayer(b.ServiceKey().Address).
-		AddAuthorizer(b.ServiceKey().Address)
-
-	tx.AddArgument(cadence.NewAddress(receiverAddress))
-	tx.AddArgument(cadenceUFix64(amount))
-
-	signAndSubmit(
-		t, b, tx,
-		[]flow.Address{b.ServiceKey().Address},
-		[]crypto.Signer{b.ServiceKey().Signer()},
-		false,
-	)
-}
 
 func createEdition(
 	t *testing.T,
@@ -58,10 +29,13 @@ func createEdition(
 		AddAuthorizer(contracts.EditionNFTAddress)
 	tx.AddArgument(metadataDict(metadata))
 
+	signer, err := b.ServiceKey().Signer()
+	assert.NoError(t, err)
+
 	signAndSubmit(
 		t, b, tx,
 		[]flow.Address{b.ServiceKey().Address, contracts.EditionNFTAddress},
-		[]crypto.Signer{b.ServiceKey().Signer(), contracts.EditionNFTSigner},
+		[]crypto.Signer{signer, contracts.EditionNFTSigner},
 		shouldRevert,
 	)
 }
@@ -81,10 +55,13 @@ func closeEdition(
 		AddAuthorizer(contracts.EditionNFTAddress)
 	tx.AddArgument(cadence.NewUInt64(editionID))
 
+	signer, err := b.ServiceKey().Signer()
+	assert.NoError(t, err)
+
 	signAndSubmit(
 		t, b, tx,
 		[]flow.Address{b.ServiceKey().Address, contracts.EditionNFTAddress},
-		[]crypto.Signer{b.ServiceKey().Signer(), contracts.EditionNFTSigner},
+		[]crypto.Signer{signer, contracts.EditionNFTSigner},
 		shouldRevert,
 	)
 }
@@ -106,10 +83,13 @@ func mintEditionNFT(
 	tx.AddArgument(cadence.BytesToAddress(recipientAddress.Bytes()))
 	tx.AddArgument(cadence.NewUInt64(editionID))
 
+	signer, err := b.ServiceKey().Signer()
+	assert.NoError(t, err)
+
 	signAndSubmit(
 		t, b, tx,
 		[]flow.Address{b.ServiceKey().Address, contracts.EditionNFTAddress},
-		[]crypto.Signer{b.ServiceKey().Signer(), contracts.EditionNFTSigner},
+		[]crypto.Signer{signer, contracts.EditionNFTSigner},
 		shouldRevert,
 	)
 }

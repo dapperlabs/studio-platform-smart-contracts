@@ -1,8 +1,8 @@
-import EditionNFT from "../../contracts/EditionNFT.cdc"
+import EditionNFT from "EditionNFT"
 
 // This scripts returns the number of EditionNFT currently in existence.
 
-pub fun main(): UInt64 {    
+access(all) fun main(): UInt64 {    
     return EditionNFT.totalSupply
 }
 

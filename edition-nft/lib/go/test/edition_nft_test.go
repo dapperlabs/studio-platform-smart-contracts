@@ -4,14 +4,14 @@ import (
 	"fmt"
 	"testing"
 
-	emulator "github.com/onflow/flow-emulator"
+	emulator "github.com/onflow/flow-emulator/emulator"
 	"github.com/onflow/flow-go-sdk"
 	"github.com/stretchr/testify/assert"
 )
 
-//------------------------------------------------------------
+// ------------------------------------------------------------
 // Setup
-//------------------------------------------------------------
+// ------------------------------------------------------------
 func TestEditionNFTDeployContracts(t *testing.T) {
 	b := newEmulator()
 	EditionNFTDeployContracts(t, b)
@@ -34,9 +34,9 @@ func TestEditionNFTSetupAccount(t *testing.T) {
 	})
 }
 
-//------------------------------------------------------------
+// ------------------------------------------------------------
 // Edition
-//------------------------------------------------------------
+// ------------------------------------------------------------
 func TestCreateEdition(t *testing.T) {
 	b := newEmulator()
 	contracts := EditionNFTDeployContracts(t, b)
