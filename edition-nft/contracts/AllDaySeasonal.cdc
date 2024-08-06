@@ -23,7 +23,7 @@ access(all) contract AllDaySeasonal: NonFungibleToken {
     // Events
     //------------------------------------------------------------
 
-    access(all) view fun RoyaltyAddress() : Address { return 0xf8d6e0586b0a20c7 }
+    access(all) view fun RoyaltyAddress() : Address { return ALLDAYNFTADDRESS }
 
     // Contract Events
     //
@@ -235,6 +235,7 @@ access(all) contract AllDaySeasonal: NonFungibleToken {
                 Type<MetadataViews.Editions>(),
                 Type<MetadataViews.NFTCollectionData>(),
                 Type<MetadataViews.Traits>(),
+                Type<MetadataViews.ExternalURL>(),
                 Type<MetadataViews.NFTCollectionDisplay>(),
                 Type<MetadataViews.Royalties>()
             ]
@@ -263,12 +264,15 @@ access(all) contract AllDaySeasonal: NonFungibleToken {
                         editionList
                     )
 
-                
                 case Type<MetadataViews.NFTCollectionData>():
                     return AllDaySeasonal.resolveContractView(resourceType: nil, viewType: Type<MetadataViews.NFTCollectionData>())
 
                 case Type<MetadataViews.Traits>():
                     return MetadataViews.dictToTraits(dict: self.getTraits(), excludedNames: nil)
+
+                case Type<MetadataViews.ExternalURL>():
+                    return MetadataViews.ExternalURL("https://nflallday.com")
+
                 case Type<MetadataViews.NFTCollectionDisplay>():
                     return AllDaySeasonal.resolveContractView(resourceType: nil, viewType: Type<MetadataViews.NFTCollectionDisplay>())
 
