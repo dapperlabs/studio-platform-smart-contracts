@@ -1,11 +1,16 @@
 package test
 
 import (
+	"context"
+	"github.com/onflow/flow-emulator/adapters"
+	"github.com/onflow/flow-emulator/convert"
+	ftcontracts "github.com/onflow/flow-ft/lib/go/contracts"
+	"github.com/rs/zerolog"
 	"io/ioutil"
 	"testing"
 
 	"github.com/onflow/cadence"
-	emulator "github.com/onflow/flow-emulator"
+	emulator "github.com/onflow/flow-emulator/emulator"
 	"github.com/onflow/flow-go-sdk"
 	"github.com/onflow/flow-go-sdk/crypto"
 	sdktemplates "github.com/onflow/flow-go-sdk/templates"
@@ -20,6 +25,7 @@ import (
 const (
 	flowTokenName         = "FlowToken"
 	nonFungibleTokenName  = "NonFungibleToken"
+	fungibleTokenName     = "FungibleToken"
 	defaultAccountFunding = "1000.0"
 )
 
@@ -29,78 +35,47 @@ var (
 )
 
 type Contracts struct {
-	NFTAddress        flow.Address
-	EditionNFTAddress flow.Address
-	EditionNFTSigner  crypto.Signer
-}
-
-func deployNFTContract(t *testing.T, b *emulator.Blockchain) flow.Address {
-	nftCode := nftcontracts.NonFungibleToken()
-	nftAddress, err := b.CreateAccount(nil,
-		[]sdktemplates.Contract{
-			{
-				Name:   nonFungibleTokenName,
-				Source: string(nftCode),
-			},
-		},
-	)
-	require.NoError(t, err)
-
-	_, err = b.CommitBlock()
-	require.NoError(t, err)
-
-	return nftAddress
+	NFTAddress           flow.Address
+	MetadataViewsAddress flow.Address
+	ViewResolverAddress  flow.Address
+	EditionNFTAddress    flow.Address
+	EditionNFTSigner     crypto.Signer
 }
 
 func EditionNFTDeployContracts(t *testing.T, b *emulator.Blockchain) Contracts {
+	logger := zerolog.Nop()
+	adapter := adapters.NewSDKAdapter(&logger, b)
+
+	resolverAddress := deploy(t, adapter, "ViewResolver", nftcontracts.ViewResolver(), b.ServiceKey().AccountKey())
+	burnerAddress := deploy(t, adapter, "Burner", readFile(BurnerPath), b.ServiceKey().AccountKey())
+
+	nftCode := nftcontracts.NonFungibleToken(resolverAddress.String())
+	nftAddress := deploy(t, adapter, nonFungibleTokenName, nftCode, b.ServiceKey().AccountKey())
+
+	ftCode := ftcontracts.FungibleToken(resolverAddress.String(), burnerAddress.String())
+	ftAddress := deploy(t, adapter, fungibleTokenName, ftCode, b.ServiceKey().AccountKey())
+
 	accountKeys := test.AccountKeyGenerator()
 
-	nftAddress := deployNFTContract(t, b)
+	metadataCode := nftcontracts.MetadataViews(ftAddress.String(), nftAddress.String(), resolverAddress.String())
+	metadataViewsAddr := deploy(t, adapter, "MetadataViews", metadataCode, b.ServiceKey().AccountKey())
 
+	EditionNFTCode := allDaySeasonalContract(nftAddress, metadataViewsAddr, resolverAddress)
 	EditionNFTAccountKey, EditionNFTSigner := accountKeys.NewWithSigner()
-	EditionNFTCode := allDaySeasonalContract(nftAddress)
-
-	EditionNFTAddress, err := b.CreateAccount(
-		[]*flow.AccountKey{EditionNFTAccountKey},
-		nil,
-	)
-	require.NoError(t, err)
-
-	fundAccount(t, b, EditionNFTAddress, defaultAccountFunding)
-
-	tx1 := sdktemplates.AddAccountContract(
-		EditionNFTAddress,
-		sdktemplates.Contract{
-			Name:   "EditionNFT",
-			Source: string(EditionNFTCode),
-		},
-	)
-
-	tx1.
-		SetGasLimit(100).
-		SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
-		SetPayer(b.ServiceKey().Address)
-
-	signAndSubmit(
-		t, b, tx1,
-		[]flow.Address{b.ServiceKey().Address, EditionNFTAddress},
-		[]crypto.Signer{b.ServiceKey().Signer(), EditionNFTSigner},
-		false,
-	)
-
-	_, err = b.CommitBlock()
-	require.NoError(t, err)
+	editionNFTAddress := deploy(t, adapter, "EditionNFT", EditionNFTCode, EditionNFTAccountKey)
 
 	return Contracts{
-		nftAddress,
-		EditionNFTAddress,
-		EditionNFTSigner,
+		NFTAddress:           nftAddress,
+		MetadataViewsAddress: metadataViewsAddr,
+		ViewResolverAddress:  resolverAddress,
+		EditionNFTAddress:    editionNFTAddress,
+		EditionNFTSigner:     EditionNFTSigner,
 	}
 }
 
 // newEmulator returns a emulator object for testing
 func newEmulator() *emulator.Blockchain {
-	b, err := emulator.NewBlockchain()
+	b, err := emulator.New(emulator.WithStorageLimitEnabled(false))
 	if err != nil {
 		panic(err)
 	}
@@ -146,7 +121,8 @@ func submit(
 	shouldRevert bool,
 ) {
 	// submit the signed transaction
-	err := b.AddTransaction(*tx)
+	flowTx := convert.SDKTransactionToFlow(*tx)
+	err := b.AddTransaction(*flowTx)
 	require.NoError(t, err)
 
 	result, err := b.ExecuteNextTransaction()
@@ -199,7 +175,10 @@ func createAccount(t *testing.T, b *emulator.Blockchain) (sdk.Address, crypto.Si
 	accountKeys := test.AccountKeyGenerator()
 	accountKey, signer := accountKeys.NewWithSigner()
 
-	address, err := b.CreateAccount([]*sdk.AccountKey{accountKey}, nil)
+	logger := zerolog.Nop()
+	adapter := adapters.NewSDKAdapter(&logger, b)
+
+	address, err := adapter.CreateAccount(context.Background(), []*sdk.AccountKey{accountKey}, nil)
 	require.NoError(t, err)
 
 	return address, signer
@@ -219,10 +198,13 @@ func setupEditionNFTAccount(
 		SetPayer(b.ServiceKey().Address).
 		AddAuthorizer(userAddress)
 
+	signer, err := b.ServiceKey().Signer()
+	assert.NoError(t, err)
+
 	signAndSubmit(
 		t, b, tx,
 		[]flow.Address{b.ServiceKey().Address, userAddress},
-		[]crypto.Signer{b.ServiceKey().Signer(), userSigner},
+		[]crypto.Signer{signer, userSigner},
 		false,
 	)
 }
@@ -237,4 +219,25 @@ func metadataDict(dict map[string]string) cadence.Dictionary {
 	}
 
 	return cadence.NewDictionary(pairs)
+}
+
+func deploy(
+	t *testing.T,
+	adapter *adapters.SDKAdapter,
+	name string,
+	code []byte,
+	keys ...*flow.AccountKey,
+) flow.Address {
+	address, err := adapter.CreateAccount(context.Background(),
+		keys,
+		[]sdktemplates.Contract{
+			{
+				Name:   name,
+				Source: string(code),
+			},
+		},
+	)
+	assert.NoError(t, err)
+
+	return address
 }

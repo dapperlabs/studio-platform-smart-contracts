@@ -907,7 +907,7 @@ access(all) contract Golazos: NonFungibleToken {
     // Admin
     //------------------------------------------------------------
 
-     /// Entitlement that grants the ability to mint Golazos NFTs
+    /// Entitlement that grants the ability to mint Golazos NFTs
     access(all) entitlement Mint
 
     /// Entitlement that grants the ability to operate admin functions
