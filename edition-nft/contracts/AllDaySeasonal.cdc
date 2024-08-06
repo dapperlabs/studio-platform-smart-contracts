@@ -60,10 +60,6 @@ access(all) contract AllDaySeasonal: NonFungibleToken {
     // Publicly readable contract state
     //------------------------------------------------------------
 
-    // totalSupply
-    // The total number of NFTs that in circulation.
-    //
-    access(all) var totalSupply:        UInt64
 
     // totalEditions
     // The total number of editions that have been created.
@@ -146,7 +142,6 @@ access(all) contract AllDaySeasonal: NonFungibleToken {
             let nft <- create NFT(
                 editionID: self.id,
             )
-            AllDaySeasonal.totalSupply = AllDaySeasonal.totalSupply + 1
             // Keep a running total (you'll notice we used this as the serial number)
             self.numMinted = self.numMinted + 1 as UInt64
 
@@ -544,7 +539,6 @@ access(all) contract AllDaySeasonal: NonFungibleToken {
         self.AdminStoragePath = /storage/AllDaySeasonalAdmin
 
         // Initialize the entity counts
-        self.totalSupply = 0
         self.totalEditions = 0
         self.nextEditionID = 1
 
