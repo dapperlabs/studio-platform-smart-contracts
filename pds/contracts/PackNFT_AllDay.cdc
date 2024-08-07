@@ -3,6 +3,7 @@ import NonFungibleToken from "NonFungibleToken"
 import FungibleToken from "FungibleToken"
 import IPackNFT from "IPackNFT"
 import MetadataViews from "MetadataViews"
+import ViewResolver from "ViewResolver"
 
 /// Contract that defines Pack NFTs.
 ///
@@ -142,7 +143,7 @@ access(all) contract PackNFT: NonFungibleToken, IPackNFT {
 
     /// Resource that defines a Pack NFT.
     ///
-    access(all) resource NFT: NonFungibleToken.NFT, IPackNFT.NFT, IPackNFT.IPackNFTToken, IPackNFT.IPackNFTOwnerOperator {
+    access(all) resource NFT: NonFungibleToken.NFT, ViewResolver.Resolver, IPackNFT.NFT, IPackNFT.IPackNFTToken, IPackNFT.IPackNFTOwnerOperator {
         /// This NFT's unique ID.
         ///
         access(all) let id: UInt64
@@ -283,7 +284,7 @@ access(all) contract PackNFT: NonFungibleToken, IPackNFT {
 
     /// Resource that defines a Collection of Pack NFTs.
     ///
-    access(all) resource Collection: NonFungibleToken.Collection, IPackNFT.IPackNFTCollectionPublic {
+    access(all) resource Collection: NonFungibleToken.Collection, ViewResolver.ResolverCollection, IPackNFT.IPackNFTCollectionPublic {
         /// Dictionary of NFT conforming tokens.
         /// NFT is a resource type with a UInt64 ID field.
         ///
@@ -421,8 +422,8 @@ access(all) contract PackNFT: NonFungibleToken, IPackNFT {
         switch viewType {
             case Type<MetadataViews.NFTCollectionData>():
                 let collectionData = MetadataViews.NFTCollectionData(
-                    storagePath: /storage/exampleNFTCollection,
-                    publicPath: /public/exampleNFTCollection,
+                    storagePath: PackNFT.CollectionStoragePath,
+                    publicPath: PackNFT.CollectionPublicPath,
                     publicCollection: Type<&Collection>(),
                     publicLinkedType: Type<&Collection>(),
                     createEmptyCollectionFunction: (fun(): @{NonFungibleToken.Collection} {
@@ -431,20 +432,28 @@ access(all) contract PackNFT: NonFungibleToken, IPackNFT {
                 )
                 return collectionData
             case Type<MetadataViews.NFTCollectionDisplay>():
-                let media = MetadataViews.Media(
+                let bannerImage = MetadataViews.Media(
                     file: MetadataViews.HTTPFile(
-                        url: "https://assets.website-files.com/5f6294c0c7a8cdd643b1c820/5f6294c0c7a8cda55cb1c936_Flow_Wordmark.svg"
+                        url: "https://assets.nflallday.com/flow/catalogue/NFLAD_BANNER.png"
                     ),
-                    mediaType: "image/svg+xml"
+                    mediaType: "image/png"
+                )
+                let squareImage = MetadataViews.Media(
+                    file: MetadataViews.HTTPFile(
+                        url: "https://assets.nflallday.com/flow/catalogue/NFLAD_SQUARE.png"
+                    ),
+                    mediaType: "image/png"
                 )
                 return MetadataViews.NFTCollectionDisplay(
-                    name: "The Example Collection",
-                    description: "This collection is used as an example to help you develop your next Flow NFT.",
-                    externalURL: MetadataViews.ExternalURL("https://example-nft.onflow.org"),
-                    squareImage: media,
-                    bannerImage: media,
+                    name: "NFL All Day Packs",
+                    description: "Officially Licensed Digital Collectibles Featuring the NFL’s Best Highlights. Buy, Sell and Collect Your Favorite NFL Moments",
+                    externalURL: MetadataViews.ExternalURL("https://nflallday.com/"),
+                    squareImage: squareImage,
+                    bannerImage: bannerImage,
                     socials: {
-                        "twitter": MetadataViews.ExternalURL("https://twitter.com/flow_blockchain")
+                            "instagram": MetadataViews.ExternalURL("https://www.instagram.com/nflallday/"),
+                            "twitter": MetadataViews.ExternalURL("https://twitter.com/NFLAllDay"),
+                            "discord": MetadataViews.ExternalURL("https://discord.com/invite/5K6qyTzj2k")
                     }
                 )
         }
