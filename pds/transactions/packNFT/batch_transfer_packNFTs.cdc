@@ -1,26 +1,30 @@
-import NonFungibleToken from 0x{{.NonFungibleTokenAddress}}
-import {{.DapperSportContract}} from 0x{{.DapperSportAddress}}
+import NonFungibleToken from "NonFungibleToken"
+import PackNFT from "PackNFT"
+import DapperStorageRent from "DapperStorageRent"
 
 // This transaction transfers NFL NFTs from one account to another.
 
-transaction(recipientAddress: [Address], nftIDs: [UInt64]) {
-    let collectionRef: &{{.DapperSportContract}}.Collection
+transaction(recipients: [Address], withdrawIDs: [UInt64]) {
+    // Reference to the withdrawer's collection
+    let withdrawRef: auth(NonFungibleToken.Withdraw) &PackNFT.Collection
 
-    prepare(signer: AuthAccount) {
+    prepare(signer: auth(BorrowValue) &Account) {
         // borrow a reference to the signer's NFT collection
-        self.collectionRef = signer
-            .borrow<&{{.DapperSportContract}}.Collection>(from: {{.DapperSportContract}}.CollectionStoragePath)
-            ?? panic("Could not borrow a reference to the owner's collection")
+        self.withdrawRef = signer.storage.borrow<
+            auth(NonFungibleToken.Withdraw) &PackNFT.Collection>(from: PackNFT.CollectionStoragePath)!
     }
 
     execute {
         var i = 0
-        while i < nftIDs.length {
+        while i < withdrawIDs.length {
             // borrow a public reference to the receiver collection
-            let depositRef = getAccount(recipientAddress[i])
-                .getCapability({{.DapperSportContract}}.CollectionPublicPath).borrow<&{NonFungibleToken.CollectionPublic}>()!
+            let depositRef = getAccount(recipients[i])
+                .capabilities.borrow<&PackNFT.Collection>(PackNFT.CollectionPublicPath)!
 
-            depositRef.deposit(token: <- self.collectionRef.withdraw(withdrawID: nftIDs[i]))
+            // try to refill the receiver's storage
+            DapperStorageRent.tryRefill(recipients[i])
+
+            depositRef.deposit(token: <- self.withdrawRef.withdraw(withdrawID: withdrawIDs[i]))
             i = i + 1
         }
     }
