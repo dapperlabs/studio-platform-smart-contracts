@@ -102,7 +102,7 @@ func testLockNFT(
 	nftID uint64,
 	shouldRevert bool,
 ) {
-	var duration uint64 = 10
+	var duration uint64 = 10000000000
 	lockedAt, lockedUntil := lockNFT(
 		t,
 		b,

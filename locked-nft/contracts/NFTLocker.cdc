@@ -81,7 +81,7 @@ access(all) contract NFTLocker {
     access(all) view fun canUnlockToken(id: UInt64, nftType: Type): Bool {
         if let lockedTokens = NFTLocker.lockedTokens[nftType] {
             if let lockedToken = lockedTokens[id] {
-                if lockedToken.lockedUntil < UInt64(getCurrentBlock().timestamp) {
+                if lockedToken.lockedUntil <= UInt64(getCurrentBlock().timestamp) {
                     return true
                 }
             }
