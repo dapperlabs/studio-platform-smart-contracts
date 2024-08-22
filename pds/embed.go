@@ -14,6 +14,13 @@ var Scripts embed.FS
 var Contracts embed.FS
 
 var (
+	// ----- Scripts ----------------------------
+
+	//go:embed scripts/packNFT/has_packNFT_collection.cdc
+	HasPackNFTCollection []byte
+
+	// ----- Transactions -----------------------
+
 	//go:embed transactions/packNFT/batch_transfer_packNFTs.cdc
 	PackNFTBatchTransferPackNFT []byte
 	//go:embed transactions/packNFT/transfer_packNFT.cdc
