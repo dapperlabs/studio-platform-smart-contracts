@@ -20,6 +20,8 @@ var (
 	PackNFTTransferPackNFT []byte
 	//go:embed transactions/pds/mint_packNFT.cdc
 	PDSMintPackNFT []byte
+	//go:embed transactions/pds/mint_packNFTs.cdc
+	PDSMintPackNFTs []byte
 	//go:embed transactions/pds/open_packNFT.cdc
 	PDSOpenPackNFT []byte
 	//go:embed transactions/pds/reveal_packNFT.cdc
