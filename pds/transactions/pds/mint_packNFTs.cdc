@@ -1,7 +1,7 @@
 import PDS from "PDS"
 import PackNFT from "PackNFT"
 import NonFungibleToken from "NonFungibleToken"
-import DapperStorageRent from "DapperStorageAddress"
+import DapperStorageRent from "DapperStorageRent"
 
 transaction (distIds: [UInt64], commitHashes: [String], issuer: Address, receiver: Address) {
     prepare(pds: auth(BorrowValue) &Account) {
