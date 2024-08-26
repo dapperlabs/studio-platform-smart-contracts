@@ -149,10 +149,33 @@ access(all) contract PDS{
                 i = i + 1
             }
             c.open(id: packId, nfts: nfts)
-            if collectionProviderPath == nil {
-                PDS.fulfillFromIssuer(nftIds: toReleaseNFTs, recvCap: recvCap)
+            if collectionStoragePath == nil {
+                self.fulfillFromIssuer(nftIds: toReleaseNFTs, recvCap: recvCap)
             } else {
-                PDS.releaseEscrow(nftIds: toReleaseNFTs, recvCap: recvCap , collectionStoragePath: collectionStoragePath!)
+                self.releaseEscrow(nftIds: toReleaseNFTs, recvCap: recvCap , collectionStoragePath: collectionStoragePath!)
+            }
+        }
+
+        /// Release escrowed NFTs to the receiver.
+        ///
+        access(contract) fun releaseEscrow(nftIds: [UInt64], recvCap: &{NonFungibleToken.CollectionPublic}, collectionStoragePath: StoragePath) {
+            let pdsCollection = PDS.account.storage.borrow<auth(NonFungibleToken.Withdraw) &{NonFungibleToken.Collection}>(from: collectionStoragePath)
+                ?? panic("Unable to borrow PDS collection provider capability from private path")
+            var i = 0
+            while i < nftIds.length {
+                recvCap.deposit(token: <- pdsCollection.withdraw(withdrawID: nftIds[i]))
+                i = i + 1
+            }
+        }
+
+        /// Release NFTs from the issuer to the receiver.
+        ///
+        access(contract) fun fulfillFromIssuer(nftIds: [UInt64], recvCap:  &{NonFungibleToken.CollectionPublic}) {
+            let issuerCollection = self.withdrawCap.borrow() ?? panic("Unable to borrow withdrawCap")
+            var i = 0
+            while i < nftIds.length {
+                recvCap.deposit(token: <- issuerCollection.withdraw(withdrawID: nftIds[i]))
+                i = i + 1
             }
         }
 
@@ -294,29 +317,7 @@ access(all) contract PDS{
         return pdsCollection
     }
 
-    /// Release escrowed NFTs to the receiver.
-    ///
-    access(contract) fun releaseEscrow(nftIds: [UInt64], recvCap: &{NonFungibleToken.CollectionPublic}, collectionStoragePath: StoragePath) {
-        let pdsCollection = self.account.storage.borrow<auth(NonFungibleToken.Withdraw) &{NonFungibleToken.Collection}>(from: collectionStoragePath)
-            ?? panic("Unable to borrow PDS collection provider capability from private path")
-        var i = 0
-        while i < nftIds.length {
-            recvCap.deposit(token: <- pdsCollection.withdraw(withdrawID: nftIds[i]))
-            i = i + 1
-        }
-    }
 
-
-    /// Release NFTs from the issuer to the receiver.
-    ///
-    access(contract) fun fulfillFromIssuer(nftIds: [UInt64], recvCap:  &{NonFungibleToken.CollectionPublic}) {
-        let issuerCollection = self.withdrawCap.borrow() ?? panic("Unable to borrow withdrawCap")
-        var i = 0
-        while i < nftIds.length {
-            recvCap.deposit(token: <- issuerCollection.withdraw(withdrawID: nftIds[i]))
-            i = i + 1
-        }
-    }
 
     /// Create a PackIssuer resource and return it to the caller.
     access(all) fun createPackIssuer(): @PackIssuer{
