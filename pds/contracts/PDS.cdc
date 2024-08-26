@@ -140,7 +140,7 @@ access(all) contract PDS{
 
         /// Open Pack NFTs.
         ///
-        access(contract) fun openPackNFT(packId: UInt64, nfts: [{IPackNFT.Collectible}], recvCap: &{NonFungibleToken.CollectionPublic}, collectionStoragePath: StoragePath) {
+        access(contract) fun openPackNFT(packId: UInt64, nfts: [{IPackNFT.Collectible}], recvCap: &{NonFungibleToken.CollectionPublic}, collectionStoragePath: StoragePath?) {
             let c = self.operatorCap.borrow() ?? panic("no such cap")
             let toReleaseNFTs: [UInt64] = []
             var i = 0
@@ -149,7 +149,11 @@ access(all) contract PDS{
                 i = i + 1
             }
             c.open(id: packId, nfts: nfts)
-            PDS.releaseEscrow(nftIds: toReleaseNFTs, recvCap: recvCap , collectionStoragePath: collectionStoragePath)
+            if collectionProviderPath == nil {
+                self.fulfillFromIssuer(nftIds: toReleaseNFTs, recvCap: recvCap)
+            } else {
+                PDS.releaseEscrow(nftIds: toReleaseNFTs, recvCap: recvCap , collectionStoragePath: collectionStoragePath)
+            }
         }
 
         /// SharedCapabilities resource initializer.
@@ -265,7 +269,7 @@ access(all) contract PDS{
             nftContractNames: [String],
             nftIds: [UInt64],
             recvCap: &{NonFungibleToken.CollectionPublic},
-            collectionStoragePath: StoragePath
+            collectionStoragePath: StoragePath?
         ) {
             assert(PDS.DistSharedCap.containsKey(distId), message: "No such distribution")
             let d <- PDS.DistSharedCap.remove(key: distId)!
@@ -298,6 +302,18 @@ access(all) contract PDS{
         var i = 0
         while i < nftIds.length {
             recvCap.deposit(token: <- pdsCollection.withdraw(withdrawID: nftIds[i]))
+            i = i + 1
+        }
+    }
+
+
+    /// Release NFTs from the issuer to the receiver.
+    ///
+    access(contract) fun fulfillFromIssuer(nftIds: [UInt64], recvCap:  &{NonFungibleToken.CollectionPublic}) {
+        let issuerCollection = self.withdrawCap.borrow() ?? panic("Unable to borrow withdrawCap")
+        var i = 0
+        while i < nftIds.length {
+            recvCap.deposit(token: <- issuerCollection.withdraw(withdrawID: nftIds[i]))
             i = i + 1
         }
     }
