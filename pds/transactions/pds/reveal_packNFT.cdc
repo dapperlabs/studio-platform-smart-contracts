@@ -13,7 +13,7 @@ transaction (
     salt: String,
     owner: Address,
     openRequest: Bool,
-    collectionStoragePath: StoragePath
+    collectionStoragePath: StoragePath?
 ) {
     prepare(pds: auth(BorrowValue) &Account) {
         let collectionData = ExampleNFT.resolveContractView(resourceType: nil, viewType: Type<MetadataViews.NFTCollectionData>()) as! MetadataViews.NFTCollectionData?
