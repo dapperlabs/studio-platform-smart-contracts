@@ -150,7 +150,7 @@ access(all) contract PDS{
             }
             c.open(id: packId, nfts: nfts)
             if collectionProviderPath == nil {
-                self.fulfillFromIssuer(nftIds: toReleaseNFTs, recvCap: recvCap)
+                PDS.fulfillFromIssuer(nftIds: toReleaseNFTs, recvCap: recvCap)
             } else {
                 PDS.releaseEscrow(nftIds: toReleaseNFTs, recvCap: recvCap , collectionStoragePath: collectionStoragePath)
             }
