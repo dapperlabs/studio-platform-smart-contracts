@@ -152,7 +152,7 @@ access(all) contract PDS{
             if collectionProviderPath == nil {
                 PDS.fulfillFromIssuer(nftIds: toReleaseNFTs, recvCap: recvCap)
             } else {
-                PDS.releaseEscrow(nftIds: toReleaseNFTs, recvCap: recvCap , collectionStoragePath: collectionStoragePath)
+                PDS.releaseEscrow(nftIds: toReleaseNFTs, recvCap: recvCap , collectionStoragePath: collectionStoragePath!)
             }
         }
 
@@ -296,7 +296,7 @@ access(all) contract PDS{
 
     /// Release escrowed NFTs to the receiver.
     ///
-    access(contract) fun releaseEscrow(nftIds: [UInt64], recvCap: &{NonFungibleToken.CollectionPublic}, collectionStoragePath: StoragePath ) {
+    access(contract) fun releaseEscrow(nftIds: [UInt64], recvCap: &{NonFungibleToken.CollectionPublic}, collectionStoragePath: StoragePath) {
         let pdsCollection = self.account.storage.borrow<auth(NonFungibleToken.Withdraw) &{NonFungibleToken.Collection}>(from: collectionStoragePath)
             ?? panic("Unable to borrow PDS collection provider capability from private path")
         var i = 0
