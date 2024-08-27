@@ -33,4 +33,6 @@ var (
 	PDSOpenPackNFT []byte
 	//go:embed transactions/pds/reveal_packNFT.cdc
 	PDSRevealPackNFT []byte
+	//go:embed transactions/pds/create_distribution.cdc
+	PDSCreateDistribution []byte
 )
