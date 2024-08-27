@@ -16,7 +16,7 @@ transaction(nftWithdrawCapPath: StoragePath, title: String, metadata: {String: S
 
         // get withdraw capability from issuer
         let withdrawCap = issuer.storage.copy<
-        Capability<auth(NonFungibleToken.Withdraw) &{NonFungibleToken.Collection}>>(from: nftWithdrawCapPath)!
+        Capability<auth(NonFungibleToken.Withdraw) &{NonFungibleToken.Provider}>>(from: nftWithdrawCapPath)!
         assert(withdrawCap.check(), message:  "cannot get copy of withdraw capability")
 
         // get operator capability from issuer
