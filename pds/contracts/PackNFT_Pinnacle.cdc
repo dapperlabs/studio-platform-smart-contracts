@@ -142,7 +142,7 @@ access(all) contract PackNFT: NonFungibleToken, IPackNFT {
 
     /// Resource that defines a Pack NFT.
     ///
-    access(all) resource NFT: NonFungibleToken.NFT, IPackNFT.NFT, IPackNFT.IPackNFTToken, IPackNFT.IPackNFTOwnerOperator {
+    access(all) resource NFT: NonFungibleToken.NFT, IPackNFT.NFT, IPackNFT.IPackNFTToken, IPackNFT.IPackNFTOwnerOperator, ViewResolver.Resolver {
         /// This NFT's unique ID.
         ///
         access(all) let id: UInt64
@@ -195,7 +195,7 @@ access(all) contract PackNFT: NonFungibleToken, IPackNFT {
 
     /// Resource that defines a Collection of Pack NFTs.
     ///
-    access(all) resource Collection: NonFungibleToken.Collection, IPackNFT.IPackNFTCollectionPublic {
+    access(all) resource Collection: NonFungibleToken.Collection, IPackNFT.IPackNFTCollectionPublic, ViewResolver.ResolverCollection {
         /// Dictionary of NFT conforming tokens.
         /// NFT is a resource type with a UInt64 ID field.
         ///
