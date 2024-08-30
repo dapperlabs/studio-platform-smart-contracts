@@ -374,6 +374,15 @@ access(all) contract PackNFT: NonFungibleToken, IPackNFT {
             return &self.ownedNFTs[id]
         }
 
+        /// Return a reference to a ViewResolver for an NFT in the Collection.
+        ///
+        access(all) view fun borrowViewResolver(id: UInt64): &{ViewResolver.Resolver}? {
+            if let nft = &self.ownedNFTs[id] as &{NonFungibleToken.NFT}? {
+                return nft as &{ViewResolver.Resolver}
+            }
+            return nil
+        }
+
         /// Create an empty Collection of the same type and returns it to the caller.
         ///
         access(all) fun createEmptyCollection(): @{NonFungibleToken.Collection} {

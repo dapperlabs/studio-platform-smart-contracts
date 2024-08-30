@@ -2,6 +2,7 @@ import Crypto
 import NonFungibleToken from "NonFungibleToken"
 import IPackNFT from "IPackNFT"
 import MetadataViews from "MetadataViews"
+import ViewResolver from "ViewResolver"
 
 /// Contract that defines Pack NFTs.
 ///
@@ -284,6 +285,13 @@ access(all) contract PackNFT: NonFungibleToken, IPackNFT {
             return &self.ownedNFTs[id]
         }
 
+        access(all) view fun borrowViewResolver(id: UInt64): &{ViewResolver.Resolver}? {
+            if let nft = &self.ownedNFTs[id] as &{NonFungibleToken.NFT}? {
+                return nft as &{ViewResolver.Resolver}
+            }
+            return nil
+        }
+
         /// Create an empty Collection of the same type and returns it to the caller.
         ///
         access(all) fun createEmptyCollection(): @{NonFungibleToken.Collection} {
@@ -334,8 +342,8 @@ access(all) contract PackNFT: NonFungibleToken, IPackNFT {
         switch viewType {
             case Type<MetadataViews.NFTCollectionData>():
                 let collectionData = MetadataViews.NFTCollectionData(
-                    storagePath: /storage/exampleNFTCollection,
-                    publicPath: /public/exampleNFTCollection,
+                    storagePath: /storage/PinnaclePackNFTCollection,
+                    publicPath: /public/PinnaclePackNFTCollectionPub,
                     publicCollection: Type<&Collection>(),
                     publicLinkedType: Type<&Collection>(),
                     createEmptyCollectionFunction: (fun(): @{NonFungibleToken.Collection} {
@@ -351,9 +359,9 @@ access(all) contract PackNFT: NonFungibleToken, IPackNFT {
                     mediaType: "image/svg+xml"
                 )
                 return MetadataViews.NFTCollectionDisplay(
-                    name: "The Example Collection",
-                    description: "This collection is used as an example to help you develop your next Flow NFT.",
-                    externalURL: MetadataViews.ExternalURL("https://example-nft.onflow.org"),
+                    name: "Pinnacle Pack NFT Collection",
+                    description: "",
+                    externalURL: MetadataViews.ExternalURL(""),
                     squareImage: media,
                     bannerImage: media,
                     socials: {
