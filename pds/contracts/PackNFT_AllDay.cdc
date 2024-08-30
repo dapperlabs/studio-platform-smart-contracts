@@ -253,7 +253,7 @@ access(all) contract PackNFT: NonFungibleToken, IPackNFT {
                     )
                 case Type<MetadataViews.Royalties>():
                     let royaltyReceiver: Capability<&{FungibleToken.Receiver}> =
-                        getAccount(0xe4cf4bdc1751c65d).capabilities.get<&{FungibleToken.Receiver}>(MetadataViews.getRoyaltyReceiverPublicPath())
+                        getAccount({{.RoyaltyAddress}}).capabilities.get<&{FungibleToken.Receiver}>(MetadataViews.getRoyaltyReceiverPublicPath())
                     return MetadataViews.Royalties(
                         [
                             MetadataViews.Royalty(
