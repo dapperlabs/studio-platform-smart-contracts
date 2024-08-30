@@ -253,7 +253,7 @@ access(all) contract PackNFT: NonFungibleToken, IPackNFT {
                     )
                 case Type<MetadataViews.Royalties>():
                     let royaltyReceiver: Capability<&{FungibleToken.Receiver}> =
-                        getAccount({{.RoyaltyAddress}}).capabilities.get<&{FungibleToken.Receiver}>(MetadataViews.getRoyaltyReceiverPublicPath())!
+                        getAccount({{.RoyaltyAddress}}).capabilities.get<&{FungibleToken.Receiver}>(MetadataViews.getRoyaltyReceiverPublicPath())
                     return MetadataViews.Royalties(
                         [
                             MetadataViews.Royalty(
@@ -372,6 +372,15 @@ access(all) contract PackNFT: NonFungibleToken, IPackNFT {
         ///
         access(all) view fun borrowNFT(_ id: UInt64): &{NonFungibleToken.NFT}? {
             return &self.ownedNFTs[id]
+        }
+
+        /// Return a reference to a ViewResolver for an NFT in the Collection.
+        ///
+        access(all) view fun borrowViewResolver(id: UInt64): &{ViewResolver.Resolver}? {
+            if let nft = &self.ownedNFTs[id] as &{NonFungibleToken.NFT}? {
+                return nft as &{ViewResolver.Resolver}
+            }
+            return nil
         }
 
         /// Create an empty Collection of the same type and returns it to the caller.

@@ -2,6 +2,7 @@ import Crypto
 import NonFungibleToken from "NonFungibleToken"
 import IPackNFT from "IPackNFT"
 import MetadataViews from "MetadataViews"
+import ViewResolver from "ViewResolver"
 
 /// Contract that defines Pack NFTs.
 ///
@@ -141,7 +142,7 @@ access(all) contract PackNFT: NonFungibleToken, IPackNFT {
 
     /// Resource that defines a Pack NFT.
     ///
-    access(all) resource NFT: NonFungibleToken.NFT, IPackNFT.NFT, IPackNFT.IPackNFTToken, IPackNFT.IPackNFTOwnerOperator {
+    access(all) resource NFT: NonFungibleToken.NFT, IPackNFT.NFT, IPackNFT.IPackNFTToken, IPackNFT.IPackNFTOwnerOperator, ViewResolver.Resolver {
         /// This NFT's unique ID.
         ///
         access(all) let id: UInt64
@@ -194,7 +195,7 @@ access(all) contract PackNFT: NonFungibleToken, IPackNFT {
 
     /// Resource that defines a Collection of Pack NFTs.
     ///
-    access(all) resource Collection: NonFungibleToken.Collection, IPackNFT.IPackNFTCollectionPublic {
+    access(all) resource Collection: NonFungibleToken.Collection, IPackNFT.IPackNFTCollectionPublic, ViewResolver.ResolverCollection {
         /// Dictionary of NFT conforming tokens.
         /// NFT is a resource type with a UInt64 ID field.
         ///
@@ -284,6 +285,15 @@ access(all) contract PackNFT: NonFungibleToken, IPackNFT {
             return &self.ownedNFTs[id]
         }
 
+        /// Return a reference to a ViewResolver for an NFT in the Collection.
+        ///
+        access(all) view fun borrowViewResolver(id: UInt64): &{ViewResolver.Resolver}? {
+            if let nft = &self.ownedNFTs[id] as &{NonFungibleToken.NFT}? {
+                return nft as &{ViewResolver.Resolver}
+            }
+            return nil
+        }
+
         /// Create an empty Collection of the same type and returns it to the caller.
         ///
         access(all) fun createEmptyCollection(): @{NonFungibleToken.Collection} {
@@ -334,8 +344,8 @@ access(all) contract PackNFT: NonFungibleToken, IPackNFT {
         switch viewType {
             case Type<MetadataViews.NFTCollectionData>():
                 let collectionData = MetadataViews.NFTCollectionData(
-                    storagePath: /storage/exampleNFTCollection,
-                    publicPath: /public/exampleNFTCollection,
+                    storagePath: /storage/PinnaclePackNFTCollection,
+                    publicPath: /public/PinnaclePackNFTCollectionPub,
                     publicCollection: Type<&Collection>(),
                     publicLinkedType: Type<&Collection>(),
                     createEmptyCollectionFunction: (fun(): @{NonFungibleToken.Collection} {
@@ -351,9 +361,9 @@ access(all) contract PackNFT: NonFungibleToken, IPackNFT {
                     mediaType: "image/svg+xml"
                 )
                 return MetadataViews.NFTCollectionDisplay(
-                    name: "The Example Collection",
-                    description: "This collection is used as an example to help you develop your next Flow NFT.",
-                    externalURL: MetadataViews.ExternalURL("https://example-nft.onflow.org"),
+                    name: "Pinnacle Pack NFT Collection",
+                    description: "",
+                    externalURL: MetadataViews.ExternalURL(""),
                     squareImage: media,
                     bannerImage: media,
                     socials: {
