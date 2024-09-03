@@ -231,7 +231,7 @@ access(all) contract PackNFT: NonFungibleToken, IPackNFT {
         ///
         access(all) view fun assetPath(): String {
             // this path is normative -> it does not yet have pack related assets here
-            return "https://media.laligagolazos.com/packnfts/".concat(self.id.toString()).concat("/media/")
+            return "https://ipfs.dapperlabs.com/ipfs/QmPvr5zTwji1UGpun57cbj719MUBsB5syjgikbwCMPmruQ"
         }
 
         /// Return an image path.
