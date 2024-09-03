@@ -12,17 +12,17 @@ import (
 // Handle relative paths by making these regular expressions
 
 const (
-	nftAddressPlaceholder           = "\"[^\"]*NonFungibleToken.cdc\""
-	NFTLockerAddressPlaceholder     = "\"[^\"]*NFTLocker.cdc\""
-	metadataViewsAddressPlaceholder = "0xMETADATAVIEWSADDRESS"
-	exampleNFTAddressPlaceholder    = "0xEXAMPLENFTADDRESS"
+	nftAddressPlaceholder           = "\"NonFungibleToken\""
+	NFTLockerAddressPlaceholder     = "\"NFTLocker\""
+	metadataViewsAddressPlaceholder = "\"MetadataViews\""
+	exampleNFTAddressPlaceholder    = "\"ExampleNFT\""
 )
 
 const (
 	NFTLockerPath                  = "../../../contracts/NFTLocker.cdc"
 	NFTLockerV2Path                = "../../../contracts/NFTLockerNew.cdc"
 	ExampleNFTPath                 = "../../../contracts/ExampleNFT.cdc"
-	MetadataViewsInterfaceFilePath = "../../../contracts/MetadataViews.cdc"
+	MetadataViewsInterfaceFilePath = "../../../contracts/imports/MetadataViews.cdc"
 	TransactionsRootPath           = "../../../transactions"
 	ScriptsRootPath                = "../../../scripts"
 
@@ -51,18 +51,6 @@ const (
 // ------------------------------------------------------------
 // Accounts
 // ------------------------------------------------------------
-func rX(code []byte, contracts Contracts) []byte {
-	nftRe := regexp.MustCompile(nftAddressPlaceholder)
-	code = nftRe.ReplaceAll(code, []byte("0x"+contracts.NFTAddress.String()))
-
-	NFTLockerRe := regexp.MustCompile(NFTLockerAddressPlaceholder)
-	code = NFTLockerRe.ReplaceAll(code, []byte("0x"+contracts.NFTLockerAddress.String()))
-
-	code = []byte(strings.ReplaceAll(string(code), metadataViewsAddressPlaceholder, "0x"+contracts.MetadataViewsAddress.String()))
-
-	return code
-}
-
 func replaceAddresses(code []byte, contracts Contracts) []byte {
 	nftRe := regexp.MustCompile(nftAddressPlaceholder)
 	code = nftRe.ReplaceAll(code, []byte("0x"+contracts.NFTAddress.String()))

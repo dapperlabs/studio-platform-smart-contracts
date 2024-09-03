@@ -1,25 +1,30 @@
-import NonFungibleToken from "../../contracts/NonFungibleToken.cdc"
-import Golazos from "../../contracts/Golazos.cdc"
+import NonFungibleToken from "NonFungibleToken"
+import Golazos from "Golazos"
 
-// This transaction transfers a Golazos NFT from one account to another.
-
+/// This transaction transfers the Golazos NFT with the given ID from the signer's collection
+/// to the recipient's collection.
+///
 transaction(recipientAddress: Address, withdrawID: UInt64) {
-    prepare(signer: AuthAccount) {
-        
-        // get the recipients public account object
-        let recipient = getAccount(recipientAddress)
 
-        // borrow a reference to the signer's NFT collection
-        let collectionRef = signer.borrow<&Golazos.Collection>(from: Golazos.CollectionStoragePath)
-            ?? panic("Could not borrow a reference to the owner's collection")
+    // Reference to the withdrawer's collection
+    let withdrawRef: auth(NonFungibleToken.Withdraw) &{NonFungibleToken.Collection}
 
-        // borrow a public reference to the receivers collection
-        let depositRef = recipient.getCapability(Golazos.CollectionPublicPath).borrow<&{NonFungibleToken.CollectionPublic}>()!
+    // Reference of the collection to deposit the NFT to
+    let receiverRef: &Golazos.Collection
 
-        // withdraw the NFT from the owner's collection
-        let nft <- collectionRef.withdraw(withdrawID: withdrawID)
+    prepare(signer: auth(BorrowValue) &Account) {
+        // Borrow a reference to the signer's NFT collection
+        self.withdrawRef = signer.storage.borrow<auth(NonFungibleToken.Withdraw)
+            &{NonFungibleToken.Collection}>(from: Golazos.CollectionStoragePath)
+                ?? panic("Could not borrow a reference to the owner's collection")
 
-        // Deposit the NFT in the recipient's collection
-        depositRef.deposit(token: <-nft)
+        // Borrow a public reference to the receivers collection
+        self.receiverRef = getAccount(recipientAddress).capabilities.borrow<&Golazos.Collection>(Golazos.CollectionPublicPath)
+            ?? panic("Could not borrow a reference to the collection receiver")
+    }
+
+    execute {
+        // Withdraw the NFT from the owner's collection and deposit it in the recipient's collection
+        self.receiverRef.deposit(token: <- self.withdrawRef.withdraw(withdrawID: withdrawID))
     }
 }

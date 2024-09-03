@@ -4,9 +4,10 @@
 */
 
 
-import FungibleToken from 0x{{.FungibleTokenAddress}}
-import NonFungibleToken from 0x{{.NonFungibleTokenAddress}}
-import MetadataViews from 0x{{.MetadataViewsAddress}}
+import FungibleToken from "FungibleToken"
+import NonFungibleToken from "NonFungibleToken"
+import MetadataViews from "MetadataViews"
+import ViewResolver from "ViewResolver"
 
 /*
     Golazos is structured similarly to AllDay.
@@ -31,49 +32,49 @@ import MetadataViews from 0x{{.MetadataViewsAddress}}
 
 /// The Golazos NFTs and metadata contract
 //
-pub contract Golazos: NonFungibleToken {
+access(all) contract Golazos: NonFungibleToken {
     // -----------------------------------------------------------------------
     // Golazos deployment variables
     // -----------------------------------------------------------------------
 
-    pub fun RoyaltyAddress() : Address { return 0x{{.GolazosAddress}} }
+    access(all) view fun RoyaltyAddress() : Address { return GOLAZOS_ROYALTY_ADDRESS }
     //------------------------------------------------------------
     // Events
     //------------------------------------------------------------
 
     // Contract Events
     //
-    pub event ContractInitialized()
+    access(all) event ContractInitialized()
 
     // NFT Collection Events
     //
-    pub event Withdraw(id: UInt64, from: Address?)
-    pub event Deposit(id: UInt64, to: Address?)
+    access(all) event Withdraw(id: UInt64, from: Address?)
+    access(all) event Deposit(id: UInt64, to: Address?)
 
     // Series Events
     //
     /// Emitted when a new series has been created by an admin
-    pub event SeriesCreated(id: UInt64, name: String)
+    access(all) event SeriesCreated(id: UInt64, name: String)
     /// Emitted when a series is closed by an admin
-    pub event SeriesClosed(id: UInt64)
+    access(all) event SeriesClosed(id: UInt64)
 
     // Set Events
     //
     /// Emitted when a new set has been created by an admin
-    pub event SetCreated(id: UInt64, name: String)
+    access(all) event SetCreated(id: UInt64, name: String)
 
     /// Emitted when a Set is locked, meaning Editions cannot be created with the set
-    pub event SetLocked(setID: UInt64)
+    access(all) event SetLocked(setID: UInt64)
 
     // Play Events
     //
     /// Emitted when a new play has been created by an admin
-    pub event PlayCreated(id: UInt64, classification: String, metadata: {String: String})
+    access(all) event PlayCreated(id: UInt64, classification: String, metadata: {String: String})
 
     // Edition Events
     //
     /// Emitted when a new edition has been created by an admin
-    pub event EditionCreated(
+    access(all) event EditionCreated(
         id: UInt64,
         seriesID: UInt64,
         setID: UInt64,
@@ -82,14 +83,14 @@ pub contract Golazos: NonFungibleToken {
         tier: String,
     )
     /// Emitted when an edition is either closed by an admin, or the max amount of moments have been minted
-    pub event EditionClosed(id: UInt64)
+    access(all) event EditionClosed(id: UInt64)
 
     // NFT Events
     //
     /// Emitted when a moment nft is minted
-    pub event MomentNFTMinted(id: UInt64, editionID: UInt64, serialNumber: UInt64)
+    access(all) event MomentNFTMinted(id: UInt64, editionID: UInt64, serialNumber: UInt64)
     /// Emitted when a moment nft resource is destroyed
-    pub event MomentNFTBurned(id: UInt64,  editionID: UInt64, serialNumber: UInt64)
+    access(all) event MomentNFTBurned(id: UInt64,  editionID: UInt64, serialNumber: UInt64)
 
     //------------------------------------------------------------
     // Named values
@@ -97,10 +98,9 @@ pub contract Golazos: NonFungibleToken {
 
     /// Named Paths
     ///
-    pub let CollectionStoragePath:  StoragePath
-    pub let CollectionPublicPath:   PublicPath
-    pub let AdminStoragePath:       StoragePath
-    pub let MinterPrivatePath:      PrivatePath
+    access(all) let CollectionStoragePath:  StoragePath
+    access(all) let CollectionPublicPath:   PublicPath
+    access(all) let AdminStoragePath:       StoragePath
 
     //------------------------------------------------------------
     // Publicly readable contract state
@@ -108,11 +108,11 @@ pub contract Golazos: NonFungibleToken {
 
     /// Entity Counts
     ///
-    pub var totalSupply:        UInt64
-    pub var nextSeriesID:       UInt64
-    pub var nextSetID:          UInt64
-    pub var nextPlayID:         UInt64
-    pub var nextEditionID:      UInt64
+    access(all) var totalSupply:        UInt64
+    access(all) var nextSeriesID:       UInt64
+    access(all) var nextSetID:          UInt64
+    access(all) var nextPlayID:         UInt64
+    access(all) var nextEditionID:      UInt64
 
     //------------------------------------------------------------
     // Internal contract state
@@ -134,31 +134,33 @@ pub contract Golazos: NonFungibleToken {
 
     /// A public struct to access Series data
     ///
-    pub struct SeriesData {
-        pub let id: UInt64
-        pub let name: String
-        pub let active: Bool
+    access(all) struct SeriesData {
+        access(all) let id: UInt64
+        access(all) let name: String
+        access(all) let active: Bool
 
         /// initializer
         //
-        init (id: UInt64) {
-            let series = (&Golazos.seriesByID[id] as! &Golazos.Series?)!
+        view init (id: UInt64) {
+            let series = &Golazos.seriesByID[id] as &Golazos.Series?
+                ?? panic("series does not exist")
             self.id = series.id
             self.name = series.name
             self.active = series.active
+            
         }
     }
 
     /// A top-level Series with a unique ID and name
     ///
-    pub resource Series {
-        pub let id: UInt64
-        pub let name: String
-        pub var active: Bool
+    access(all) resource Series {
+        access(all) let id: UInt64
+        access(all) let name: String
+        access(all) var active: Bool
 
         /// Close this series
         ///
-        pub fun close() {
+        access(all) fun close() {
             pre {
                 self.active == true: "series is not active"
             }
@@ -181,7 +183,7 @@ pub contract Golazos: NonFungibleToken {
             // Cache the new series's name => ID
             Golazos.seriesIDByName[name] = self.id
             // Increment for the nextSeriesID
-            Golazos.nextSeriesID = self.id + 1 as UInt64
+            Golazos.nextSeriesID = self.id + 1
 
             emit SeriesCreated(id: self.id, name: self.name)
         }
@@ -189,7 +191,7 @@ pub contract Golazos: NonFungibleToken {
 
     /// Get the publicly available data for a Series by id
     ///
-    pub fun getSeriesData(id: UInt64): Golazos.SeriesData {
+    access(all) view fun getSeriesData(id: UInt64): Golazos.SeriesData {
         pre {
             Golazos.seriesByID[id] != nil: "Cannot borrow series, no such id"
         }
@@ -199,7 +201,7 @@ pub contract Golazos: NonFungibleToken {
 
     /// Get the publicly available data for a Series by name
     ///
-    pub fun getSeriesDataByName(name: String): Golazos.SeriesData? {
+    access(all) view fun getSeriesDataByName(name: String): Golazos.SeriesData? {
         let id = Golazos.seriesIDByName[name]
 
         if id == nil{
@@ -211,13 +213,13 @@ pub contract Golazos: NonFungibleToken {
 
     /// Get all series names (this will be *long*)
     ///
-    pub fun getAllSeriesNames(): [String] {
+    access(all) view fun getAllSeriesNames(): [String] {
         return Golazos.seriesIDByName.keys
     }
 
     /// Get series id by name
     ///
-    pub fun getSeriesIDByName(name: String): UInt64? {
+    access(all) view fun getSeriesIDByName(name: String): UInt64? {
         return Golazos.seriesIDByName[name]
     }
 
@@ -227,21 +229,23 @@ pub contract Golazos: NonFungibleToken {
 
     /// A public struct to access Set data
     ///
-    pub struct SetData {
-        pub let id: UInt64
-        pub let name: String
-        pub let locked: Bool
-        pub var setPlaysInEditions: {UInt64: Bool}
+    access(all) struct SetData {
+        access(all) let id: UInt64
+        access(all) let name: String
+        access(all) let locked: Bool
+        access(all) var setPlaysInEditions: {UInt64: Bool}
 
         /// member function to check the setPlaysInEditions to see if this Set/Play combination already exists
-        pub fun setPlayExistsInEdition(playID: UInt64): Bool {
+        access(all) view fun setPlayExistsInEdition(playID: UInt64): Bool {
            return self.setPlaysInEditions.containsKey(playID)
         }
 
         /// initializer
         ///
-        init (id: UInt64) {
-            let set = (&Golazos.setByID[id] as! &Golazos.Set?)!
+        view init (id: UInt64) {
+            let set = &Golazos.setByID[id] as &Golazos.Set?
+                ?? panic("set does not exist")
+
             self.id = id
             self.name = set.name
             self.locked = set.locked
@@ -251,9 +255,9 @@ pub contract Golazos: NonFungibleToken {
 
     /// A top level Set with a unique ID and a name
     ///
-    pub resource Set {
-        pub let id: UInt64
-        pub let name: String
+    access(all) resource Set {
+        access(all) let id: UInt64
+        access(all) let name: String
 
         /// Store a dictionary of all the Plays which are paired with the Set inside Editions
         /// This enforces only one Set/Play unique pair can be used for an Edition
@@ -267,15 +271,15 @@ pub contract Golazos: NonFungibleToken {
         // the decision to lock a Set is final.
         // If a Set is locked, Moments can still be minted from the
         // Editions already created from the Set.
-        pub var locked: Bool
+        access(all) var locked: Bool
 
         /// member function to insert a new Play to the setPlaysInEditions dictionary
-        pub fun insertNewPlay(playID: UInt64) {
+        access(all) fun insertNewPlay(playID: UInt64) {
             self.setPlaysInEditions[playID] = true
         }
 
         /// returns the plays added to the set in an edition
-        pub fun getSetPlaysInEditions(): {UInt64: Bool} {
+        access(all) view fun getSetPlaysInEditions(): {UInt64: Bool} {
             return self.setPlaysInEditions
         }
 
@@ -293,7 +297,7 @@ pub contract Golazos: NonFungibleToken {
             // Cache the new set's name => ID
             Golazos.setIDByName[name] = self.id
             // Increment for the nextSeriesID
-            Golazos.nextSetID = self.id + 1 as UInt64
+            Golazos.nextSetID = self.id + 1
 
             emit SetCreated(id: self.id, name: self.name)
         }
@@ -302,7 +306,7 @@ pub contract Golazos: NonFungibleToken {
         //
         // Pre-Conditions:
         // The Set should not be locked
-        pub fun lock() {
+        access(all) fun lock() {
             if !self.locked {
                 self.locked = true
                 emit SetLocked(setID: self.id)
@@ -312,16 +316,16 @@ pub contract Golazos: NonFungibleToken {
 
     /// Get the publicly available data for a Set
     ///
-    pub fun getSetData(id: UInt64): Golazos.SetData? {
+    access(all) view fun getSetData(id: UInt64): Golazos.SetData? {
         if Golazos.setByID[id] == nil {
             return nil
         }
-        return Golazos.SetData(id: id!)
+        return Golazos.SetData(id: id)
     }
 
     /// Get the publicly available data for a Set by name
     ///
-    pub fun getSetDataByName(name: String): Golazos.SetData? {
+    access(all) view fun getSetDataByName(name: String): Golazos.SetData? {
         let id = Golazos.setIDByName[name]
 
         if id == nil {
@@ -332,7 +336,7 @@ pub contract Golazos: NonFungibleToken {
 
     /// Get all set names (this will be *long*)
     ///
-    pub fun getAllSetNames(): [String] {
+    access(all) view fun getAllSetNames(): [String] {
         return Golazos.setIDByName.keys
     }
 
@@ -343,15 +347,17 @@ pub contract Golazos: NonFungibleToken {
 
     /// A public struct to access Play data
     ///
-    pub struct PlayData {
-        pub let id: UInt64
-        pub let classification: String
-        pub let metadata: {String: String}
+    access(all) struct PlayData {
+        access(all) let id: UInt64
+        access(all) let classification: String
+        access(all) let metadata: {String: String}
 
         /// initializer
         ///
-        init (id: UInt64) {
-            let play = (&Golazos.playByID[id] as! &Golazos.Play?)!
+        view init (id: UInt64) {
+            let play = &Golazos.playByID[id] as &Golazos.Play?
+                ?? panic("play does not exist")
+
             self.id = id
             self.classification = play.classification
             self.metadata = play.getMetadata()
@@ -360,13 +366,13 @@ pub contract Golazos: NonFungibleToken {
 
     /// A top level Play with a unique ID and a classification
     //
-    pub resource Play {
-        pub let id: UInt64
-        pub let classification: String
+    access(all) resource Play {
+        access(all) let id: UInt64
+        access(all) let classification: String
         access(self) let metadata: {String: String}
 
         /// returns the metadata set for this play
-        pub fun getMetadata(): {String:String} {
+        access(all) view fun getMetadata(): {String:String} {
             return self.metadata
         }
 
@@ -377,7 +383,7 @@ pub contract Golazos: NonFungibleToken {
             self.classification = classification
             self.metadata = metadata
 
-            Golazos.nextPlayID = self.id + 1 as UInt64
+            Golazos.nextPlayID = self.id + 1
 
             emit PlayCreated(id: self.id, classification: self.classification, metadata: self.metadata)
         }
@@ -385,12 +391,12 @@ pub contract Golazos: NonFungibleToken {
 
     /// Get the publicly available data for a Play
     ///
-    pub fun getPlayData(id: UInt64): Golazos.PlayData? {
+    access(all) view fun getPlayData(id: UInt64): Golazos.PlayData? {
         if Golazos.playByID[id] == nil {
             return nil
         }
 
-        return Golazos.PlayData(id: id!)
+        return Golazos.PlayData(id: id)
     }
 
     //------------------------------------------------------------
@@ -399,24 +405,25 @@ pub contract Golazos: NonFungibleToken {
 
     /// A public struct to access Edition data
     ///
-    pub struct EditionData {
-        pub let id: UInt64
-        pub let seriesID: UInt64
-        pub let setID: UInt64
-        pub let playID: UInt64
-        pub var maxMintSize: UInt64?
-        pub let tier: String
-        pub var numMinted: UInt64
+    access(all) struct EditionData {
+        access(all) let id: UInt64
+        access(all) let seriesID: UInt64
+        access(all) let setID: UInt64
+        access(all) let playID: UInt64
+        access(all) var maxMintSize: UInt64?
+        access(all) let tier: String
+        access(all) var numMinted: UInt64
 
        /// member function to check if max edition size has been reached
-       pub fun maxEditionMintSizeReached(): Bool {
+       access(all) view fun maxEditionMintSizeReached(): Bool {
             return self.numMinted == self.maxMintSize
         }
 
         /// initializer
         ///
-        init (id: UInt64) {
-            let edition = (&Golazos.editionByID[id] as! &Golazos.Edition?)!
+        view init (id: UInt64) {
+            let edition = &Golazos.editionByID[id] as &Golazos.Edition?
+                ?? panic("edition does not exist")
             self.id = id
             self.seriesID = edition.seriesID
             self.playID = edition.playID
@@ -429,16 +436,16 @@ pub contract Golazos: NonFungibleToken {
 
     /// A top level Edition that contains a Series, Set, and Play
     ///
-    pub resource Edition {
-        pub let id: UInt64
-        pub let seriesID: UInt64
-        pub let setID: UInt64
-        pub let playID: UInt64
-        pub let tier: String
+    access(all) resource Edition {
+        access(all) let id: UInt64
+        access(all) let seriesID: UInt64
+        access(all) let setID: UInt64
+        access(all) let playID: UInt64
+        access(all) let tier: String
         /// Null value indicates that there is unlimited minting potential for the Edition
-        pub var maxMintSize: UInt64?
+        access(all) var maxMintSize: UInt64?
         /// Updates each time we mint a new moment for the Edition to keep a running total
-        pub var numMinted: UInt64
+        access(all) var numMinted: UInt64
 
         /// Close this edition so that no more Moment NFTs can be minted in it
         ///
@@ -455,7 +462,7 @@ pub contract Golazos: NonFungibleToken {
         /// Mint a Moment NFT in this edition, with the given minting mintingDate.
         /// Note that this will panic if the max mint size has already been reached.
         ///
-        pub fun mint(): @Golazos.NFT {
+        access(contract) fun mint(): @Golazos.NFT {
             pre {
                 self.numMinted != self.maxMintSize: "max number of minted moments has been reached"
             }
@@ -467,7 +474,7 @@ pub contract Golazos: NonFungibleToken {
             )
             Golazos.totalSupply = Golazos.totalSupply + 1
             // Keep a running total (you'll notice we used this as the serial number)
-            self.numMinted = self.numMinted + 1 as UInt64
+            self.numMinted = self.numMinted + 1
 
             return <- momentNFT
         }
@@ -486,7 +493,7 @@ pub contract Golazos: NonFungibleToken {
                 Golazos.seriesByID.containsKey(seriesID): "seriesID does not exist"
                 Golazos.setByID.containsKey(setID): "setID does not exist"
                 Golazos.playByID.containsKey(playID): "playID does not exist"
-                Golazos.getSeriesData(id: seriesID)!.active == true: "cannot create an Edition with a closed Series"
+                Golazos.getSeriesData(id: seriesID).active == true: "cannot create an Edition with a closed Series"
                 Golazos.getSetData(id: setID)!.locked == false: "cannot create an Edition with a locked Set"
                 Golazos.getSetData(id: setID)!.setPlayExistsInEdition(playID: playID) == false: "set play combination already exists in an edition"
             }
@@ -504,9 +511,9 @@ pub contract Golazos: NonFungibleToken {
             }
 
             self.tier = tier
-            self.numMinted = 0 as UInt64
+            self.numMinted = 0
 
-            Golazos.nextEditionID = Golazos.nextEditionID + 1 as UInt64
+            Golazos.nextEditionID = Golazos.nextEditionID + 1
             Golazos.setByID[setID]?.insertNewPlay(playID: playID)
 
             emit EditionCreated(
@@ -522,7 +529,7 @@ pub contract Golazos: NonFungibleToken {
 
     /// Get the publicly available data for an Edition
     ///
-    pub fun getEditionData(id: UInt64): EditionData? {
+    access(all) view fun getEditionData(id: UInt64): EditionData? {
         if Golazos.editionByID[id] == nil{
             return nil
         }
@@ -536,17 +543,18 @@ pub contract Golazos: NonFungibleToken {
 
     /// A Moment NFT
     ///
-    pub resource NFT: NonFungibleToken.INFT, MetadataViews.Resolver {
-        pub let id: UInt64
-        pub let editionID: UInt64
-        pub let serialNumber: UInt64
-        pub let mintingDate: UFix64
+    access(all) resource NFT: NonFungibleToken.NFT {
+        access(all) let id: UInt64
+        access(all) let editionID: UInt64
+        access(all) let serialNumber: UInt64
+        access(all) let mintingDate: UFix64
 
-        /// Destructor
-        ///
-        destroy() {
-            emit MomentNFTBurned(id: self.id, editionID: self.editionID, serialNumber: self.serialNumber)
-        }
+        access(all) event ResourceDestroyed(
+            id: UInt64 = self.id,
+            editionID: UInt64 = self.editionID,
+            serialNumber: UInt64 = self.serialNumber,
+            mintingDate: UFix64 = self.mintingDate
+        )
 
         /// NFT initializer
         ///
@@ -567,23 +575,23 @@ pub contract Golazos: NonFungibleToken {
             emit MomentNFTMinted(id: self.id, editionID: self.editionID, serialNumber: self.serialNumber)
         }
 
-        pub fun assetPath(): String {
+        access(all) fun assetPath(): String {
             let editionData = Golazos.getEditionData(id: self.editionID)!
             let playDataID: String = Golazos.PlayData(id: editionData.playID).metadata["PlayDataID"] ?? ""
             return "https://assets.laligagolazos.com/editions/".concat(playDataID).concat("/play_").concat(playDataID)
         }
 
-        pub fun getImage(imageType: String, language: String): String {
+        access(all) fun getImage(imageType: String, language: String): String {
             return self.assetPath().concat("__").concat(imageType).concat("_2880_2880_").concat(language).concat(".png")
         }
 
-        pub fun getVideo(videoType: String, language: String): String {
+        access(all) fun getVideo(videoType: String, language: String): String {
             return self.assetPath().concat("__").concat(videoType).concat("_1080_1080_").concat(language).concat(".mp4")
         }
 
         /// get the name of an nft
         ///
-        pub fun name(): String {
+        access(all) fun name(): String {
             let editionData = Golazos.getEditionData(id: self.editionID)!
             let playerKnownName: String = Golazos.PlayData(id: editionData.playID).metadata["PlayerKnownName"] ?? ""
             let playerFirstName: String = Golazos.PlayData(id: editionData.playID).metadata["PlayerFirstName"] ?? ""
@@ -598,7 +606,7 @@ pub contract Golazos: NonFungibleToken {
 
         /// get the description of an nft
         ///
-        pub fun description(): String {
+        access(all) fun description(): String {
             let editionData = Golazos.getEditionData(id: self.editionID)!
             let metadata = Golazos.PlayData(id: editionData.playID).metadata
             let matchHomeTeam: String = metadata["MatchHomeTeam"] ?? ""
@@ -616,7 +624,7 @@ pub contract Golazos: NonFungibleToken {
 
         /// get a thumbnail image that represents this nft
         ///
-        pub fun thumbnail(): MetadataViews.HTTPFile {
+        access(all) fun thumbnail(): MetadataViews.HTTPFile {
             let editionData = Golazos.getEditionData(id: self.editionID)!
             let playDataID: String = Golazos.PlayData(id: editionData.playID).metadata["PlayDataID"] ?? ""
             if playDataID == "" {
@@ -627,7 +635,7 @@ pub contract Golazos: NonFungibleToken {
 
         /// get the metadata view types available for this nft
         ///
-        pub fun getViews(): [Type] {
+        access(all) view fun getViews(): [Type] {
             return [
                 Type<MetadataViews.Display>(),
                 Type<MetadataViews.Editions>(),
@@ -643,7 +651,7 @@ pub contract Golazos: NonFungibleToken {
 
         /// resolve a metadata view type returning the properties of the view type
         ///
-        pub fun resolveView(_ view: Type): AnyStruct? {
+        access(all) fun resolveView(_ view: Type): AnyStruct? {
             switch view {
                 case Type<MetadataViews.Display>():
                     return MetadataViews.Display(
@@ -668,17 +676,8 @@ pub contract Golazos: NonFungibleToken {
                     return MetadataViews.Serial(self.serialNumber)
 
                 case Type<MetadataViews.NFTCollectionData>():
-                    return MetadataViews.NFTCollectionData(
-                        storagePath: Golazos.CollectionStoragePath,
-                        publicPath: Golazos.CollectionPublicPath,
-                        providerPath: /private/GolazosCollection,
-                        publicCollection: Type<&Golazos.Collection{Golazos.MomentNFTCollectionPublic}>(),
-                        publicLinkedType: Type<&Golazos.Collection{Golazos.MomentNFTCollectionPublic, NonFungibleToken.CollectionPublic, NonFungibleToken.Receiver, MetadataViews.ResolverCollection}>(),
-                        providerLinkedType: Type<&Golazos.Collection{Golazos.MomentNFTCollectionPublic, NonFungibleToken.CollectionPublic, NonFungibleToken.Provider, MetadataViews.ResolverCollection}>(),
-                        createEmptyCollectionFunction: (fun (): @NonFungibleToken.Collection {
-                            return <-Golazos.createEmptyCollection()
-                        })
-                    )
+                    return Golazos.resolveContractView(resourceType: nil, viewType: Type<MetadataViews.NFTCollectionData>())
+
                 case Type<MetadataViews.Traits>():
                     return MetadataViews.dictToTraits(dict: self.getTraits(), excludedNames: nil)
 
@@ -687,7 +686,7 @@ pub contract Golazos: NonFungibleToken {
 
                 case Type<MetadataViews.Medias>():
                     return MetadataViews.Medias(
-                        items: [
+                        [
                             MetadataViews.Media(
                                 file: MetadataViews.HTTPFile(url: self.getImage(imageType: "capture_Hero_Black", language: "default")),
                                 mediaType: "image/png"
@@ -739,52 +738,19 @@ pub contract Golazos: NonFungibleToken {
                         ]
                     )
                 case Type<MetadataViews.NFTCollectionDisplay>():
-                    let bannerImage = MetadataViews.Media(
-                        file: MetadataViews.HTTPFile(
-                            url: "https://assets.laligagolazos.com/static/golazos-logos/Golazos_Logo_Horizontal_B.png"
-                        ),
-                        mediaType: "image/png"
-                    )
-                    let squareImage = MetadataViews.Media(
-                        file: MetadataViews.HTTPFile(
-                            url: "https://assets.laligagolazos.com/static/golazos-logos/Golazos_Logo_Primary_B.png"
-                        ),
-                        mediaType: "image/png"
-                    )
-                    return MetadataViews.NFTCollectionDisplay(
-                        name: "Laliga Golazos",
-                        description: "Collect LaLiga's biggest Moments and get closer to the game than ever before",
-                        externalURL: MetadataViews.ExternalURL("https://laligagolazos.com/"),
-                        squareImage: squareImage,
-                        bannerImage: bannerImage,
-                        socials: {
-                            "instagram": MetadataViews.ExternalURL(" https://instagram.com/laligaonflow"),
-                            "twitter": MetadataViews.ExternalURL("https://twitter.com/LaLigaGolazos"),
-                            "discord": MetadataViews.ExternalURL("https://discord.gg/LaLigaGolazos"),
-                            "facebook": MetadataViews.ExternalURL("https://www.facebook.com/LaLigaGolazos/")
-                        }
-                    )
+                    return Golazos.resolveContractView(resourceType: nil, viewType: Type<MetadataViews.NFTCollectionDisplay>())
+
                 case Type<MetadataViews.Royalties>():
-                    let royaltyReceiver: Capability<&{FungibleToken.Receiver}> =
-                        getAccount(Golazos.RoyaltyAddress()).getCapability<&AnyResource{FungibleToken.Receiver}>(MetadataViews.getRoyaltyReceiverPublicPath())
-                    return MetadataViews.Royalties(
-                        royalties: [
-                            MetadataViews.Royalty(
-                                receiver: royaltyReceiver,
-                                cut: 0.05,
-                                description: "Laliga Golazos marketplace royalty"
-                            )
-                        ]
-                    )
+                    return Golazos.resolveContractView(resourceType: nil, viewType: Type<MetadataViews.Royalties>())
             }
 
             return nil
         }
 
-        pub fun getTraits() : {String: AnyStruct} {
+        access(all) fun getTraits() : {String: AnyStruct} {
             let edition: EditionData = Golazos.getEditionData(id: self.editionID)!
             let play: PlayData = Golazos.getPlayData(id: edition.playID)!
-            let series: SeriesData = Golazos.getSeriesData(id: edition.seriesID)!
+            let series: SeriesData = Golazos.getSeriesData(id: edition.seriesID)
             let set: SetData = Golazos.getSetData(id: edition.setID)!
 
             let traitDictionary: {String: AnyStruct} = {
@@ -802,6 +768,10 @@ pub contract Golazos: NonFungibleToken {
             }
             return traitDictionary
         }
+
+        access(all) fun createEmptyCollection(): @{NonFungibleToken.Collection} {
+            return <- Golazos.createEmptyCollection(nftType: Type<@Golazos.NFT>())
+        }
     }
 
     //------------------------------------------------------------
@@ -810,38 +780,49 @@ pub contract Golazos: NonFungibleToken {
 
     /// A public collection interface that allows Moment NFTs to be borrowed
     ///
-    pub resource interface MomentNFTCollectionPublic {
-        pub fun deposit(token: @NonFungibleToken.NFT)
-        pub fun batchDeposit(tokens: @NonFungibleToken.Collection)
-        pub fun getIDs(): [UInt64]
-        pub fun borrowNFT(id: UInt64): &NonFungibleToken.NFT
-        pub fun borrowMomentNFT(id: UInt64): &Golazos.NFT? {
-            // If the result isn't nil, the id of the returned reference
-            // should be the same as the argument to the function
-            post {
-                (result == nil) || (result?.id == id):
-                    "Cannot borrow Moment NFT reference: The ID of the returned reference is incorrect"
-            }
-        }
-    }
+    /// Deprecated: This is no longer used for defining access control anymore.
+    access(all) resource interface MomentNFTCollectionPublic : NonFungibleToken.CollectionPublic {}
 
     /// An NFT Collection
     ///
-    pub resource Collection:
-        NonFungibleToken.Provider,
-        NonFungibleToken.Receiver,
-        NonFungibleToken.CollectionPublic,
-        MomentNFTCollectionPublic,
-        MetadataViews.ResolverCollection
+    access(all) resource Collection:
+        NonFungibleToken.Collection,
+        MomentNFTCollectionPublic
     {
         /// dictionary of NFT conforming tokens
         /// NFT is a resource type with an UInt64 ID field
         ///
-        pub var ownedNFTs: @{UInt64: NonFungibleToken.NFT}
+        access(all) var ownedNFTs: @{UInt64: {NonFungibleToken.NFT}}
+
+        // Return a list of NFT types that this receiver accepts
+        access(all) view fun getSupportedNFTTypes(): {Type: Bool} {
+            let supportedTypes: {Type: Bool} = {}
+            supportedTypes[Type<@Golazos.NFT>()] = true
+            return supportedTypes
+        }
+
+        // Return whether or not the given type is accepted by the collection
+        // A collection that can accept any type should just return true by default
+        access(all) view fun isSupportedNFTType(type: Type): Bool {
+            if type == Type<@Golazos.NFT>() {
+                return true
+            }
+            return false
+        }
+
+        // Return the amount of NFTs stored in the collection
+        access(all) view fun getLength(): Int {
+            return self.ownedNFTs.keys.length
+        }
+
+        // Create an empty Collection for Golazos NFTs and return it to the caller
+        access(all) fun createEmptyCollection(): @{NonFungibleToken.Collection} {
+            return <- Golazos.createEmptyCollection(nftType: Type<@Golazos.NFT>())
+        }
 
         /// withdraw removes an NFT from the collection and moves it to the caller
         ///
-        pub fun withdraw(withdrawID: UInt64): @NonFungibleToken.NFT {
+        access(NonFungibleToken.Withdraw) fun withdraw(withdrawID: UInt64): @{NonFungibleToken.NFT} {
             let token <- self.ownedNFTs.remove(key: withdrawID) ?? panic("missing NFT")
 
             emit Withdraw(id: token.id, from: self.owner?.address)
@@ -852,7 +833,7 @@ pub contract Golazos: NonFungibleToken {
         /// deposit takes a NFT and adds it to the collections dictionary
         /// and adds the ID to the id array
         ///
-        pub fun deposit(token: @NonFungibleToken.NFT) {
+        access(all) fun deposit(token: @{NonFungibleToken.NFT}) {
             let token <- token as! @Golazos.NFT
             let id: UInt64 = token.id
 
@@ -867,7 +848,7 @@ pub contract Golazos: NonFungibleToken {
         /// batchDeposit takes a Collection object as an argument
         /// and deposits each contained NFT into this Collection
         ///
-        pub fun batchDeposit(tokens: @NonFungibleToken.Collection) {
+        access(all) fun batchDeposit(tokens: @{NonFungibleToken.Collection}) {
             // Get an array of the IDs to be deposited
             let keys = tokens.getIDs()
 
@@ -882,38 +863,29 @@ pub contract Golazos: NonFungibleToken {
 
         /// getIDs returns an array of the IDs that are in the collection
         ///
-        pub fun getIDs(): [UInt64] {
+        access(all) view fun getIDs(): [UInt64] {
             return self.ownedNFTs.keys
         }
 
         /// borrowNFT gets a reference to an NFT in the collection
         //
-        pub fun borrowNFT(id: UInt64): &NonFungibleToken.NFT {
-            return (&self.ownedNFTs[id] as &NonFungibleToken.NFT?)!
+        access(all) view fun borrowNFT(_ id: UInt64): &{NonFungibleToken.NFT}? {
+            return &self.ownedNFTs[id]
         }
 
         /// borrowMomentNFT gets a reference to an NFT in the collection
         ///
-        pub fun borrowMomentNFT(id: UInt64): &Golazos.NFT? {
-            if self.ownedNFTs[id] != nil {
-                let ref = (&self.ownedNFTs[id] as auth &NonFungibleToken.NFT?)!
-                return ref as! &Golazos.NFT
-            } else {
-                return nil
+        access(all) view fun borrowMomentNFT(id: UInt64): &Golazos.NFT? {
+            return self.borrowNFT(id) as! &Golazos.NFT?
+        }
+
+        access(all) view fun borrowViewResolver(id: UInt64): &{ViewResolver.Resolver}? {
+            if let nft = &self.ownedNFTs[id] as &{NonFungibleToken.NFT}? {
+                return nft as &{ViewResolver.Resolver}
             }
+            return nil
         }
 
-        pub fun borrowViewResolver(id: UInt64): &{MetadataViews.Resolver} {
-            let nft = (&self.ownedNFTs[id] as auth &NonFungibleToken.NFT?)!
-            let GolazosNFT = nft as! &Golazos.NFT
-            return GolazosNFT as &AnyResource{MetadataViews.Resolver}
-        }
-
-        /// Collection destructor
-        ///
-        destroy() {
-            destroy self.ownedNFTs
-        }
 
         /// Collection initializer
         ///
@@ -924,7 +896,10 @@ pub contract Golazos: NonFungibleToken {
 
     /// public function that anyone can call to create a new empty collection
     ///
-    pub fun createEmptyCollection(): @NonFungibleToken.Collection {
+    access(all) fun createEmptyCollection(nftType: Type): @{NonFungibleToken.Collection} {
+        if nftType != Type<@Golazos.NFT>() {
+            panic("NFT type is not supported")
+        }
         return <- create Collection()
     }
 
@@ -932,61 +907,65 @@ pub contract Golazos: NonFungibleToken {
     // Admin
     //------------------------------------------------------------
 
+    /// Entitlement that grants the ability to mint Golazos NFTs
+    access(all) entitlement Mint
+
+    /// Entitlement that grants the ability to operate admin functions
+    access(all) entitlement Operate
+
     /// An interface containing the Admin function that allows minting NFTs
     ///
-    pub resource interface NFTMinter {
-        // Mint a single NFT
-        // The Edition for the given ID must already exist
-        //
-        pub fun mintNFT(editionID: UInt64): @Golazos.NFT
+    /// This is no longer used for defining access control anymore.
+    /// Keeping this because removing it is not a valid change for contract update
+    access(all) resource interface NFTMinter {
     }
 
     /// A resource that allows managing metadata and minting NFTs
     ///
-    pub resource Admin: NFTMinter {
+    access(all) resource Admin: NFTMinter {
         /// Borrow a Series
         ///
-        pub fun borrowSeries(id: UInt64): &Golazos.Series {
+        access(self) view fun borrowSeries(id: UInt64): &Golazos.Series {
             pre {
                 Golazos.seriesByID[id] != nil: "Cannot borrow series, no such id"
             }
 
-            return (&Golazos.seriesByID[id] as &Golazos.Series?)!
+            return (&Golazos.seriesByID[id])!
         }
 
         /// Borrow a Set
         ///
-        pub fun borrowSet(id: UInt64): &Golazos.Set {
+        access(self) view fun borrowSet(id: UInt64): &Golazos.Set {
             pre {
                 Golazos.setByID[id] != nil: "Cannot borrow Set, no such id"
             }
 
-            return (&Golazos.setByID[id] as &Golazos.Set?)!
+            return (&Golazos.setByID[id])!
         }
 
         /// Borrow a Play
         ///
-        pub fun borrowPlay(id: UInt64): &Golazos.Play {
+        access(self) view fun borrowPlay(id: UInt64): &Golazos.Play {
             pre {
                 Golazos.playByID[id] != nil: "Cannot borrow Play, no such id"
             }
 
-            return (&Golazos.playByID[id] as &Golazos.Play?)!
+            return (&Golazos.playByID[id])!
         }
 
         /// Borrow an Edition
         ///
-        pub fun borrowEdition(id: UInt64): &Golazos.Edition {
+        access(self) view fun borrowEdition(id: UInt64): &Golazos.Edition {
             pre {
                 Golazos.editionByID[id] != nil: "Cannot borrow edition, no such id"
             }
 
-            return (&Golazos.editionByID[id] as &Golazos.Edition?)!
+            return (&Golazos.editionByID[id])!
         }
 
         /// Create a Series
         ///
-        pub fun createSeries(name: String): UInt64 {
+        access(Operate) fun createSeries(name: String): UInt64 {
             // Create and store the new series
             let series <- create Golazos.Series(
                 name: name,
@@ -1000,15 +979,17 @@ pub contract Golazos: NonFungibleToken {
 
         /// Close a Series
         ///
-        pub fun closeSeries(id: UInt64): UInt64 {
-            let series = (&Golazos.seriesByID[id] as &Golazos.Series?)!
-            series.close()
-            return series.id
+        access(Operate) fun closeSeries(id: UInt64): UInt64 {
+            if let series = &Golazos.seriesByID[id] as &Golazos.Series? {
+                series.close()
+                return series.id
+            }
+            panic("series does not exist")
         }
 
         /// Create a Set
         ///
-        pub fun createSet(name: String): UInt64 {
+        access(Operate) fun createSet(name: String): UInt64 {
             // Create and store the new set
             let set <- create Golazos.Set(
                 name: name,
@@ -1022,15 +1003,17 @@ pub contract Golazos: NonFungibleToken {
 
         /// Locks a Set
         ///
-        pub fun lockSet(id: UInt64): UInt64 {
-            let set = (&Golazos.setByID[id] as &Golazos.Set?)!
-            set.lock()
-            return set.id
+        access(Operate) fun lockSet(id: UInt64): UInt64 {
+            if let set = &Golazos.setByID[id] as &Golazos.Set? {
+                set.lock()
+                return set.id
+            }
+            panic("set does not exist")
         }
 
         /// Create a Play
         ///
-        pub fun createPlay(classification: String, metadata: {String: String}): UInt64 {
+        access(Operate) fun createPlay(classification: String, metadata: {String: String}): UInt64 {
             // Create and store the new play
             let play <- create Golazos.Play(
                 classification: classification,
@@ -1045,7 +1028,7 @@ pub contract Golazos: NonFungibleToken {
 
         /// Create an Edition
         ///
-        pub fun createEdition(
+        access(Operate) fun createEdition(
             seriesID: UInt64,
             setID: UInt64,
             playID: UInt64,
@@ -1066,16 +1049,18 @@ pub contract Golazos: NonFungibleToken {
 
         /// Close an Edition
         ///
-        pub fun closeEdition(id: UInt64): UInt64 {
-            let edition = (&Golazos.editionByID[id] as &Golazos.Edition?)!
-            edition.close()
-            return edition.id
+        access(Operate) fun closeEdition(id: UInt64): UInt64 {
+            if let edition = &Golazos.editionByID[id] as &Golazos.Edition? {
+                edition.close()
+                return edition.id
+            }
+            panic("edition does not exist")
         }
 
         /// Mint a single NFT
         /// The Edition for the given ID must already exist
         ///
-        pub fun mintNFT(editionID: UInt64): @Golazos.NFT {
+        access(Mint) fun mintNFT(editionID: UInt64): @Golazos.NFT {
             pre {
                 // Make sure the edition we are creating this NFT in exists
                 Golazos.editionByID.containsKey(editionID): "No such EditionID"
@@ -1083,6 +1068,71 @@ pub contract Golazos: NonFungibleToken {
 
             return <- self.borrowEdition(id: editionID).mint()
         }
+    }
+
+    /// Return the metadata view types available for this contract
+    ///
+    access(all) view fun getContractViews(resourceType: Type?): [Type] {
+        return [Type<MetadataViews.NFTCollectionData>(), Type<MetadataViews.NFTCollectionDisplay>(), Type<MetadataViews.Royalties>()]
+    }
+
+    /// Resolve this contract's metadata views
+    ///
+    access(all) view fun resolveContractView(resourceType: Type?, viewType: Type): AnyStruct? {
+        post {
+            result == nil || result!.getType() == viewType: "The returned view must be of the given type or nil"
+        }
+        switch viewType {
+            case Type<MetadataViews.NFTCollectionData>():
+                return MetadataViews.NFTCollectionData(
+                    storagePath: self.CollectionStoragePath,
+                    publicPath: self.CollectionPublicPath,
+                    publicCollection: Type<&Golazos.Collection>(),
+                    publicLinkedType: Type<&Golazos.Collection>(),
+                    createEmptyCollectionFunction: (fun (): @{NonFungibleToken.Collection} {
+                        return <-Golazos.createEmptyCollection(nftType: Type<@Golazos.NFT>())
+                    })
+                )
+            case Type<MetadataViews.NFTCollectionDisplay>():
+                let bannerImage = MetadataViews.Media(
+                    file: MetadataViews.HTTPFile(
+                        url: "https://assets.laligagolazos.com/static/golazos-logos/Golazos_Logo_Horizontal_B.png"
+                    ),
+                    mediaType: "image/png"
+                )
+                let squareImage = MetadataViews.Media(
+                    file: MetadataViews.HTTPFile(
+                        url: "https://assets.laligagolazos.com/static/golazos-logos/Golazos_Logo_Primary_B.png"
+                    ),
+                    mediaType: "image/png"
+                )
+                return MetadataViews.NFTCollectionDisplay(
+                    name: "Laliga Golazos",
+                    description: "Collect LaLiga's biggest Moments and get closer to the game than ever before",
+                    externalURL: MetadataViews.ExternalURL("https://laligagolazos.com/"),
+                    squareImage: squareImage,
+                    bannerImage: bannerImage,
+                    socials: {
+                        "instagram": MetadataViews.ExternalURL(" https://instagram.com/laligaonflow"),
+                        "twitter": MetadataViews.ExternalURL("https://twitter.com/LaLigaGolazos"),
+                        "discord": MetadataViews.ExternalURL("https://discord.gg/LaLigaGolazos"),
+                        "facebook": MetadataViews.ExternalURL("https://www.facebook.com/LaLigaGolazos/")
+                    }
+                )
+            case Type<MetadataViews.Royalties>():
+                let royaltyReceiver: Capability<&{FungibleToken.Receiver}> =
+                    getAccount(Golazos.RoyaltyAddress()).capabilities.get<&{FungibleToken.Receiver}>(MetadataViews.getRoyaltyReceiverPublicPath())
+                return MetadataViews.Royalties(
+                    [
+                        MetadataViews.Royalty(
+                            receiver: royaltyReceiver,
+                            cut: 0.05,
+                            description: "Laliga Golazos marketplace royalty"
+                        )
+                    ]
+                )
+        }
+        return nil
     }
 
     //------------------------------------------------------------
@@ -1096,7 +1146,6 @@ pub contract Golazos: NonFungibleToken {
         self.CollectionStoragePath = /storage/GolazosNFTCollection
         self.CollectionPublicPath = /public/GolazosNFTCollection
         self.AdminStoragePath = /storage/GolazosAdmin
-        self.MinterPrivatePath = /private/GolazosMinter
 
         // Initialize the entity counts
         self.totalSupply = 0
@@ -1115,13 +1164,8 @@ pub contract Golazos: NonFungibleToken {
 
         // Create an Admin resource and save it to storage
         let admin <- create Admin()
-        self.account.save(<-admin, to: self.AdminStoragePath)
-        // Link capabilites to the admin constrained to the Minter
-        // and Metadata interfaces
-        self.account.link<&Golazos.Admin{Golazos.NFTMinter}>(
-            self.MinterPrivatePath,
-            target: self.AdminStoragePath
-        )
+        self.account.storage.save(<-admin, to: self.AdminStoragePath)
+        
 
         // Let the world know we are here
         emit ContractInitialized()

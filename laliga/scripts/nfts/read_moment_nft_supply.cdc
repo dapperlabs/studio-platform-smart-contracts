@@ -1,8 +1,8 @@
-import Golazos from "../../contracts/Golazos.cdc"
+import Golazos from "Golazos"
 
 // This scripts returns the number of Golazos currently in existence.
 
-pub fun main(): UInt64 {    
+access(all) fun main(): UInt64 {    
     return Golazos.totalSupply
 }
 

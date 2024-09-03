@@ -1,99 +1,117 @@
 import Crypto
-import NonFungibleToken from 0x{{.NonFungibleToken}}
+import NonFungibleToken from "NonFungibleToken"
 
-pub contract interface IPackNFT{
+/// Contract interface for PackNFT contracts.
+///
+access(all) contract interface IPackNFT{
+
+    /// Entitlement to perform operations on the PackNFT
+    ///
+    access(all) entitlement Operate
+
     /// StoragePath for Collection Resource
     ///
-    pub let CollectionStoragePath: StoragePath
+    access(all) let CollectionStoragePath: StoragePath
+
     /// PublicPath expected for deposit
     ///
-    pub let CollectionPublicPath: PublicPath
+    access(all) let CollectionPublicPath: PublicPath
+
     /// PublicPath for receiving PackNFT
     ///
-    pub let CollectionIPackNFTPublicPath: PublicPath
+    access(all) let CollectionIPackNFTPublicPath: PublicPath
+
     /// StoragePath for the PackNFT Operator Resource (issuer owns this)
     ///
-    pub let OperatorStoragePath: StoragePath
-    /// PrivatePath to share IOperator interfaces with Operator (typically with PDS account)
-    ///
-    pub let OperatorPrivPath: PrivatePath
+    access(all) let OperatorStoragePath: StoragePath
+
     /// Request for Reveal
     ///
-    pub event RevealRequest(id: UInt64, openRequest: Bool)
+    access(all) event RevealRequest(id: UInt64, openRequest: Bool)
+
     /// Request for Open
     ///
     /// This is emitted when owner of a PackNFT request for the entitled NFT to be
     /// deposited to its account
-    pub event OpenRequest(id: UInt64)
+    access(all) event OpenRequest(id: UInt64)
+
     /// Burned
     ///
     /// Emitted when a PackNFT has been burned
-    pub event Burned(id: UInt64 )
+    access(all) event Burned(id: UInt64 )
+
     /// Opened
     ///
     /// Emitted when a packNFT has been opened
-    pub event Opened(id: UInt64)
+    access(all) event Opened(id: UInt64)
 
-    pub enum Status: UInt8 {
-        pub case Sealed
-        pub case Revealed
-        pub case Opened
+    // TODO: Clean up after enum handling/removal is clarified.
+    // Enums cannot be declared anymore in interfaces in Cadence 1.0
+    // access(all) enum Status: UInt8 {
+    //     access(all) case Sealed
+    //     access(all) case Revealed
+    //     access(all) case Opened
+    // }
+
+    /// Struct interface for Collectible
+    ///
+    access(all) struct interface Collectible {
+        access(all) let address: Address
+        access(all) let contractName: String
+        access(all) let id: UInt64
+        access(all) fun hashString(): String
+        view init(address: Address, contractName: String, id: UInt64)
     }
 
-    pub struct interface Collectible {
-        pub let address: Address
-        pub let contractName: String
-        pub let id: UInt64
-        pub fun hashString(): String
-        init(address: Address, contractName: String, id: UInt64)
-    }
+    /// Resource interface for PackNFT
+    ///
+    access(all) resource interface IPack {
+        access(all) let issuer: Address
+        // access(all) var status: Status
 
-    pub resource interface IPack {
-        pub let issuer: Address
-        pub var status: Status
-
-        pub fun verify(nftString: String): Bool
+        access(all) fun verify(nftString: String): Bool
 
         access(contract) fun reveal(id: UInt64, nfts: [{IPackNFT.Collectible}], salt: String)
         access(contract) fun open(id: UInt64, nfts: [{IPackNFT.Collectible}])
-        init(commitHash: String, issuer: Address)
+        view init(commitHash: String, issuer: Address)
     }
 
-    pub resource interface IOperator {
-        pub fun mint(distId: UInt64, commitHash: String, issuer: Address): @NFT
-        pub fun reveal(id: UInt64, nfts: [{Collectible}], salt: String)
-        pub fun open(id: UInt64, nfts: [{IPackNFT.Collectible}])
-    }
-    pub resource PackNFTOperator: IOperator {
-        pub fun mint(distId: UInt64, commitHash: String, issuer: Address): @NFT
-        pub fun reveal(id: UInt64, nfts: [{Collectible}], salt: String)
-        pub fun open(id: UInt64, nfts: [{IPackNFT.Collectible}])
+    /// Resource interface for IOperator
+    ///
+    access(all) resource interface IOperator {
+        access(Operate) fun mint(distId: UInt64, commitHash: String, issuer: Address): @{IPackNFT.NFT}
+        access(Operate) fun reveal(id: UInt64, nfts: [{Collectible}], salt: String)
+        access(Operate) fun open(id: UInt64, nfts: [{IPackNFT.Collectible}])
     }
 
-    pub resource interface IPackNFTToken {
-        pub let id: UInt64
-        pub let issuer: Address
+    // Included for backwards compatibility
+    access(all) resource interface PackNFTOperator: IOperator {}
+
+    /// Resource interface for IPackNFTToken
+    ///
+    access(all) resource interface IPackNFTToken {
+        access(all) let id: UInt64
+        access(all) let issuer: Address
     }
 
-    pub resource NFT: NonFungibleToken.INFT, IPackNFTToken, IPackNFTOwnerOperator{
-        pub let id: UInt64
-        pub let issuer: Address
-        pub fun reveal(openRequest: Bool)
-        pub fun open()
+    /// Resource interface for NFT
+    ///
+    access(all) resource interface NFT: NonFungibleToken.NFT, IPackNFTToken, IPackNFTOwnerOperator {
+        access(all) let id: UInt64
+        access(all) let issuer: Address
     }
 
-    pub resource interface IPackNFTOwnerOperator{
-        pub fun reveal(openRequest: Bool)
-        pub fun open()
+    /// Resource interface for PackNFT Collection
+    ///
+    access(all) resource interface IPackNFTCollectionPublic: NonFungibleToken.Collection {
+        access(NonFungibleToken.Update) fun emitRevealRequestEvent(id: UInt64, openRequest: Bool)
+        access(NonFungibleToken.Update) fun emitOpenRequestEvent(id: UInt64)
     }
 
-    pub resource interface IPackNFTCollectionPublic {
-        pub fun deposit(token: @NonFungibleToken.NFT)
-        pub fun getIDs(): [UInt64]
-        pub fun borrowNFT(id: UInt64): &NonFungibleToken.NFT
-    }
+    // Included for backwards compatibility
+    access(all) resource interface IPackNFTOwnerOperator{}
 
-    access(contract) fun revealRequest(id: UInt64, openRequest: Bool)
-    access(contract) fun openRequest(id: UInt64)
-    pub fun publicReveal(id: UInt64, nfts: [{IPackNFT.Collectible}], salt: String)
+    /// Reveal a Sealed Pack NFT
+    ///
+    access(all) fun publicReveal(id: UInt64, nfts: [{IPackNFT.Collectible}], salt: String)
 }

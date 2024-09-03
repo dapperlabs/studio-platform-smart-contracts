@@ -2,7 +2,6 @@ import NonFungibleToken from 0x{{.NonFungibleToken}}
 import DapperSport from 0x{{.DapperSport}}
 
 // This transaction configures an account to hold DapperSport NFTs.
-
 transaction {
     prepare(signer: AuthAccount) {
         // if the account doesn't already have a collection

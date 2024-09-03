@@ -1,8 +1,8 @@
-import NFTLocker from "../contracts/NFTLocker.cdc"
+import NFTLocker from "NFTLocker"
 
 transaction() {
 
-    prepare(signer: AuthAccount) {
+    prepare(signer: &Account) {
         NFTLocker.createAndSaveAdmin(acct: signer)
     }
 

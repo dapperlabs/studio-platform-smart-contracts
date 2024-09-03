@@ -1,25 +1,35 @@
-import NonFungibleToken from 0x{{.NonFungibleToken}}
-import {{.CollectibleNFTName}} from 0x{{.CollectibleNFTAddress}}
+import NonFungibleToken from "NonFungibleToken"
+import ExampleNFT from "ExampleNFT"
+import MetadataViews from "MetadataViews"
 
-transaction (NFTProviderPath: PrivatePath) {
-    prepare(signer: AuthAccount) {
-        // Setup the collection, if not already
-        if signer.borrow<&{{.CollectibleNFTName}}.Collection>(from: {{.CollectibleNFTName}}.CollectionStoragePath) == nil {
-          // create a new empty collection
-          let collection <- {{.CollectibleNFTName}}.createEmptyCollection()
+transaction (nftWithdrawCapPath: StoragePath) {
 
-          // save it to the account
-          signer.save(<-collection, to: {{.CollectibleNFTName}}.CollectionStoragePath)
+    prepare(signer: auth(Storage, Capabilities) &Account) {
+        let collectionData = ExampleNFT.resolveContractView(resourceType: nil, viewType: Type<MetadataViews.NFTCollectionData>()) as! MetadataViews.NFTCollectionData?
+            ?? panic("ViewResolver does not resolve NFTCollectionData view")
 
-          // create a public capability for the collection
-          signer.link<&NonFungibleToken.Collection{NonFungibleToken.CollectionPublic}>({{.CollectibleNFTName}}.CollectionPublicPath, target: {{.CollectibleNFTName}}.CollectionStoragePath)
-          assert(signer.getCapability<&{NonFungibleToken.CollectionPublic}>({{.CollectibleNFTName}}.CollectionPublicPath).check(), message: "did not link public cap");
+        // Return early if the account already has a collection
+        if signer.storage.borrow<&ExampleNFT.Collection>(from: collectionData.storagePath) != nil {
+            return
         }
 
-        // Link the private withdraw capability, if not already
-        if !signer.getCapability<&{NonFungibleToken.Provider}>(NFTProviderPath).check() {
-          signer.link<&{NonFungibleToken.Provider}>(NFTProviderPath, target: {{.CollectibleNFTName}}.CollectionStoragePath)
-          assert(signer.getCapability<&{NonFungibleToken.Provider}>(NFTProviderPath).check(), message: "did not link withdraw cap");
-        }
+        // Create and save collection to account storage
+        signer.storage.save(
+            <- ExampleNFT.createEmptyCollection(nftType: Type<@ExampleNFT.NFT>()),
+            to: collectionData.storagePath,
+        )
+
+        // Create and save authorized collection capability to account storage
+        let withdrawCap = signer.capabilities.storage.issue<auth(NonFungibleToken.Withdraw) &ExampleNFT.Collection>(collectionData.storagePath)
+        signer.capabilities.storage.getController(byCapabilityID: withdrawCap.id)!.setTag("PDSwithdrawCap")
+        signer.storage.save(
+            withdrawCap,
+            to: nftWithdrawCapPath
+        )
+
+        // create a public capability for the collection
+        signer.capabilities.unpublish(collectionData.publicPath)
+        let collectionCap = signer.capabilities.storage.issue<&ExampleNFT.Collection>(collectionData.storagePath)
+        signer.capabilities.publish(collectionCap, at: collectionData.publicPath)
     }
 }

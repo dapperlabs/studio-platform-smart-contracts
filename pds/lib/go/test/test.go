@@ -1,13 +1,19 @@
 package test
 
 import (
+	"context"
 	"fmt"
-	jsoncdc "github.com/onflow/cadence/encoding/json"
 	"io/ioutil"
 	"testing"
 
+	jsoncdc "github.com/onflow/cadence/encoding/json"
+	"github.com/rs/zerolog"
+
 	"github.com/onflow/cadence"
-	emulator "github.com/onflow/flow-emulator"
+	"github.com/onflow/flow-emulator/adapters"
+	"github.com/onflow/flow-emulator/convert"
+	"github.com/onflow/flow-emulator/emulator"
+	"github.com/onflow/flow-emulator/types"
 	"github.com/onflow/flow-go-sdk"
 	"github.com/onflow/flow-go-sdk/crypto"
 	sdktemplates "github.com/onflow/flow-go-sdk/templates"
@@ -44,7 +50,6 @@ const (
 )
 
 // Sets up testing and emulator objects and initialize the emulator default addresses
-//
 func newTestSetup(t *testing.T) (*emulator.Blockchain, *test.AccountKeys) {
 	// Set for parallel processing
 	t.Parallel()
@@ -61,7 +66,7 @@ func newTestSetup(t *testing.T) (*emulator.Blockchain, *test.AccountKeys) {
 
 // newBlockchain returns an emulator blockchain for testing.
 func newBlockchain(opts ...emulator.Option) *emulator.Blockchain {
-	b, err := emulator.NewBlockchain(
+	b, err := emulator.New(
 		append(
 			[]emulator.Option{
 				emulator.WithStorageLimitEnabled(false),
@@ -79,7 +84,9 @@ func newBlockchain(opts ...emulator.Option) *emulator.Blockchain {
 // and return the address, public keys, and signer objects
 func newAccountWithAddress(b *emulator.Blockchain, accountKeys *test.AccountKeys) (flow.Address, *flow.AccountKey, crypto.Signer) {
 	newAccountKey, newSigner := accountKeys.NewWithSigner()
-	newAddress, _ := b.CreateAccount([]*flow.AccountKey{newAccountKey}, nil)
+	logger := zerolog.Nop()
+	adapter := adapters.NewSDKAdapter(&logger, b)
+	newAddress, _ := adapter.CreateAccount(context.Background(), []*flow.AccountKey{newAccountKey}, nil)
 
 	return newAddress, newAccountKey, newSigner
 }
@@ -92,7 +99,9 @@ func deploy(
 	code []byte,
 	keys ...*flow.AccountKey,
 ) flow.Address {
-	address, err := b.CreateAccount(
+	logger := zerolog.Nop()
+	adapter := adapters.NewSDKAdapter(&logger, b)
+	address, err := adapter.CreateAccount(context.Background(),
 		keys,
 		[]sdktemplates.Contract{
 			{
@@ -156,15 +165,49 @@ func signAndSubmit(
 	Submit(t, b, tx, shouldRevert)
 }
 
+// signAndSubmitWithResult signs a transaction with an array of signers and adds their signatures to the transaction
+// before submitting it to the emulator; it returns the transaction result.
+//
+// If the private keys do not match up with the addresses, the transaction will not succeed.
+//
+// The shouldRevert parameter indicates whether the transaction should fail or not.
+//
+// This function asserts the correct result and commits the block if it passed.
+func signAndSubmitWithResult(
+	t *testing.T,
+	b *emulator.Blockchain,
+	tx *flow.Transaction,
+	signerAddresses []flow.Address,
+	signers []crypto.Signer,
+	shouldRevert bool,
+) *types.TransactionResult {
+	// sign transaction with each signer
+	for i := len(signerAddresses) - 1; i >= 0; i-- {
+		signerAddress := signerAddresses[i]
+		signer := signers[i]
+
+		if i == 0 {
+			err := tx.SignEnvelope(signerAddress, 0, signer)
+			assert.NoError(t, err)
+		} else {
+			err := tx.SignPayload(signerAddress, 0, signer)
+			assert.NoError(t, err)
+		}
+	}
+
+	return Submit(t, b, tx, shouldRevert)
+}
+
 // Submit submits a transaction and checks if it fails or not.
 func Submit(
 	t *testing.T,
 	b *emulator.Blockchain,
 	tx *flow.Transaction,
 	shouldRevert bool,
-) {
+) *types.TransactionResult {
 	// submit the signed transaction
-	err := b.AddTransaction(*tx)
+	flowTx := convert.SDKTransactionToFlow(*tx)
+	err := b.AddTransaction(*flowTx)
 	require.NoError(t, err)
 
 	result, err := b.ExecuteNextTransaction()
@@ -180,6 +223,7 @@ func Submit(
 
 	_, err = b.CommitBlock()
 	assert.NoError(t, err)
+	return result
 }
 
 // executeScriptAndCheck executes a script and checks to make sure that it succeeded.
@@ -226,12 +270,11 @@ func bytesToCadenceArray(b []byte) cadence.Array {
 
 // assertEqual asserts that two objects are equal.
 //
-//    assertEqual(t, 123, 123)
+//	assertEqual(t, 123, 123)
 //
 // Pointer variable equality is determined based on the equality of the
 // referenced values (as opposed to the memory addresses). Function equality
 // cannot be determined and will always fail.
-//
 func assertEqual(t *testing.T, expected, actual interface{}) bool {
 
 	if assert.ObjectsAreEqual(expected, actual) {

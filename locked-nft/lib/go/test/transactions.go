@@ -2,11 +2,11 @@ package test
 
 import (
 	"fmt"
+	"strings"
 	"testing"
 
 	"github.com/onflow/cadence"
-	emulator "github.com/onflow/flow-emulator"
-	fttemplates "github.com/onflow/flow-ft/lib/go/templates"
+	"github.com/onflow/flow-emulator/emulator"
 	"github.com/onflow/flow-go-sdk"
 	"github.com/onflow/flow-go-sdk/crypto"
 )
@@ -14,37 +14,6 @@ import (
 // ------------------------------------------------------------
 // Setup
 // ------------------------------------------------------------
-func fundAccount(
-	t *testing.T,
-	b *emulator.Blockchain,
-	receiverAddress flow.Address,
-	amount string,
-) {
-	script := fttemplates.GenerateMintTokensScript(
-		ftAddress,
-		flowTokenAddress,
-		flowTokenName,
-	)
-
-	tx := flow.NewTransaction().
-		SetScript(script).
-		SetGasLimit(100).
-		SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
-		SetPayer(b.ServiceKey().Address).
-		AddAuthorizer(b.ServiceKey().Address)
-
-	tx.AddArgument(cadence.NewAddress(receiverAddress))
-	tx.AddArgument(cadenceUFix64(amount))
-
-	signer, _ := b.ServiceKey().Signer()
-
-	signAndSubmit(
-		t, b, tx,
-		[]flow.Address{b.ServiceKey().Address},
-		[]crypto.Signer{signer},
-		false,
-	)
-}
 
 func mintExampleNFT(
 	t *testing.T,
@@ -55,7 +24,7 @@ func mintExampleNFT(
 ) uint64 {
 	tx := flow.NewTransaction().
 		SetScript(mintExampleNFTTransaction(contracts)).
-		SetGasLimit(100).
+		SetComputeLimit(100).
 		SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
 		SetPayer(b.ServiceKey().Address).
 		AddAuthorizer(contracts.NFTLockerAddress)
@@ -69,7 +38,15 @@ func mintExampleNFT(
 		shouldRevert,
 	)
 
-	nftId := txResult.Events[0].Value.Fields[0].ToGoValue().(uint64)
+	nftId := uint64(0)
+	for _, event := range txResult.Events {
+		if strings.Contains(event.Type, "NonFungibleToken.Deposited") {
+			if v := cadence.FieldsMappedByName(event.Value)["id"]; v != nil {
+				nftId = GetFieldValue(v).(uint64)
+			}
+		}
+	}
+
 	return nftId
 }
 
@@ -85,7 +62,7 @@ func lockNFT(
 ) (uint64, uint64) {
 	tx := flow.NewTransaction().
 		SetScript(lockNFTTransaction(contracts)).
-		SetGasLimit(100).
+		SetComputeLimit(100).
 		SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
 		SetPayer(b.ServiceKey().Address).
 		AddAuthorizer(userAddress)
@@ -102,9 +79,16 @@ func lockNFT(
 
 	var lockedAt, lockedUntil uint64
 
-	if len(txResult.Events) >= 2 {
-		lockedAt = txResult.Events[1].Value.Fields[2].ToGoValue().(uint64)
-		lockedUntil = txResult.Events[1].Value.Fields[3].ToGoValue().(uint64)
+	for _, event := range txResult.Events {
+		if strings.Contains(event.Type, "NFTLocker.NFTLocked") {
+			if v := cadence.FieldsMappedByName(event.Value)["lockedAt"]; v != nil {
+				lockedAt = GetFieldValue(v).(uint64)
+			}
+			if v := cadence.FieldsMappedByName(event.Value)["lockedUntil"]; v != nil {
+				lockedUntil = GetFieldValue(v).(uint64)
+			}
+			break
+		}
 	}
 
 	return lockedAt, lockedUntil
@@ -121,7 +105,7 @@ func unlockNFT(
 ) {
 	tx := flow.NewTransaction().
 		SetScript(unlockNFTTransaction(contracts)).
-		SetGasLimit(100).
+		SetComputeLimit(100).
 		SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
 		SetPayer(b.ServiceKey().Address).
 		AddAuthorizer(userAddress)

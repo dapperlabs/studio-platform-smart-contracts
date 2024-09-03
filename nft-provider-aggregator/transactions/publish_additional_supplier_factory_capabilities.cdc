@@ -1,4 +1,4 @@
-import NFTProviderAggregator from "../contracts/NFTProviderAggregator.cdc"
+import NFTProviderAggregator from "NFTProviderAggregator"
 
 /// Transaction signed by a manager account to create additional supplier factory capabilities (who are trusted
 /// for the ability to use the capability itself but also for potentially copying and saving it somewhere else).
@@ -12,7 +12,7 @@ transaction(
     ) {
 
     prepare(
-        manager: AuthAccount,
+        manager: auth(LoadValue, SaveValue, PublishInboxCapability) &Account,
     ) {
         assert(
             suppliers.length == capabilityPublicationIDs.length,
@@ -20,9 +20,15 @@ transaction(
         )
 
         // Retrieve supplier factory capability
-        let supplierFactoryCapability = manager.getCapability<
-        &NFTProviderAggregator.Aggregator{NFTProviderAggregator.SupplierFactory}>(
-            NFTProviderAggregator.SupplierFactoryPrivatePath)!
+        let supplierCapStoragePath = NFTProviderAggregator.convertPrivateToStoragePath(NFTProviderAggregator.SupplierAccessPrivatePath)
+        let supplierFactoryCapability = manager.storage.load<
+        Capability<auth(NFTProviderAggregator.Operate) &{NFTProviderAggregator.SupplierFactory}>>(
+            from: supplierCapStoragePath)!
+
+        manager.storage.save(
+            supplierFactoryCapability,
+            to: supplierCapStoragePath
+        )
 
         // Publish supplier factory capability to designated recipients
         for index, recipient in suppliers {
@@ -30,7 +36,7 @@ transaction(
                 supplierFactoryCapability,
                 name: capabilityPublicationIDs[index],
                 recipient: recipient
-                )  
+                )
         }
     }
 }

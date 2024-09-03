@@ -1,5 +1,44 @@
 {
 	"contracts": {
+		"FungibleToken": {
+			"source": "./contracts/imports/FungibleToken.cdc",
+			"aliases": {
+				"mainnet": "f233dcee88fe0abe",
+				"testnet": "9a0766d93b6608b7",
+				"emulator": "ee82856bf20e2aa6"
+			}
+		},
+		"MetadataViews": {
+			"source": "./contracts/imports/MetadataViews.cdc",
+			"aliases": {
+				"mainnet": "1d7e57aa55817448",
+				"testnet": "631e88ae7f1d7c20",
+				"emulator": "f8d6e0586b0a20c7"
+			}
+		},
+		"NonFungibleToken": {
+			"source": "./contracts/imports/NonFungibleToken.cdc",
+			"aliases": {
+				"mainnet": "1d7e57aa55817448",
+				"testnet": "631e88ae7f1d7c20",
+				"emulator": "f8d6e0586b0a20c7"
+			}
+		},
+		"ViewResolver": {
+			"source": "./contracts/imports/ViewResolver.cdc",
+			"aliases": {
+				"mainnet": "1d7e57aa55817448",
+				"testnet": "631e88ae7f1d7c20",
+				"emulator": "f8d6e0586b0a20c7"
+			}
+		},
+		"PDS": {
+			"source": "./contracts/PDS.cdc",
+			"aliases": {
+				"mainnet": "b6f2481eba4df97b",
+				"testnet": "ef4cd3d07a7b43ce"
+			}
+		},
 		"IPackNFT": {
 			"source": "./contracts/IPackNFT.cdc",
 			"aliases": {
@@ -7,12 +46,16 @@
 				"testnet": "d8f6346999b983f5"
 			}
 		},
-		"NonFungibleToken": {
-			"source": "./contracts/imports/NonFungibleToken.cdc",
+		"PackNFT": {
+			"source": "./contracts/PackNFT.cdc",
 			"aliases": {
-				"emulator": "f8d6e0586b0a20c7",
-				"mainnet": "1d7e57aa55817448",
-				"testnet": "631e88ae7f1d7c20"
+				"mainnet": "edf9df96c92f4595",
+				"testnet": "a2526e2d9cc7f0d2"
+			}
+		},
+		"ExampleNFT": {
+			"source": "./contracts/imports/ExampleNFT.cdc",
+			"aliases": {
 			}
 		}
 	},
@@ -29,9 +72,29 @@
 		}
 	},
 	"deployments": {
-		"testnet": {
-			"testnet-platform-admin": [
-				"IPackNFT"
+		"emulator": {
+			"emulator-account": [
+				"IPackNFT",
+				{
+					"name": "PDS",
+					"args": [
+						{"type": "Path","value": {"domain": "storage", "identifier": "PackIssuer"}},
+						{"type": "Path","value": {"domain": "public", "identifier": "PackIssuer"}},
+						{"type": "Path","value": {"domain": "storage", "identifier": "DistCreator"}},
+						{"type": "Path","value": {"domain": "storage", "identifier": "DistManager"}},
+						{"type": "String","value": "0.1"}
+					]
+				},
+				{
+					"name": "PackNFT",
+					"args": [
+						{"type": "Path","value": {"domain": "storage", "identifier": "PackNFT"}},
+						{"type": "Path","value": {"domain": "public", "identifier": "PackNFT"}},
+						{"type": "Path","value": {"domain": "public", "identifier": "IPackNFT"}},
+						{"type": "Path","value": {"domain": "storage", "identifier": "PackNFTOperator"}},
+						{"type": "String","value": "0.1"}
+					]
+				}
 			]
 		}
 	}

@@ -1,16 +1,14 @@
-import PDS from 0x{{.PDS}}
+import PDS from "PDS"
 
 transaction (issuer: Address) {
-    prepare(pds: AuthAccount) {
-        let cap = pds.getCapability<&PDS.DistributionCreator{PDS.IDistCreator}>(PDS.DistCreatorPrivPath)
+    prepare(pds: auth(Capabilities) &Account) {
+        let cap = pds.capabilities.storage.issue<&PDS.DistributionCreator>(PDS.DistCreatorStoragePath)
         if !cap.check() {
-            panic ("cannot borrow such capability") 
-        } else {
-            let setCapRef = getAccount(issuer).getCapability<&PDS.PackIssuer{PDS.PackIssuerCapReciever}>(PDS.PackIssuerCapRecv).borrow()
-                ?? panic("no cap for setting distCap")
-            setCapRef.setDistCap(cap: cap);
+            panic("cannot borrow such capability")
         }
+
+        let setCapRef = getAccount(issuer).capabilities.borrow<&PDS.PackIssuer>(PDS.PackIssuerCapRecv)
+            ?? panic("no cap for setting distCap")
+        setCapRef.setDistCap(cap: cap);
     }
-
 }
-

@@ -1,15 +1,15 @@
-import EditionNFT from "../../../contracts/EditionNFT.cdc"
+import EditionNFT from "EditionNFT"
 
 transaction(
     metadata: {String: String}
    ) {
     // local variable for the admin reference
-    let admin: &EditionNFT.Admin
+    let admin: auth(EditionNFT.Operate) &EditionNFT.Admin
 
-    prepare(signer: AuthAccount) {
+    prepare(signer: auth(BorrowValue) &Account) {
         // borrow a reference to the Admin resource
-        self.admin = signer.borrow<&EditionNFT.Admin>(from: EditionNFT.AdminStoragePath)
-            ?? panic("Could not borrow a reference to the EditionNFT Admin capability")
+        self.admin = signer.storage.borrow<auth(EditionNFT.Operate) &EditionNFT.Admin>(from: EditionNFT.AdminStoragePath)
+            ?? panic("Could not borrow a reference to the Golazos Admin capability")
     }
 
     execute {

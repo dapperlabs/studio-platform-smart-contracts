@@ -1,7 +1,7 @@
 package test
 
 import (
-	"regexp"
+	"strings"
 
 	"github.com/onflow/flow-go-sdk"
 )
@@ -9,11 +9,14 @@ import (
 // Handle relative paths by making these regular expressions
 
 const (
-	nftAddressPlaceholder        = "\"[^\"]*NonFungibleToken.cdc\""
-	EditionNFTAddressPlaceholder = "\"[^\"]*EditionNFT.cdc\""
+	nftAddressPlaceholder           = "\"NonFungibleToken\""
+	metadataViewsAddressPlaceholder = "\"MetadataViews\""
+	viewResolverAddressPlaceholder  = "\"ViewResolver\""
+	EditionNFTAddressPlaceholder    = "\"EditionNFT\""
 )
 
 const (
+	BurnerPath           = "../../../contracts/imports/Burner.cdc"
 	EditionNFTPath       = "../../../contracts/EditionNFT.cdc"
 	TransactionsRootPath = "../../../transactions"
 	ScriptsRootPath      = "../../../scripts"
@@ -33,24 +36,25 @@ const (
 	ReadNftPropertiesTxPath = ScriptsRootPath + "/nfts/read_nft_properties.cdc"
 )
 
-//------------------------------------------------------------
+// ------------------------------------------------------------
 // Accounts
-//------------------------------------------------------------
+// ------------------------------------------------------------
 func replaceAddresses(code []byte, contracts Contracts) []byte {
-	nftRe := regexp.MustCompile(nftAddressPlaceholder)
-	code = nftRe.ReplaceAll(code, []byte("0x"+contracts.NFTAddress.String()))
+	code = []byte(strings.ReplaceAll(string(code), nftAddressPlaceholder, "0x"+contracts.NFTAddress.String()))
+	code = []byte(strings.ReplaceAll(string(code), metadataViewsAddressPlaceholder, "0x"+contracts.MetadataViewsAddress.String()))
+	code = []byte(strings.ReplaceAll(string(code), viewResolverAddressPlaceholder, "0x"+contracts.ViewResolverAddress.String()))
 
-	EditionNFTRe := regexp.MustCompile(EditionNFTAddressPlaceholder)
-	code = EditionNFTRe.ReplaceAll(code, []byte("0x"+contracts.EditionNFTAddress.String()))
+	code = []byte(strings.ReplaceAll(string(code), EditionNFTAddressPlaceholder, "0x"+contracts.EditionNFTAddress.String()))
 
 	return code
 }
 
-func allDaySeasonalContract(nftAddress flow.Address) []byte {
+func allDaySeasonalContract(nftAddress flow.Address, metadataViewsAddr flow.Address, viewResolverAddress flow.Address) []byte {
 	code := readFile(EditionNFTPath)
 
-	nftRe := regexp.MustCompile(nftAddressPlaceholder)
-	code = nftRe.ReplaceAll(code, []byte("0x"+nftAddress.String()))
+	code = []byte(strings.ReplaceAll(string(code), metadataViewsAddressPlaceholder, "0x"+metadataViewsAddr.String()))
+	code = []byte(strings.ReplaceAll(string(code), nftAddressPlaceholder, "0x"+nftAddress.String()))
+	code = []byte(strings.ReplaceAll(string(code), viewResolverAddressPlaceholder, "0x"+viewResolverAddress.String()))
 
 	return code
 }
@@ -90,9 +94,9 @@ func closeEditionTransaction(contracts Contracts) []byte {
 	)
 }
 
-//------------------------------------------------------------
+// ------------------------------------------------------------
 // Moment NFTs
-//------------------------------------------------------------
+// ------------------------------------------------------------
 func mintEditionNFTTransaction(contracts Contracts) []byte {
 	return replaceAddresses(
 		readFile(MintNFTTxPath),

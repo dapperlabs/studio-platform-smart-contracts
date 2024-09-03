@@ -1,13 +1,12 @@
-import Golazos from "../../contracts/Golazos.cdc"
-import MetadataViews from 0x{{.MetadataViewsAddress}}
+import Golazos from "Golazos"
+import MetadataViews from "MetadataViews"
 
 
-pub fun main(address: Address, id: UInt64): MetadataViews.Traits {
+access(all) fun main(address: Address, id: UInt64): MetadataViews.Traits {
     let account = getAccount(address)
 
-    let collectionRef = account.getCapability(Golazos.CollectionPublicPath)
-                            .borrow<&{Golazos.MomentNFTCollectionPublic}>()!
-
+    let collectionRef = account.capabilities.borrow<&Golazos.Collection>(Golazos.CollectionPublicPath)
+        ?? panic("Could not borrow a reference of the public collection")
     let nft = collectionRef.borrowMomentNFT(id: id)!
     
     // Get the metadata information for this NFT

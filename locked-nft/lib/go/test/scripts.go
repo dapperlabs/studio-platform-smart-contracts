@@ -5,7 +5,7 @@ import (
 
 	"github.com/onflow/cadence"
 	jsoncdc "github.com/onflow/cadence/encoding/json"
-	emulator "github.com/onflow/flow-emulator"
+	"github.com/onflow/flow-emulator/emulator"
 	"github.com/onflow/flow-go-sdk"
 )
 
@@ -18,7 +18,7 @@ func isAccountSetup(
 	script := isAccountSetupScript(contracts)
 	result := executeScriptAndCheck(t, b, script, [][]byte{jsoncdc.MustEncode(cadence.BytesToAddress(address.Bytes()))})
 
-	return result.ToGoValue().(bool)
+	return GetFieldValue(result).(bool)
 }
 
 func readLockedTokenByIDScript(contracts Contracts) []byte {

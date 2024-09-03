@@ -13,12 +13,16 @@ import (
 // Handle relative paths by making these regular expressions
 
 const (
-	nftAddressPlaceholder              = "\"[^\"]*NonFungibleToken.cdc\""
-	GolazosAddressPlaceholder          = "\"[^\"]*Golazos.cdc\""
-	metadataViewsAddressPlaceholder    = "{{.MetadataViewsAddress}}"
-	fungibleTokenAddressPlaceholder    = "{{.FungibleTokenAddress}}"
-	nonFungibleTokenAddressPlaceholder = "{{.NonFungibleTokenAddress}}"
+	nftAddressPlaceholder              = "\"NonFungibleToken\""
+	GolazosAddressPlaceholder          = "\"Golazos\""
+	metadataViewsAddressPlaceholder    = "\"MetadataViews\""
+	fungibleTokenAddressPlaceholder    = "\"FungibleToken\""
+	nonFungibleTokenAddressPlaceholder = "\"NonFungibleToken\""
+	burnerAddressPlaceholder           = "\"Burner\""
+	viewResolverAddressPlaceholder     = "\"ViewResolver\""
+	royaltyAddressPlaceholder          = "GOLAZOS_ROYALTY_ADDRESS"
 
+	BurnerPath                  = "../../../contracts/imports/Burner.cdc"
 	GolazosPath                 = "../../../contracts/Golazos.cdc"
 	GolazosTransactionsRootPath = "../../../transactions"
 	GolazosScriptsRootPath      = "../../../scripts"
@@ -85,9 +89,13 @@ func replaceAddresses(code []byte, contracts Contracts) []byte {
 	GolazosRe := regexp.MustCompile(GolazosAddressPlaceholder)
 	code = GolazosRe.ReplaceAll(code, []byte("0x"+contracts.GolazosAddress.String()))
 
-	code = []byte(strings.ReplaceAll(string(code), metadataViewsAddressPlaceholder, contracts.MetadataViewAddress.String()))
-	code = []byte(strings.ReplaceAll(string(code), fungibleTokenAddressPlaceholder, contracts.FtAddress.String()))
-	code = []byte(strings.ReplaceAll(string(code), nonFungibleTokenAddressPlaceholder, contracts.NFTAddress.String()))
+	code = []byte(strings.ReplaceAll(string(code), burnerAddressPlaceholder, "0x"+contracts.BurnerAddress.String()))
+	code = []byte(strings.ReplaceAll(string(code), viewResolverAddressPlaceholder, "0x"+contracts.ViewResolverAddress.String()))
+
+	code = []byte(strings.ReplaceAll(string(code), metadataViewsAddressPlaceholder, "0x"+contracts.MetadataViewAddress.String()))
+	code = []byte(strings.ReplaceAll(string(code), fungibleTokenAddressPlaceholder, "0x"+contracts.FtAddress.String()))
+	code = []byte(strings.ReplaceAll(string(code), nonFungibleTokenAddressPlaceholder, "0x"+contracts.NFTAddress.String()))
+	code = []byte(strings.ReplaceAll(string(code), royaltyAddressPlaceholder, "0x"+contracts.GolazosAddress.String()))
 
 	return code
 }
@@ -110,12 +118,13 @@ func LoadMetadataViews(ftAddress flow.Address, nftAddress flow.Address) []byte {
 	return code
 }
 
-func LoadGolazos(nftAddress flow.Address, metadataViewsAddr flow.Address, ftAddress flow.Address) []byte {
+func LoadGolazos(nftAddress flow.Address, metadataViewsAddr flow.Address, ftAddress flow.Address, viewResolverAddress flow.Address) []byte {
 	code := readFile(GolazosPath)
 
-	code = []byte(strings.ReplaceAll(string(code), metadataViewsAddressPlaceholder, metadataViewsAddr.String()))
-	code = []byte(strings.ReplaceAll(string(code), fungibleTokenAddressPlaceholder, ftAddress.String()))
-	code = []byte(strings.ReplaceAll(string(code), nonFungibleTokenAddressPlaceholder, nftAddress.String()))
+	code = []byte(strings.ReplaceAll(string(code), metadataViewsAddressPlaceholder, "0x"+metadataViewsAddr.String()))
+	code = []byte(strings.ReplaceAll(string(code), fungibleTokenAddressPlaceholder, "0x"+ftAddress.String()))
+	code = []byte(strings.ReplaceAll(string(code), nonFungibleTokenAddressPlaceholder, "0x"+nftAddress.String()))
+	code = []byte(strings.ReplaceAll(string(code), viewResolverAddressPlaceholder, "0x"+viewResolverAddress.String()))
 
 	return code
 }

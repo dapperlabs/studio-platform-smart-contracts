@@ -1,72 +1,94 @@
 import Crypto
-import NonFungibleToken from 0x{{.NonFungibleToken}}
-import FungibleToken from 0x{{.FungibleToken}}
-import IPackNFT from 0x{{.IPackNFT}}
-import MetadataViews from 0x{{.MetadataViews}}
+import NonFungibleToken from "NonFungibleToken"
+import FungibleToken from "FungibleToken"
+import IPackNFT from "IPackNFT"
+import MetadataViews from "MetadataViews"
+import ViewResolver from "ViewResolver"
 
-pub contract PackNFT: NonFungibleToken, IPackNFT {
+/// Contract that defines Pack NFTs.
+///
+access(all) contract PackNFT: NonFungibleToken, IPackNFT {
 
-    pub var totalSupply: UInt64
-    pub let version: String
-    pub let CollectionStoragePath: StoragePath
-    pub let CollectionPublicPath: PublicPath
-    pub let CollectionIPackNFTPublicPath: PublicPath
-    pub let OperatorStoragePath: StoragePath
-    pub let OperatorPrivPath: PrivatePath
+    access(all) var totalSupply: UInt64
+    access(all) let version: String
+    access(all) let CollectionStoragePath: StoragePath
+    access(all) let CollectionPublicPath: PublicPath
+    access(all) let CollectionIPackNFTPublicPath: PublicPath
+    access(all) let OperatorStoragePath: StoragePath
 
-    // representation of the NFT in this contract to keep track of states
+    /// Dictionary that stores Pack resources in the contract state (i.e., Pack NFT representations to keep track of states).
+    ///
     access(contract) let packs: @{UInt64: Pack}
 
-    pub event RevealRequest(id: UInt64, openRequest: Bool)
-    pub event OpenRequest(id: UInt64)
-    pub event Revealed(id: UInt64, salt: String, nfts: String)
-    pub event Opened(id: UInt64)
-    pub event Mint(id: UInt64, commitHash: String, distId: UInt64)
-    pub event ContractInitialized()
-    pub event Withdraw(id: UInt64, from: Address?)
-    pub event Deposit(id: UInt64, to: Address?)
-    pub event Burned(id: UInt64)
+    access(all) event RevealRequest(id: UInt64, openRequest: Bool)
+    access(all) event OpenRequest(id: UInt64)
+    access(all) event Revealed(id: UInt64, salt: String, nfts: String)
+    access(all) event Opened(id: UInt64)
+    access(all) event Mint(id: UInt64, commitHash: String, distId: UInt64)
+    access(all) event ContractInitialized()
 
-    pub enum Status: UInt8 {
-        pub case Sealed
-        pub case Revealed
-        pub case Opened
+    // TODO: Consider removing 'Withdraw' and 'Deposit' events now that similar 'Withdrawn' and 'Deposited' events are emitted in NonFungibleToken contract interface
+    access(all) event Withdraw(id: UInt64, from: Address?)
+    access(all) event Deposit(id: UInt64, to: Address?)
+
+    /// Enum that defines the status of a Pack resource.
+    ///
+    access(all) enum Status: UInt8 {
+        access(all) case Sealed
+        access(all) case Revealed
+        access(all) case Opened
     }
 
-    pub resource PackNFTOperator: IPackNFT.IOperator {
+    /// Resource that defines a Pack NFT Operator, responsible for:
+    ///  - Minting Pack NFTs and the corresponding Pack resources that keep track of states,
+    ///  - Revealing sealed Pack resources, and
+    ///  - opening revealed Pack resources.
+    ///
+    access(all) resource PackNFTOperator: IPackNFT.IOperator {
 
-         pub fun mint(distId: UInt64, commitHash: String, issuer: Address): @NFT{
+        /// Mint a new Pack NFT resource and corresponding Pack resource; store the Pack resource in the contract's packs dictionary
+        /// and return the Pack NFT resource to the caller.
+        ///
+        access(IPackNFT.Operate) fun mint(distId: UInt64, commitHash: String, issuer: Address): @{IPackNFT.NFT} {
             let nft <- create NFT(commitHash: commitHash, issuer: issuer)
             PackNFT.totalSupply = PackNFT.totalSupply + 1
-            let p  <-create Pack(commitHash: commitHash, issuer: issuer)
+            let p <- create Pack(commitHash: commitHash, issuer: issuer)
             PackNFT.packs[nft.id] <-! p
             emit Mint(id: nft.id, commitHash: commitHash, distId: distId)
             return <- nft
-         }
+        }
 
-        pub fun reveal(id: UInt64, nfts: [{IPackNFT.Collectible}], salt: String) {
+        /// Reveal a Sealed Pack resource.
+        ///
+        access(IPackNFT.Operate) fun reveal(id: UInt64, nfts: [{IPackNFT.Collectible}], salt: String) {
             let p <- PackNFT.packs.remove(key: id) ?? panic("no such pack")
             p.reveal(id: id, nfts: nfts, salt: salt)
             PackNFT.packs[id] <-! p
         }
 
-        pub fun open(id: UInt64, nfts: [{IPackNFT.Collectible}]) {
+        /// Open a Revealed Pack NFT resource.
+        ///
+        access(IPackNFT.Operate) fun open(id: UInt64, nfts: [{IPackNFT.Collectible}]) {
             let p <- PackNFT.packs.remove(key: id) ?? panic("no such pack")
             p.open(id: id, nfts: nfts)
             PackNFT.packs[id] <-! p
         }
 
-         init(){}
+        /// PackNFTOperator resource initializer.
+        ///
+        view init() {}
     }
 
-    pub resource Pack {
-        pub let commitHash: String
-        pub let issuer: Address
-        pub var status: PackNFT.Status
-        pub var salt: String?
+    /// Resource that defines a Pack NFT.
+    ///
+    access(all) resource Pack {
+        access(all) let commitHash: String
+        access(all) let issuer: Address
+        access(all) var status: Status
+        access(all) var salt: String?
 
-        pub fun verify(nftString: String): Bool {
-            assert(self.status != PackNFT.Status.Sealed, message: "Pack not revealed yet")
+        access(all) view fun verify(nftString: String): Bool {
+            assert(self.status != Status.Sealed, message: "Pack not revealed yet")
             var hashString = self.salt!
             hashString = hashString.concat(",").concat(nftString)
             let hash = HashAlgorithm.SHA2_256.hash(hashString.utf8)
@@ -90,60 +112,78 @@ pub contract PackNFT: NonFungibleToken, IPackNFT {
         }
 
         access(contract) fun reveal(id: UInt64, nfts: [{IPackNFT.Collectible}], salt: String) {
-            assert(self.status == PackNFT.Status.Sealed, message: "Pack status is not Sealed")
+            assert(self.status == Status.Sealed, message: "Pack status is not Sealed")
             let v = self._verify(nfts: nfts, salt: salt, commitHash: self.commitHash)
             self.salt = salt
-            self.status = PackNFT.Status.Revealed
+            self.status = Status.Revealed
             emit Revealed(id: id, salt: salt, nfts: v)
         }
 
         access(contract) fun open(id: UInt64, nfts: [{IPackNFT.Collectible}]) {
-            assert(self.status == PackNFT.Status.Revealed, message: "Pack status is not Revealed")
+            assert(self.status == Status.Revealed, message: "Pack status is not Revealed")
             self._verify(nfts: nfts, salt: self.salt!, commitHash: self.commitHash)
-            self.status = PackNFT.Status.Opened
+            self.status = Status.Opened
             emit Opened(id: id)
         }
 
-        init(commitHash: String, issuer: Address) {
+        /// Pack resource initializer.
+        ///
+        view init(commitHash: String, issuer: Address) {
+            // Set the hash and issuer from the arguments.
             self.commitHash = commitHash
             self.issuer = issuer
-            self.status = PackNFT.Status.Sealed
+
+            // Initial status is Sealed.
+            self.status = Status.Sealed
+
+            // Salt is nil until reveal.
             self.salt = nil
         }
     }
 
-    pub resource NFT: NonFungibleToken.INFT, IPackNFT.IPackNFTToken, IPackNFT.IPackNFTOwnerOperator, MetadataViews.Resolver {
-        pub let id: UInt64
-        pub let commitHash: String
-        pub let issuer: Address
+    /// Resource that defines a Pack NFT.
+    ///
+    access(all) resource NFT: NonFungibleToken.NFT, ViewResolver.Resolver, IPackNFT.NFT, IPackNFT.IPackNFTToken, IPackNFT.IPackNFTOwnerOperator {
+        /// This NFT's unique ID.
+        ///
+        access(all) let id: UInt64
 
-        pub fun reveal(openRequest: Bool){
-            PackNFT.revealRequest(id: self.id, openRequest: openRequest)
+        /// This NFT's commit hash, used to verify the IDs of the NFTs in the Pack.
+        ///
+        access(all) let commitHash: String
+
+        /// This NFT's issuer.
+        ///
+        access(all) let issuer: Address
+
+        /// Event emitted when a NFT is destroyed (replaces Burned event before Cadence 1.0 update)
+        ///
+        access(all) event ResourceDestroyed(id: UInt64 = self.id)
+
+        /// Executed by calling the Burner contract's burn method (i.e., conforms to the Burnable interface)
+        ///
+        access(contract) fun burnCallback() {
+            PackNFT.totalSupply = PackNFT.totalSupply - 1
+            destroy <- PackNFT.packs.remove(key: self.id) ?? panic("no such pack")
         }
 
-        pub fun open(){
-            PackNFT.openRequest(id: self.id)
-        }
-
-       destroy() {
-           let p <- PackNFT.packs.remove(key: self.id) ?? panic("no such pack")
-           PackNFT.totalSupply = PackNFT.totalSupply - (1 as UInt64)
-
-           emit Burned(id: self.id)
-           destroy p
-       }
-
-
-        init(commitHash: String, issuer: Address) {
+        /// NFT resource initializer.
+        ///
+        view init(commitHash: String, issuer: Address) {
             self.id = self.uuid
             self.commitHash = commitHash
             self.issuer = issuer
         }
 
+        /// Create an empty Collection for Pinnacle NFTs and return it to the caller
+        ///
+        access(all) fun createEmptyCollection(): @{NonFungibleToken.Collection} {
+            return <- PackNFT.createEmptyCollection(nftType: Type<@NFT>())
+        }
 
-        // All supported metadata views for the Moment including the Core NFT Views
-        //
-        pub fun getViews(): [Type] {
+        /// Return the metadata view types available for this NFT.
+        ///
+        access(all) view fun getViews(): [Type] {
             return [
                 Type<MetadataViews.Display>(),
                 Type<MetadataViews.ExternalURL>(),
@@ -155,7 +195,9 @@ pub contract PackNFT: NonFungibleToken, IPackNFT {
             ]
         }
 
-        pub fun resolveView(_ view: Type): AnyStruct? {
+        /// Resolve this NFT's metadata views.
+        ///
+        access(all) view fun resolveView(_ view: Type): AnyStruct? {
             switch view {
                 case Type<MetadataViews.Display>():
                     return MetadataViews.Display(
@@ -167,7 +209,7 @@ pub contract PackNFT: NonFungibleToken, IPackNFT {
                     return MetadataViews.ExternalURL("https://nflallday.com/packnfts/".concat(self.id.toString())) // might have to make a URL that redirects to packs page based on packNFT id -> distribution id
                 case Type<MetadataViews.Medias>():
                     return MetadataViews.Medias(
-                        items: [
+                        [
                             MetadataViews.Media(
                                 file: MetadataViews.HTTPFile(url: self.getImage(imageType: "image", format: "jpeg", width: 512)),
                                 mediaType: "image/jpeg"
@@ -178,16 +220,14 @@ pub contract PackNFT: NonFungibleToken, IPackNFT {
                     return MetadataViews.NFTCollectionData(
                         storagePath: PackNFT.CollectionStoragePath,
                         publicPath: PackNFT.CollectionPublicPath,
-                        providerPath: PackNFT.OperatorPrivPath,
-                        publicCollection: Type<&PackNFT.Collection{IPackNFT.IPackNFTCollectionPublic}>(),
-                        publicLinkedType: Type<&PackNFT.Collection{IPackNFT.IPackNFTCollectionPublic,NonFungibleToken.Receiver,NonFungibleToken.CollectionPublic,MetadataViews.ResolverCollection}>(),
-                        providerLinkedType: Type<&PackNFT.Collection{NonFungibleToken.Provider,IPackNFT.IPackNFTCollectionPublic,NonFungibleToken.Receiver,NonFungibleToken.CollectionPublic,MetadataViews.ResolverCollection}>(),
-                        createEmptyCollectionFunction: (fun (): @NonFungibleToken.Collection {
-                            return <-PackNFT.createEmptyCollection()
+                        publicCollection: Type<&Collection>(),
+                        publicLinkedType: Type<&Collection>(),
+                        createEmptyCollectionFunction: (fun (): @{NonFungibleToken.Collection} {
+                            return <-PackNFT.createEmptyCollection(nftType: Type<@NFT>())
                         })
                     )
                 case Type<MetadataViews.NFTCollectionDisplay>():
-                   let bannerImage = MetadataViews.Media(
+                    let bannerImage = MetadataViews.Media(
                         file: MetadataViews.HTTPFile(
                             url: "https://assets.nflallday.com/flow/catalogue/NFLAD_BANNER.png"
                         ),
@@ -211,11 +251,11 @@ pub contract PackNFT: NonFungibleToken, IPackNFT {
                             "discord": MetadataViews.ExternalURL("https://discord.com/invite/5K6qyTzj2k")
                         }
                     )
-                 case Type<MetadataViews.Royalties>():
+                case Type<MetadataViews.Royalties>():
                     let royaltyReceiver: Capability<&{FungibleToken.Receiver}> =
-                        getAccount(0x{{.RoyaltyAddress}}).getCapability<&AnyResource{FungibleToken.Receiver}>(MetadataViews.getRoyaltyReceiverPublicPath())
+                        getAccount({{.RoyaltyAddress}}).capabilities.get<&{FungibleToken.Receiver}>(MetadataViews.getRoyaltyReceiverPublicPath())
                     return MetadataViews.Royalties(
-                        royalties: [
+                        [
                             MetadataViews.Royalty(
                                 receiver: royaltyReceiver,
                                 cut: 0.05,
@@ -229,133 +269,237 @@ pub contract PackNFT: NonFungibleToken, IPackNFT {
             return nil
         }
 
-        pub fun assetPath(): String {
+        /// Return an asset path.
+        ///
+        access(all) view fun assetPath(): String {
             return "https://media.nflallday.com/packnfts/".concat(self.id.toString()).concat("/media/")
         }
 
-        pub fun getImage(imageType: String, format: String, width: Int): String {
+        /// Return an image path.
+        ///
+        access(all) view fun getImage(imageType: String, format: String, width: Int): String {
             return self.assetPath().concat(imageType).concat("?format=").concat(format).concat("&width=").concat(width.toString())
         }
     }
 
-    pub resource Collection:
-        NonFungibleToken.Provider,
-        NonFungibleToken.Receiver,
-        NonFungibleToken.CollectionPublic,
-        IPackNFT.IPackNFTCollectionPublic,
-        MetadataViews.ResolverCollection
-    {
-        // dictionary of NFT conforming tokens
-        // NFT is a resource type with an `UInt64` ID field
-        pub var ownedNFTs: @{UInt64: NonFungibleToken.NFT}
+    /// Resource that defines a Collection of Pack NFTs.
+    ///
+    access(all) resource Collection: NonFungibleToken.Collection, ViewResolver.ResolverCollection, IPackNFT.IPackNFTCollectionPublic {
+        /// Dictionary of NFT conforming tokens.
+        /// NFT is a resource type with a UInt64 ID field.
+        ///
+        access(all) var ownedNFTs: @{UInt64: {NonFungibleToken.NFT}}
 
-        init () {
+        /// Collection resource initializer,
+        ///
+        view init() {
             self.ownedNFTs <- {}
         }
 
-        // withdraw removes an NFT from the collection and moves it to the caller
-        pub fun withdraw(withdrawID: UInt64): @NonFungibleToken.NFT {
+        /// Remove an NFT from the collection and moves it to the caller.
+        ///
+        access(NonFungibleToken.Withdraw) fun withdraw(withdrawID: UInt64): @{NonFungibleToken.NFT} {
             let token <- self.ownedNFTs.remove(key: withdrawID) ?? panic("missing NFT")
-            emit Withdraw(id: token.id, from: self.owner?.address)
+
+            // Withdrawn event emitted from NonFungibleToken contract interface.
+            emit Withdraw(id: token.id, from: self.owner?.address) // TODO: Consider removing
             return <- token
         }
 
-        // deposit takes a NFT and adds it to the collections dictionary
-        // and adds the ID to the id array
-        pub fun deposit(token: @NonFungibleToken.NFT) {
-            let token <- token as! @PackNFT.NFT
-
+        /// Deposit an NFT into this Collection.
+        ///
+        access(all) fun deposit(token: @{NonFungibleToken.NFT}) {
+            let token <- token as! @NFT
             let id: UInt64 = token.id
-
-            // add the new token to the dictionary which removes the old one
+            // Add the new token to the dictionary which removes the old one.
             let oldToken <- self.ownedNFTs[id] <- token
-            emit Deposit(id: id, to: self.owner?.address)
 
+            // Deposited event emitted from NonFungibleToken contract interface.
+            emit Deposit(id: id, to: self.owner?.address)  // TODO: Consider removing
             destroy oldToken
         }
 
-        // getIDs returns an array of the IDs that are in the collection
-        pub fun getIDs(): [UInt64] {
+        /// Emit a RevealRequest event to signal a Sealed Pack NFT should be revealed.
+        ///
+        access(NonFungibleToken.Update) fun emitRevealRequestEvent(id: UInt64, openRequest: Bool) {
+            pre {
+                self.borrowNFT(id) != nil: "NFT with provided ID must exist in the collection"
+                PackNFT.borrowPackRepresentation(id: id)!.status.rawValue == Status.Sealed.rawValue: "Pack status must be Sealed for reveal request"
+            }
+            emit RevealRequest(id: id, openRequest: openRequest)
+        }
+
+        /// Emit an OpenRequest event to signal a Revealed Pack NFT should be opened.
+        ///
+        access(NonFungibleToken.Update) fun emitOpenRequestEvent(id: UInt64) {
+            pre {
+                self.borrowNFT(id) != nil: "NFT with provided ID must exist in the collection"
+                PackNFT.borrowPackRepresentation(id: id)!.status.rawValue == Status.Revealed.rawValue: "Pack status must be Revealed for open request"
+            }
+            emit OpenRequest(id: id)
+        }
+
+        /// Return an array of the IDs that are in the collection.
+        ///
+        access(all) view fun getIDs(): [UInt64] {
             return self.ownedNFTs.keys
         }
 
-        pub fun borrowViewResolver(id: UInt64): &AnyResource{MetadataViews.Resolver} {
-            let nft = (&self.ownedNFTs[id] as auth &NonFungibleToken.NFT?)!
-            let packNFT = nft as! &PackNFT.NFT
-            return packNFT as &AnyResource{MetadataViews.Resolver}
+        /// Return the amount of NFTs stored in the collection.
+        ///
+        access(all) view fun getLength(): Int {
+            return self.ownedNFTs.length
         }
 
-        // borrowNFT gets a reference to an NFT in the collection
-        // so that the caller can read its metadata and call its methods
-        pub fun borrowNFT(id: UInt64): &NonFungibleToken.NFT {
-            return (&self.ownedNFTs[id] as &NonFungibleToken.NFT?)!
+        /// Return a list of NFT types that this receiver accepts.
+        ///
+        access(all) view fun getSupportedNFTTypes(): {Type: Bool} {
+            let supportedTypes: {Type: Bool} = {}
+            supportedTypes[Type<@NFT>()] = true
+            return supportedTypes
         }
 
-        pub fun borrowPackNFT(id: UInt64): &IPackNFT.NFT? {
-            let nft<- self.ownedNFTs.remove(key: id) ?? panic("missing NFT")
-            let token <- nft as! @PackNFT.NFT
-            let ref = &token as &IPackNFT.NFT
-            self.ownedNFTs[id] <-! token as! @PackNFT.NFT
-            return ref
+        /// Return whether or not the given type is accepted by the collection.
+        ///
+        access(all) view fun isSupportedNFTType(type: Type): Bool {
+            if type == Type<@NFT>() {
+                return true
+            }
+            return false
         }
 
-        destroy() {
-            destroy self.ownedNFTs
+        /// Return a reference to an NFT in the Collection.
+        ///
+        access(all) view fun borrowNFT(_ id: UInt64): &{NonFungibleToken.NFT}? {
+            return &self.ownedNFTs[id]
+        }
+
+        /// Return a reference to a ViewResolver for an NFT in the Collection.
+        ///
+        access(all) view fun borrowViewResolver(id: UInt64): &{ViewResolver.Resolver}? {
+            if let nft = &self.ownedNFTs[id] as &{NonFungibleToken.NFT}? {
+                return nft as &{ViewResolver.Resolver}
+            }
+            return nil
+        }
+
+        /// Create an empty Collection of the same type and returns it to the caller.
+        ///
+        access(all) fun createEmptyCollection(): @{NonFungibleToken.Collection} {
+            return <-PackNFT.createEmptyCollection(nftType: Type<@NFT>())
         }
     }
 
-    access(contract) fun revealRequest(id: UInt64, openRequest: Bool ) {
-        let p = PackNFT.borrowPackRepresentation(id: id) ?? panic ("No such pack")
-        assert(p.status == PackNFT.Status.Sealed, message: "Pack status must be Sealed for reveal request")
-        emit RevealRequest(id: id, openRequest: openRequest)
-    }
-
-    access(contract) fun openRequest(id: UInt64) {
-        let p = PackNFT.borrowPackRepresentation(id: id) ?? panic ("No such pack")
-        assert(p.status == PackNFT.Status.Revealed, message: "Pack status must be Revealed for open request")
-        emit OpenRequest(id: id)
-    }
-
-    pub fun publicReveal(id: UInt64, nfts: [{IPackNFT.Collectible}], salt: String) {
+    access(all) fun publicReveal(id: UInt64, nfts: [{IPackNFT.Collectible}], salt: String) {
         let p = PackNFT.borrowPackRepresentation(id: id) ?? panic ("No such pack")
         p.reveal(id: id, nfts: nfts, salt: salt)
     }
 
-    pub fun borrowPackRepresentation(id: UInt64):  &Pack? {
+    /// Return a reference to a Pack resource stored in the contract state.
+    ///
+    access(all) view fun borrowPackRepresentation(id: UInt64): &Pack? {
         return (&self.packs[id] as &Pack?)!
     }
 
-    pub fun createEmptyCollection(): @NonFungibleToken.Collection {
+    /// Create an empty Collection for Pack NFTs and return it to the caller.
+    ///
+    access(all) fun createEmptyCollection(nftType: Type): @{NonFungibleToken.Collection} {
+        if nftType != Type<@NFT>() {
+            panic("NFT type is not supported")
+        }
         return <- create Collection()
     }
 
+    /// Return the metadata views implemented by this contract.
+    ///
+    /// @return An array of Types defining the implemented views. This value will be used by
+    ///         developers to know which parameter to pass to the resolveView() method.
+    ///
+    access(all) view fun getContractViews(resourceType: Type?): [Type] {
+        return [
+            Type<MetadataViews.NFTCollectionData>(),
+            Type<MetadataViews.NFTCollectionDisplay>()
+        ]
+    }
+
+    /// Resolve a metadata view for this contract.
+    ///
+    /// @param view: The Type of the desired view.
+    /// @return A structure representing the requested view.
+    ///
+    access(all) view fun resolveContractView(resourceType: Type?, viewType: Type): AnyStruct? {
+        switch viewType {
+            case Type<MetadataViews.NFTCollectionData>():
+                let collectionData = MetadataViews.NFTCollectionData(
+                    storagePath: PackNFT.CollectionStoragePath,
+                    publicPath: PackNFT.CollectionPublicPath,
+                    publicCollection: Type<&Collection>(),
+                    publicLinkedType: Type<&Collection>(),
+                    createEmptyCollectionFunction: (fun(): @{NonFungibleToken.Collection} {
+                        return <-PackNFT.createEmptyCollection(nftType: Type<@NFT>())
+                    })
+                )
+                return collectionData
+            case Type<MetadataViews.NFTCollectionDisplay>():
+                let bannerImage = MetadataViews.Media(
+                    file: MetadataViews.HTTPFile(
+                        url: "https://assets.nflallday.com/flow/catalogue/NFLAD_BANNER.png"
+                    ),
+                    mediaType: "image/png"
+                )
+                let squareImage = MetadataViews.Media(
+                    file: MetadataViews.HTTPFile(
+                        url: "https://assets.nflallday.com/flow/catalogue/NFLAD_SQUARE.png"
+                    ),
+                    mediaType: "image/png"
+                )
+                return MetadataViews.NFTCollectionDisplay(
+                    name: "NFL All Day Packs",
+                    description: "Officially Licensed Digital Collectibles Featuring the NFL’s Best Highlights. Buy, Sell and Collect Your Favorite NFL Moments",
+                    externalURL: MetadataViews.ExternalURL("https://nflallday.com/"),
+                    squareImage: squareImage,
+                    bannerImage: bannerImage,
+                    socials: {
+                            "instagram": MetadataViews.ExternalURL("https://www.instagram.com/nflallday/"),
+                            "twitter": MetadataViews.ExternalURL("https://twitter.com/NFLAllDay"),
+                            "discord": MetadataViews.ExternalURL("https://discord.com/invite/5K6qyTzj2k")
+                    }
+                )
+        }
+        return nil
+    }
+
+    /// PackNFT contract initializer.
+    ///
     init(
         CollectionStoragePath: StoragePath,
         CollectionPublicPath: PublicPath,
         CollectionIPackNFTPublicPath: PublicPath,
         OperatorStoragePath: StoragePath,
-        OperatorPrivPath: PrivatePath,
         version: String
-    ){
+    ) {
         self.totalSupply = 0
         self.packs <- {}
         self.CollectionStoragePath = CollectionStoragePath
         self.CollectionPublicPath = CollectionPublicPath
         self.CollectionIPackNFTPublicPath = CollectionIPackNFTPublicPath
         self.OperatorStoragePath = OperatorStoragePath
-        self.OperatorPrivPath = OperatorPrivPath
         self.version = version
 
-        // Create a collection to receive Pack NFTs
-        let collection <- create Collection()
-        self.account.save(<-collection, to: self.CollectionStoragePath)
-        self.account.link<&Collection{NonFungibleToken.CollectionPublic}>(self.CollectionPublicPath, target: self.CollectionStoragePath)
-        self.account.link<&Collection{IPackNFT.IPackNFTCollectionPublic}>(self.CollectionIPackNFTPublicPath, target: self.CollectionStoragePath)
+        // Create a collection to receive Pack NFTs and publish public receiver capabilities.
+        self.account.storage.save(<- create Collection(), to: self.CollectionStoragePath)
+        self.account.capabilities.publish(
+            self.account.capabilities.storage.issue<&{NonFungibleToken.CollectionPublic}>(self.CollectionStoragePath),
+            at: self.CollectionPublicPath
+        )
+        self.account.capabilities.publish(
+            self.account.capabilities.storage.issue<&{IPackNFT.IPackNFTCollectionPublic}>(self.CollectionStoragePath),
+            at: self.CollectionIPackNFTPublicPath
+        )
 
-        // Create a operator to share mint capability with proxy
-        let operator <- create PackNFTOperator()
-        self.account.save(<-operator, to: self.OperatorStoragePath)
-        self.account.link<&PackNFTOperator{IPackNFT.IOperator}>(self.OperatorPrivPath, target: self.OperatorStoragePath)
+        // Create a Pack NFT operator to share mint capability with proxy.
+        self.account.storage.save(<- create PackNFTOperator(), to: self.OperatorStoragePath)
+        self.account.capabilities.storage.issue<&{IPackNFT.IOperator}>(self.OperatorStoragePath)
     }
 
 }

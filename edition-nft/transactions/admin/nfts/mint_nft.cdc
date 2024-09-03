@@ -1,31 +1,29 @@
-import NonFungibleToken from "../../../contracts/NonFungibleToken.cdc"
-import EditionNFT from "../../../contracts/EditionNFT.cdc"
+import NonFungibleToken from "NonFungibleToken"
+import EditionNFT from "EditionNFT"
 
 transaction(recipientAddress: Address, editionID: UInt64) {
     
     // local variable for storing the minter reference
-    let minter: &{EditionNFT.NFTMinter}
-    let recipient: &{EditionNFT.EditionNFTCollectionPublic}
+    let minter: auth(EditionNFT.Mint) &EditionNFT.Admin
+    let recipient: &EditionNFT.Collection
 
-    prepare(signer: AuthAccount) {
+    prepare(signer: auth(BorrowValue) &Account) {
         // borrow a reference to the NFTMinter resource in storage
-        self.minter = signer.getCapability(EditionNFT.MinterPrivatePath)
-            .borrow<&{EditionNFT.NFTMinter}>()
-            ?? panic("Could not borrow a reference to the NFT minter")
+        self.minter = signer.storage.borrow<auth(EditionNFT.Mint) &EditionNFT.Admin>(from: EditionNFT.AdminStoragePath)
+            ?? panic("Could not borrow a reference to the Golazos Admin capability")
 
         // get the recipients public account object
         let recipientAccount = getAccount(recipientAddress)
 
         // borrow a public reference to the receivers collection
-        self.recipient = recipientAccount.getCapability(EditionNFT.CollectionPublicPath)
-            .borrow<&{EditionNFT.EditionNFTCollectionPublic}>()
+        self.recipient = recipientAccount.capabilities.borrow<&EditionNFT.Collection>(EditionNFT.CollectionPublicPath)
             ?? panic("Could not borrow a reference to the collection receiver")
     }
 
     execute {
         // mint the NFT and deposit it to the recipient's collection
         let nft <- self.minter.mintNFT(editionID: editionID)
-        self.recipient.deposit(token: <- (nft as @NonFungibleToken.NFT))
+        self.recipient.deposit(token: <- (nft as @{NonFungibleToken.NFT}))
     }
 }
 

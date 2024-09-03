@@ -1,10 +1,12 @@
-import NonFungibleToken from 0x{{.NonFungibleToken}}
-import ExampleNFT from 0x{{.ExampleNFT}}
+import NonFungibleToken from "NonFungibleToken"
+import ExampleNFT from "ExampleNFT"
 
-pub fun main(account: Address): [UInt64] {
-    let receiver = getAccount(account)
-        .getCapability(ExampleNFT.CollectionPublicPath)!
-        .borrow<&{NonFungibleToken.CollectionPublic}>()!
+access(all) fun main(account: Address): [UInt64] {
+    let collectionData = ExampleNFT.resolveContractView(resourceType: nil, viewType: Type<MetadataViews.NFTCollectionData>()) as! MetadataViews.NFTCollectionData?
+        ?? panic("ViewResolver does not resolve NFTCollectionData view")
 
-    return receiver.getIDs()
+    let collectionRef = getAccount(account).capabilities.borrow<
+        &ExampleNFT.Collection>(collectionData.publicPath)!
+
+    return collectionRef.getIDs()
 }

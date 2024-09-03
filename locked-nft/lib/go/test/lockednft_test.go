@@ -1,12 +1,13 @@
 package test
 
 import (
-	emulator "github.com/onflow/flow-emulator"
+	"testing"
+	"time"
+
+	"github.com/onflow/flow-emulator/emulator"
 	"github.com/onflow/flow-go-sdk"
 	"github.com/onflow/flow-go-sdk/crypto"
 	"github.com/stretchr/testify/assert"
-	"testing"
-	"time"
 )
 
 // ------------------------------------------------------------
@@ -101,7 +102,7 @@ func testLockNFT(
 	nftID uint64,
 	shouldRevert bool,
 ) {
-	var duration uint64 = 10
+	var duration uint64 = 10000000000
 	lockedAt, lockedUntil := lockNFT(
 		t,
 		b,

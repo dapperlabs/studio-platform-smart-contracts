@@ -26,6 +26,8 @@ removes all the resource's NFT provider capabilities and render child `Supplier`
 
 ## Architecture Considerations
 
+> July 2024 Update: NFT Provider Aggregator was created prior to Cadence 1.0 and then updated for Cadence 1.0 with the goal of ensuring backwards compatibility. Even though Cadence 1.0 introduced relevant new features that  (e.g., the ability to add tags to keep track of capability usage), this current version of NFT Provider Aggregator doesn't have any architecture changes compared to the pre-Cadence 1.0 version.
+
 The use of the `Supplier` resource allows:
 - Explicitly keeping track of the NFT provider capabilities that are expected to be valid all in one place, the parent `Aggregator` resource, and emitting dedicated events when a capability is added or removed.
 - Reversibly exposing NFT provider capabilities to the parent `Aggregator` resource without the capabilities being retrievable individually by the **manager**. This is made possible by the `Aggregator` resource’s `nftProviderCapabilities` dictionary being defined with `access(self)` access control and devoid of any getter function, though, if the `NFTProviderAggregator` contract is updatable, a contract update may potentially change that.
@@ -68,7 +70,7 @@ The transactions included in this repository and listed below are all single-sig
 
 - `claim_aggregated_nft_provider_capability.cdc`
 
-- `unpublish_capability.cdc`
+- `unpublish_inbox_capability.cdc`
 
 #### Resource Destruction:
 
@@ -92,7 +94,6 @@ The scripts included in this repository and listed below are scripts that access
 
 ```
 git clone git@github.com:dapperlabs/nft-provider-aggregator.git
-cd ./nft-provider-aggregator/test
-npm install
-npm test
+cd ./nft-provider-aggregator
+make test
 ```

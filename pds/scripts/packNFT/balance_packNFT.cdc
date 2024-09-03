@@ -1,10 +1,9 @@
-import NonFungibleToken from 0x{{.NonFungibleToken}}
-import PackNFT from 0x{{.PackNFT}}
+import NonFungibleToken from "NonFungibleToken"
+import PackNFT from "PackNFT"
 
-pub fun main(account: Address): [UInt64] {
-    let receiver = getAccount(account)
-        .getCapability(PackNFT.CollectionPublicPath)!
-        .borrow<&{NonFungibleToken.CollectionPublic}>()!
+access(all) fun main(account: Address): [UInt64] {
+    let collectionRef = getAccount(account).capabilities.borrow<
+        &PackNFT.Collection>(PackNFT.CollectionPublicPath)!
 
-    return receiver.getIDs()
+    return collectionRef.getIDs()
 }
