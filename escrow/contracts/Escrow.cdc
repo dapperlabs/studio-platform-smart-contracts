@@ -77,9 +77,11 @@ access(all) contract Escrow {
         // Withdraws an NFT entry from the leaderboard.
         access(contract) fun transferNftToCollection(nftID: UInt64, depositCap: Capability<&{NonFungibleToken.Collection}>) {
             pre {
-                self.entriesData[nftID] != nil : "Entry does not exist with this NFT ID"
                 depositCap.address == self.entriesData[nftID]!.ownerAddress : "Only the owner of the entry can withdraw it"
                 depositCap.check() : "Deposit capability is not valid"
+            }
+            if(self.entriesData[nftID] == nil) {
+                return
             }
 
             // Remove the NFT entry's data from the leaderboard.
@@ -97,8 +99,8 @@ access(all) contract Escrow {
 
         // Burns an NFT entry from the leaderboard.
         access(contract) fun burn(nftID: UInt64) {
-            pre {
-                self.entriesData[nftID] != nil : "Entry does not exist with this NFT ID"
+            if(self.entriesData[nftID] == nil) {
+                return
             }
 
             // Remove the NFT entry's data from the leaderboard.
