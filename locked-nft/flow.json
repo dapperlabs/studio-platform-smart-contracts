@@ -20,6 +20,7 @@
 			"source": "./contracts/NFTLocker.cdc",
 			"aliases": {
 				"emulator": "f8d6e0586b0a20c7",
+				"mainnet": "b6f2481eba4df97b",
 				"testnet": "ef4cd3d07a7b43ce"
 			}
 		},
