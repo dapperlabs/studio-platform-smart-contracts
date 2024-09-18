@@ -439,6 +439,31 @@ access(all) contract PackNFT: NonFungibleToken, IPackNFT {
                     })
                 )
                 return collectionData
+            case Type<MetadataViews.NFTCollectionDisplay>():
+                let bannerImage = MetadataViews.Media(
+                    file: MetadataViews.HTTPFile(
+                        url: "https://nbatopshot.com/static/img/top-shot-logo-horizontal-white.svg"
+                    ),
+                    mediaType: "image/svg+xml"
+                )
+                let squareImage = MetadataViews.Media(
+                    file: MetadataViews.HTTPFile(
+                        url: "https://nbatopshot.com/static/img/og/og.png"
+                    ),
+                    mediaType: "image/png"
+                )
+                return MetadataViews.NFTCollectionDisplay(
+                    name: "NBA-Top-Shot-Packs",
+                    description: "NBA Top Shot is your chance to own, sell, and trade official digital collectibles of the NBA and WNBA's greatest plays and players",
+                    externalURL: MetadataViews.ExternalURL("https://nbatopshot.com/"),
+                    squareImage: squareImage,
+                    bannerImage: bannerImage,
+                    socials: {
+                        "twitter": MetadataViews.ExternalURL("https://twitter.com/nbatopshot"),
+                        "discord": MetadataViews.ExternalURL("https://discord.com/invite/nbatopshot"),
+                        "instagram": MetadataViews.ExternalURL("https://www.instagram.com/nbatopshot")
+                    }
+                )
         }
         return nil
     }
