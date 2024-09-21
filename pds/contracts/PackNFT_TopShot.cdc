@@ -417,7 +417,8 @@ access(all) contract PackNFT: NonFungibleToken, IPackNFT {
     ///
     access(all) view fun getContractViews(resourceType: Type?): [Type] {
         return [
-            Type<MetadataViews.NFTCollectionData>()
+            Type<MetadataViews.NFTCollectionData>(),
+            Type<MetadataViews.NFTCollectionDisplay>()
         ]
     }
 
