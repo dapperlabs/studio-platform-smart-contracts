@@ -451,7 +451,7 @@ access(all) contract PackNFT: NonFungibleToken, IPackNFT {
                     file: MetadataViews.HTTPFile(
                         url: "https://nbatopshot.com/static/favicon/favicon.svg"
                     ),
-                    mediaType: "image/png"
+                    mediaType: "image/svg+xml"
                 )
                 return MetadataViews.NFTCollectionDisplay(
                     name: "NBA-Top-Shot-Packs",
