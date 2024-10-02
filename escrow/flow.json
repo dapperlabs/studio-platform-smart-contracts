@@ -1,47 +1,49 @@
 {
 	"contracts": {
-		"FungibleToken": {
-			"source": "./contracts/imports/FungibleToken.cdc",
-			"aliases": {
-				"mainnet": "f233dcee88fe0abe",
-				"testnet": "9a0766d93b6608b7",
-				"emulator": "ee82856bf20e2aa6"
-			}
-		},
-		"MetadataViews": {
-			"source": "./contracts/imports/MetadataViews.cdc",
-			"aliases": {
-				"mainnet": "1d7e57aa55817448",
-				"testnet": "631e88ae7f1d7c20",
-				"emulator": "f8d6e0586b0a20c7"
-			}
-		},
-		"NonFungibleToken": {
-			"source": "./contracts/imports/NonFungibleToken.cdc",
-			"aliases": {
-				"mainnet": "1d7e57aa55817448",
-				"testnet": "631e88ae7f1d7c20",
-				"emulator": "f8d6e0586b0a20c7"
-			}
-		},
-		"ViewResolver": {
-			"source": "./contracts/imports/ViewResolver.cdc",
-			"aliases": {
-				"mainnet": "1d7e57aa55817448",
-				"testnet": "631e88ae7f1d7c20",
-				"emulator": "f8d6e0586b0a20c7"
-			}
-		},
-		"AllDay" : {
+		"AllDay": {
 			"source": "./contracts/AllDay.cdc",
 			"aliases": {
 				"emulator": "f8d6e0586b0a20c7"
 			}
 		},
-		"Escrow" : {
+		"Escrow": {
 			"source": "./contracts/Escrow.cdc",
 			"aliases": {
-				"emulator": "f8d6e0586b0a20c7"
+				"emulator": "f8d6e0586b0a20c7",
+				"mainnet": "4da127056dc9ba3f",
+				"testnet": "b6dd1b8b21744bb5"
+			}
+		},
+		"FungibleToken": {
+			"source": "./contracts/imports/FungibleToken.cdc",
+			"aliases": {
+				"emulator": "ee82856bf20e2aa6",
+				"mainnet": "f233dcee88fe0abe",
+				"testnet": "9a0766d93b6608b7"
+			}
+		},
+		"MetadataViews": {
+			"source": "./contracts/imports/MetadataViews.cdc",
+			"aliases": {
+				"emulator": "f8d6e0586b0a20c7",
+				"mainnet": "1d7e57aa55817448",
+				"testnet": "631e88ae7f1d7c20"
+			}
+		},
+		"NonFungibleToken": {
+			"source": "./contracts/imports/NonFungibleToken.cdc",
+			"aliases": {
+				"emulator": "f8d6e0586b0a20c7",
+				"mainnet": "1d7e57aa55817448",
+				"testnet": "631e88ae7f1d7c20"
+			}
+		},
+		"ViewResolver": {
+			"source": "./contracts/imports/ViewResolver.cdc",
+			"aliases": {
+				"emulator": "f8d6e0586b0a20c7",
+				"mainnet": "1d7e57aa55817448",
+				"testnet": "631e88ae7f1d7c20"
 			}
 		}
 	},
@@ -55,6 +57,34 @@
 		"emulator-account": {
 			"address": "f8d6e0586b0a20c7",
 			"key": "e61daee1414c57a52a1f7120e89daaf71ce3e16f396273e08142313fc4eea1d7"
+		},
+		"mainnet-admin": {
+			"address": "4da127056dc9ba3f",
+			"key": {
+				"type": "google-kms",
+				"hashAlgorithm": "SHA2_256",
+				"resourceID": "projects/dl-studio-platform-production/locations/global/keyRings/flow-mainnet-cosigners/cryptoKeys/escrow-leaderboard-signer/cryptoKeyVersions/1"
+			}
+		},
+		"testnet-admin": {
+			"address": "b6dd1b8b21744bb5",
+			"key": {
+				"type": "google-kms",
+				"hashAlgorithm": "SHA2_256",
+				"resourceID": "projects/dl-studio-platform-staging/locations/global/keyRings/flow-testnet-cosigners/cryptoKeys/escrow-leaderboard-signer/cryptoKeyVersions/1"
+			}
+		}
+	},
+	"deployments": {
+		"mainnet": {
+			"mainnet-admin": [
+				"Escrow"
+			]
+		},
+		"testnet": {
+			"testnet-admin": [
+				"Escrow"
+			]
 		}
 	}
 }

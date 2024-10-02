@@ -77,12 +77,15 @@ access(all) contract Escrow {
         // Withdraws an NFT entry from the leaderboard.
         access(contract) fun transferNftToCollection(nftID: UInt64, depositCap: Capability<&{NonFungibleToken.Collection}>) {
             pre {
-                depositCap.address == self.entriesData[nftID]!.ownerAddress : "Only the owner of the entry can withdraw it"
                 depositCap.check() : "Deposit capability is not valid"
             }
             if(self.entriesData[nftID] == nil) {
                 return
             }
+            if(depositCap.address != self.entriesData[nftID]!.ownerAddress){
+                panic("Only the owner of the entry can withdraw it")
+            }
+
 
             // Remove the NFT entry's data from the leaderboard.
             self.entriesData.remove(key: nftID)!
