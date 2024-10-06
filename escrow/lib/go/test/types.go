@@ -158,7 +158,7 @@ func parseLeaderboardInfo(value cadence.Value) (LeaderboardInfo, error) {
 	for k, v := range fields {
 		switch k {
 		case "name":
-			s.Name = v.(cadence.String).String()
+			s.Name = string(v.(cadence.String))
 		case "nftType":
 			s.NftType = v.String()
 		case "entriesLength":

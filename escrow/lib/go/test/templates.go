@@ -26,8 +26,8 @@ const (
 	EscrowScriptsRootPath      = "../../../scripts"
 
 	// Accounts
-	EscrowSetupAccountPath   = EscrowTransactionsRootPath + "/user/setup_AllDay_account.cdc"
-	EscrowAccountIsSetupPath = EscrowScriptsRootPath + "/user/account_is_setup.cdc"
+	AllDaySetupAccountPath   = EscrowTransactionsRootPath + "/user/setup_AllDay_account.cdc"
+	AllDayAccountIsSetupPath = EscrowScriptsRootPath + "/user/account_is_setup.cdc"
 
 	// Series
 	EscrowCreateSeriesPath   = EscrowTransactionsRootPath + "/admin/series/create_series.cdc"
@@ -55,10 +55,11 @@ const (
 	EscrowReadCollectionLengthPath    = EscrowScriptsRootPath + "/nfts/read_collection_nft_length.cdc"
 
 	// Escrow
-	EscrowMomentNFTPath           = EscrowTransactionsRootPath + "/user/add_entry.cdc"
-	EscrowWithdrawMomentNFTPath   = EscrowTransactionsRootPath + "/admin/leaderboards/withdraw_entry.cdc"
-	EscrowBurnNFTPath             = EscrowTransactionsRootPath + "/admin/leaderboards/burn_nft.cdc"
-	EscrowReadLeaderboardInfoPath = EscrowScriptsRootPath + "/leaderboards/read_leaderboard_info.cdc"
+	EscrowMomentNFTPath              = EscrowTransactionsRootPath + "/user/add_entry.cdc"
+	EscrowWithdrawMomentNFTPath      = EscrowTransactionsRootPath + "/admin/leaderboards/withdraw_entry.cdc"
+	EscrowAdminTransferMomentNFTPath = EscrowTransactionsRootPath + "/admin/leaderboards/admin_transfer.cdc"
+	EscrowBurnNFTPath                = EscrowTransactionsRootPath + "/admin/leaderboards/burn_nft.cdc"
+	EscrowReadLeaderboardInfoPath    = EscrowScriptsRootPath + "/leaderboards/read_leaderboard_info.cdc"
 )
 
 // ------------------------------------------------------------
@@ -119,16 +120,16 @@ func LoadEscrow(nftAddress flow.Address) []byte {
 	return code
 }
 
-func loadEscrowSetupAccountTransaction(contracts Contracts) []byte {
+func loadAllDaySetupAccountTransaction(contracts Contracts) []byte {
 	return replaceAddresses(
-		readFile(EscrowSetupAccountPath),
+		readFile(AllDaySetupAccountPath),
 		contracts,
 	)
 }
 
-func loadEscrowAccountIsSetupScript(contracts Contracts) []byte {
+func loadAllDayAccountIsSetupScript(contracts Contracts) []byte {
 	return replaceAddresses(
-		readFile(EscrowAccountIsSetupPath),
+		readFile(AllDayAccountIsSetupPath),
 		contracts,
 	)
 }
@@ -252,6 +253,13 @@ func loadEscrowLeaderboardInfoScript(contracts Contracts) []byte {
 func loadEscrowWithdrawMomentNFT(contracts Contracts) []byte {
 	return replaceAddresses(
 		readFile(EscrowWithdrawMomentNFTPath),
+		contracts,
+	)
+}
+
+func loadEscrowAdminTransferMomentNFT(contracts Contracts) []byte {
+	return replaceAddresses(
+		readFile(EscrowAdminTransferMomentNFTPath),
 		contracts,
 	)
 }

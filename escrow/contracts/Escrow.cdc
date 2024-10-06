@@ -100,6 +100,28 @@ access(all) contract Escrow {
             self.entriesLength = self.entriesLength - 1
         }
 
+        // Admin transfer an NFT entry from the leaderboard to a collection regardless of if they made the entry
+        access(contract) fun adminTransferNftToCollection(nftID: UInt64,  depositCap: Capability<&{NonFungibleToken.Collection}>) {
+            pre {
+                depositCap.check() : "Deposit capability is not valid"
+            }
+            if(self.entriesData[nftID] == nil) {
+                return
+            }
+
+            // Remove the NFT entry's data from the leaderboard.
+            self.entriesData.remove(key: nftID)!
+
+            // Transfer the NFT to the receiver's collection.
+            let receiverCollection = depositCap.borrow()
+                ?? panic("Could not borrow the NFT receiver from the capability")
+            receiverCollection.deposit(token: <- self.collection.withdraw(withdrawID: nftID))
+            emit EntryReturnedToCollection(leaderboardName: self.name, nftID: nftID, owner: depositCap.address)
+
+            // Decrement entries length.
+            self.entriesLength = self.entriesLength - 1
+        }
+
         // Burns an NFT entry from the leaderboard.
         access(contract) fun burn(nftID: UInt64) {
             if(self.entriesData[nftID] == nil) {
@@ -200,6 +222,13 @@ access(all) contract Escrow {
             let leaderboard= &self.leaderboards[leaderboardName] as &Leaderboard?
                 ?? panic("Leaderboard does not exist with this name")
             leaderboard.transferNftToCollection(nftID: nftID, depositCap: depositCap)
+        }
+
+        // Calls adminTransferNftToCollection.
+        access(Operate) fun adminTransferNftToCollection(leaderboardName: String, nftID: UInt64, depositCap: Capability<&{NonFungibleToken.Collection}>) {
+            let leaderboard= &self.leaderboards[leaderboardName] as &Leaderboard?
+                ?? panic("Leaderboard does not exist with this name")
+            leaderboard.adminTransferNftToCollection(nftID: nftID, depositCap: depositCap)
         }
 
         // Calls burn.

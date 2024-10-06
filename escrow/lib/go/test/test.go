@@ -270,7 +270,7 @@ func setupAllDay(
 	contracts Contracts,
 ) {
 	tx := flow.NewTransaction().
-		SetScript(loadEscrowSetupAccountTransaction(contracts)).
+		SetScript(loadAllDaySetupAccountTransaction(contracts)).
 		SetComputeLimit(100).
 		SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
 		SetPayer(b.ServiceKey().Address).

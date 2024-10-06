@@ -527,7 +527,7 @@ func TestEscrow(t *testing.T) {
 	t.Run("Should get the leaderboard by name to confirm it exists", func(t *testing.T) {
 		// Get leaderboard data from the contract.
 		leaderboard, _ := getLeaderboardData(t, b, contracts, "leaderboardBurn-1")
-		assert.Equal(t, "\"leaderboardBurn-1\"", leaderboard.Name)
+		assert.Equal(t, "leaderboardBurn-1", leaderboard.Name)
 		assert.Equal(t, "Type<A.120e725050340cab.AllDay.NFT>()", leaderboard.NftType)
 		assert.Equal(t, uint64(0), leaderboard.EntriesLength)
 	})
@@ -624,6 +624,108 @@ func TestEscrow(t *testing.T) {
 	})
 }
 
+func TestEscrowAdminTransfer(t *testing.T) {
+	b := newEmulator()
+	contracts := EscrowContracts(t, b)
+	userAddress, userSigner := createAccount(t, b)
+	setupAllDay(t, b, userAddress, userSigner, contracts)
+
+	createTestEditions(t, b, contracts)
+
+	t.Run("Should be able to mint a new MomentNFT from an edition that has a maxMintSize", func(t *testing.T) {
+		testMintMomentNFT(
+			t,
+			b,
+			contracts,
+			uint64(1),
+			nil,
+			userAddress,
+			uint64(1),
+			uint64(1),
+			false,
+		)
+	})
+
+	t.Run("Should confirm that 1 MomentNFT exists within users collection", func(t *testing.T) {
+		// Get the MomentNFT data from the users collection.
+		count := getMomentNFTLengthInAccount(t, b, contracts, userAddress)
+		assert.Equal(t, big.NewInt(1), count)
+	})
+
+	t.Run("Should be able to create a leaderboard", func(t *testing.T) {
+		testCreateLeaderboard(
+			t,
+			b,
+			contracts,
+			"leaderboardBurn-1",
+		)
+	})
+
+	t.Run("Should get the leaderboard by name to confirm it exists", func(t *testing.T) {
+		// Get leaderboard data from the contract.
+		leaderboard, _ := getLeaderboardData(t, b, contracts, "leaderboardBurn-1")
+		assert.Equal(t, "leaderboardBurn-1", leaderboard.Name)
+		assert.Equal(t, "Type<A.120e725050340cab.AllDay.NFT>()", leaderboard.NftType)
+		assert.Equal(t, uint64(0), leaderboard.EntriesLength)
+	})
+
+	t.Run("Should be able to escrow moment to leaderboard", func(t *testing.T) {
+		testEscrowMomentNFT(
+			t,
+			b,
+			contracts,
+			userSigner,
+			userAddress,
+			uint64(1),
+		)
+	})
+
+	t.Run("Should get the leaderboard by name to confirm entries", func(t *testing.T) {
+		// Get leaderboard data from the contract.
+		leaderboard, _ := getLeaderboardData(t, b, contracts, "leaderboardBurn-1")
+		assert.Equal(t, uint64(1), leaderboard.EntriesLength)
+	})
+
+	t.Run("Should confirm that 0 MomentNFTs exists within users collection due to escrow", func(t *testing.T) {
+		// Get the MomentNFT data from the users collection.
+		count := getMomentNFTLengthInAccount(t, b, contracts, userAddress)
+		assert.Equal(t, big.NewInt(0), count)
+	})
+
+	var (
+		newUserAddress flow.Address
+		newUserSigner  crypto.Signer
+	)
+	t.Run("Should create another account and setup allDat collection", func(t *testing.T) {
+		newUserAddress, newUserSigner = createAccount(t, b)
+		setupAllDay(t, b, newUserAddress, newUserSigner, contracts)
+	})
+
+	t.Run("Should admin transfer moment to new account from Leaderboard by name", func(t *testing.T) {
+		testAdminTransferMomentNFT(
+			t,
+			b,
+			contracts,
+			"leaderboardBurn-1",
+			newUserAddress,
+			uint64(1),
+		)
+	})
+
+	t.Run("Should check that the MomentNFT is in the new user's collection", func(t *testing.T) {
+		// Get the MomentNFT data from the users collection.
+		count := getMomentNFTLengthInAccount(t, b, contracts, newUserAddress)
+		assert.Equal(t, big.NewInt(1), count)
+	})
+
+	t.Run("Should get the leaderboard by name to confirm entries", func(t *testing.T) {
+		// Get leaderboard data from the contract.
+		leaderboard, _ := getLeaderboardData(t, b, contracts, "leaderboardBurn-1")
+		assert.Equal(t, uint64(0), leaderboard.EntriesLength)
+	})
+
+}
+
 func testCreateLeaderboard(
 	t *testing.T,
 	b *emulator.Blockchain,
@@ -668,6 +770,24 @@ func testBurnMomentNFT(
 		b,
 		contracts,
 		leaderboardName,
+		momentNftFlowID,
+	)
+}
+
+func testAdminTransferMomentNFT(
+	t *testing.T,
+	b *emulator.Blockchain,
+	contracts Contracts,
+	leaderboardName string,
+	userAddress flow.Address,
+	momentNftFlowID uint64,
+) {
+	adminTransferMomentNFT(
+		t,
+		b,
+		contracts,
+		leaderboardName,
+		userAddress,
 		momentNftFlowID,
 	)
 }

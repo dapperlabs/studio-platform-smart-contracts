@@ -289,6 +289,34 @@ func withdrawMomentNFT(
 	)
 }
 
+func adminTransferMomentNFT(
+	t *testing.T,
+	b *emulator.Blockchain,
+	contracts Contracts,
+	leaderboardName string,
+	userAddress flow.Address,
+	momentNftFlowID uint64,
+) {
+	tx := flow.NewTransaction().
+		SetScript(loadEscrowAdminTransferMomentNFT(contracts)).
+		SetComputeLimit(100).
+		SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
+		SetPayer(b.ServiceKey().Address).
+		AddAuthorizer(contracts.AllDayAddress)
+	tx.AddArgument(cadence.String(leaderboardName))
+	tx.AddArgument(cadence.NewUInt64(momentNftFlowID))
+	tx.AddArgument(cadence.BytesToAddress(userAddress.Bytes()))
+
+	signer, err := b.ServiceKey().Signer()
+	require.NoError(t, err)
+	signAndSubmit(
+		t, b, tx,
+		[]flow.Address{b.ServiceKey().Address, contracts.AllDayAddress},
+		[]crypto.Signer{signer, contracts.AllDaySigner},
+		false,
+	)
+}
+
 func burnMomentNFT(
 	t *testing.T,
 	b *emulator.Blockchain,

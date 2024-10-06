@@ -16,7 +16,7 @@ func accountIsSetup(
 	contracts Contracts,
 	address flow.Address,
 ) bool {
-	script := loadEscrowAccountIsSetupScript(contracts)
+	script := loadAllDayAccountIsSetupScript(contracts)
 	result := executeScriptAndCheck(t, b, script, [][]byte{jsoncdc.MustEncode(cadence.BytesToAddress(address.Bytes()))})
 
 	return GetFieldValue(result).(bool)
