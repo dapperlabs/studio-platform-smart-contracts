@@ -196,6 +196,7 @@ access(all) contract Escrow {
             if(leaderboard.entriesData[nftID] == nil) {
                 return
             }
+
             if(depositCap.address != leaderboard.entriesData[nftID]!.ownerAddress){
                 panic("Only the owner of the entry can withdraw it")
             }
@@ -212,6 +213,7 @@ access(all) contract Escrow {
             if(leaderboard.entriesData[nftID] == nil) {
                 return
             }
+            
             leaderboard.transferNftToCollection(nftID: nftID, depositCap: depositCap)
         }
 
