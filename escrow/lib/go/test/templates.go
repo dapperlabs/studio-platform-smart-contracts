@@ -26,7 +26,7 @@ const (
 	EscrowScriptsRootPath      = "../../../scripts"
 
 	// Accounts
-	AllDaySetupAccountPath   = EscrowTransactionsRootPath + "/user/setup_AllDay_account.cdc"
+	AllDaySetupAccountPath   = EscrowTransactionsRootPath + "/user/setup_allday_account.cdc"
 	AllDayAccountIsSetupPath = EscrowScriptsRootPath + "/user/account_is_setup.cdc"
 
 	// Series
