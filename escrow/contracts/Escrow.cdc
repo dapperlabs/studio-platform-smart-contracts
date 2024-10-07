@@ -213,7 +213,7 @@ access(all) contract Escrow {
             if(leaderboard.entriesData[nftID] == nil) {
                 return
             }
-            
+
             leaderboard.transferNftToCollection(nftID: nftID, depositCap: depositCap)
         }
 
