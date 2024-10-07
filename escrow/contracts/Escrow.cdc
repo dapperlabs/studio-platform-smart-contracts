@@ -74,19 +74,11 @@ access(all) contract Escrow {
             emit EntryDeposited(leaderboardName: self.name, nftID: nftID, owner: ownerAddress)
         }
 
-        // Withdraws an NFT entry from the leaderboard.
+        // Transfers an NFT entry from the leaderboard to an account.
         access(contract) fun transferNftToCollection(nftID: UInt64, depositCap: Capability<&{NonFungibleToken.Collection}>) {
-            pre {
-                depositCap.check() : "Deposit capability is not valid"
-            }
-            if(self.entriesData[nftID] == nil) {
-                return
-            }
-            if(depositCap.address != self.entriesData[nftID]!.ownerAddress){
-                panic("Only the owner of the entry can withdraw it")
-            }
-
-
+        pre {
+            depositCap.check() : "Deposit capability is not valid"
+        }
             // Remove the NFT entry's data from the leaderboard.
             self.entriesData.remove(key: nftID)!
 
@@ -195,14 +187,38 @@ access(all) contract Escrow {
             leaderboard.addEntryToLeaderboard(nft: <-nft, ownerAddress: ownerAddress)
         }
 
-        // Calls transferNftToCollection.
+        // transferNftToCollection transfers the moment back to the owner's collection once the leaderboard is completed.
+        // This is used for entries of users who didn't win the leaderboard
         access(Operate) fun transferNftToCollection(leaderboardName: String, nftID: UInt64, depositCap: Capability<&{NonFungibleToken.Collection}>) {
             let leaderboard= &self.leaderboards[leaderboardName] as &Leaderboard?
                 ?? panic("Leaderboard does not exist with this name")
+
+            if(leaderboard.entriesData[nftID] == nil) {
+                return
+            }
+
+            if(depositCap.address != leaderboard.entriesData[nftID]!.ownerAddress){
+                panic("Only the owner of the entry can withdraw it")
+            }
+
             leaderboard.transferNftToCollection(nftID: nftID, depositCap: depositCap)
         }
 
-        // Calls burn.
+        // adminTransferNftToCollection transfers the moment back to an admin collection once the leaderboard is completed.
+        // This is used for entries of users who won the leaderboard
+        access(Operate) fun adminTransferNftToCollection(leaderboardName: String, nftID: UInt64, depositCap: Capability<&{NonFungibleToken.Collection}>) {
+            let leaderboard= &self.leaderboards[leaderboardName] as &Leaderboard?
+                ?? panic("Leaderboard does not exist with this name")
+
+            if(leaderboard.entriesData[nftID] == nil) {
+                return
+            }
+
+            leaderboard.transferNftToCollection(nftID: nftID, depositCap: depositCap)
+        }
+
+        // burn destroys the NFT from the leaderboard.
+        // this is used for entries of users who won the leaderboard
         access(Operate) fun burn(leaderboardName: String, nftID: UInt64) {
             let leaderboard = &self.leaderboards[leaderboardName] as &Leaderboard?
                 ?? panic("Leaderboard does not exist with this name")
