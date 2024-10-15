@@ -75,12 +75,17 @@ func NFTLockerDeployContracts(t *testing.T, b *emulator.Blockchain) Contracts {
 
 	ExampleNFTCode := nftcontracts.ExampleNFT(nftAddress, metadataViewsAddr, resolverAddress)
 
+	EscrowCode := LoadEscrowContract(nftAddress, metadataViewsAddr)
+
 	NFTLockerAddress, err := adapter.CreateAccount(
 		context.Background(),
 		[]*flow.AccountKey{NFTLockerAccountKey},
 		nil,
 	)
 	require.NoError(t, err)
+
+	signer, err := b.ServiceKey().Signer()
+	assert.NoError(t, err)
 
 	tx1 := sdktemplates.AddAccountContract(
 		NFTLockerAddress,
@@ -95,22 +100,6 @@ func NFTLockerDeployContracts(t *testing.T, b *emulator.Blockchain) Contracts {
 		SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
 		SetPayer(b.ServiceKey().Address)
 
-	tx2 := sdktemplates.AddAccountContract(
-		NFTLockerAddress,
-		sdktemplates.Contract{
-			Name:   "ExampleNFT",
-			Source: string(ExampleNFTCode),
-		},
-	)
-
-	tx2.
-		SetComputeLimit(100).
-		SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber+1).
-		SetPayer(b.ServiceKey().Address)
-
-	signer, err := b.ServiceKey().Signer()
-	assert.NoError(t, err)
-
 	signAndSubmit(
 		t, b, tx1,
 		[]flow.Address{b.ServiceKey().Address, NFTLockerAddress},
@@ -121,8 +110,44 @@ func NFTLockerDeployContracts(t *testing.T, b *emulator.Blockchain) Contracts {
 	_, err = b.CommitBlock()
 	require.NoError(t, err)
 
+	tx2 := sdktemplates.AddAccountContract(
+		NFTLockerAddress,
+		sdktemplates.Contract{
+			Name:   "ExampleNFT",
+			Source: string(ExampleNFTCode),
+		},
+	)
+
+	tx2.
+		SetComputeLimit(100).
+		SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
+		SetPayer(b.ServiceKey().Address)
+
 	signAndSubmit(
 		t, b, tx2,
+		[]flow.Address{b.ServiceKey().Address, NFTLockerAddress},
+		[]crypto.Signer{signer, NFTLockerSigner},
+		false,
+	)
+
+	_, err = b.CommitBlock()
+	require.NoError(t, err)
+
+	tx3 := sdktemplates.AddAccountContract(
+		NFTLockerAddress,
+		sdktemplates.Contract{
+			Name:   "Escrow",
+			Source: string(EscrowCode),
+		},
+	)
+
+	tx3.
+		SetComputeLimit(100).
+		SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
+		SetPayer(b.ServiceKey().Address)
+
+	signAndSubmit(
+		t, b, tx3,
 		[]flow.Address{b.ServiceKey().Address, NFTLockerAddress},
 		[]crypto.Signer{signer, NFTLockerSigner},
 		false,

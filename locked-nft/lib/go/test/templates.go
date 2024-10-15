@@ -16,10 +16,12 @@ const (
 	NFTLockerAddressPlaceholder     = "\"NFTLocker\""
 	metadataViewsAddressPlaceholder = "\"MetadataViews\""
 	exampleNFTAddressPlaceholder    = "\"ExampleNFT\""
+	escrowAddressPlaceholder        = "\"Escrow\""
 )
 
 const (
 	NFTLockerPath                  = "../../../contracts/NFTLocker.cdc"
+	EscrowPath                     = "../../../../escrow/contracts/Escrow.cdc"
 	NFTLockerV2Path                = "../../../contracts/NFTLockerNew.cdc"
 	ExampleNFTPath                 = "../../../contracts/ExampleNFT.cdc"
 	MetadataViewsInterfaceFilePath = "../../../contracts/imports/MetadataViews.cdc"
@@ -45,6 +47,7 @@ const (
 	GetInventoryScriptPath       = ScriptsRootPath + "/inventory.cdc"
 	LockNFTTxPath                = TransactionsRootPath + "/lock_nft.cdc"
 	UnlockNFTTxPath              = TransactionsRootPath + "/unlock_nft.cdc"
+	AdminAddReceiverTxPath       = TransactionsRootPath + "/admin_add_escrow_receiver.cdc"
 	AdminUnlockNFTTxPath         = TransactionsRootPath + "/admin_unlock_nft.cdc"
 )
 
@@ -60,6 +63,7 @@ func replaceAddresses(code []byte, contracts Contracts) []byte {
 
 	code = []byte(strings.ReplaceAll(string(code), metadataViewsAddressPlaceholder, "0x"+contracts.MetadataViewsAddress.String()))
 	code = []byte(strings.ReplaceAll(string(code), exampleNFTAddressPlaceholder, "0x"+contracts.NFTLockerAddress.String()))
+	code = []byte(strings.ReplaceAll(string(code), escrowAddressPlaceholder, "0x"+contracts.NFTLockerAddress.String()))
 
 	return code
 }
@@ -70,6 +74,15 @@ func LoadNFTLockerContract(nftAddress flow.Address, metadataViewsAddress flow.Ad
 	nftRe := regexp.MustCompile(nftAddressPlaceholder)
 	code = nftRe.ReplaceAll(code, []byte("0x"+nftAddress.String()))
 	code = []byte(strings.ReplaceAll(string(code), metadataViewsAddressPlaceholder, "0x"+metadataViewsAddress.String()))
+
+	return code
+}
+
+func LoadEscrowContract(nftAddress flow.Address, metadataViewsAddress flow.Address) []byte {
+	code := readFile(EscrowPath)
+
+	nftRe := regexp.MustCompile(nftAddressPlaceholder)
+	code = nftRe.ReplaceAll(code, []byte("0x"+nftAddress.String()))
 
 	return code
 }
@@ -122,6 +135,13 @@ func lockNFTTransaction(contracts Contracts) []byte {
 func unlockNFTTransaction(contracts Contracts) []byte {
 	return replaceAddresses(
 		readFile(UnlockNFTTxPath),
+		contracts,
+	)
+}
+
+func adminAddReceiverTransaction(contracts Contracts) []byte {
+	return replaceAddresses(
+		readFile(AdminAddReceiverTxPath),
 		contracts,
 	)
 }

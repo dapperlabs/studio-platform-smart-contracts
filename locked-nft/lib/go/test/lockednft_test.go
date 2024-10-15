@@ -311,6 +311,60 @@ func testUnlockNFT(
 
 }
 
+func TestAdminAddReceiver(t *testing.T) {
+	b := newEmulator()
+	contracts := NFTLockerDeployContracts(t, b)
+	t.Run("Should be able to add a receiver", func(t *testing.T) {
+		testAdminAddReceiver(
+			t,
+			b,
+			contracts,
+		)
+	})
+}
+
+func testAdminAddReceiver(
+	t *testing.T,
+	b *emulator.Blockchain,
+	contracts Contracts,
+) {
+	userAddress, userSigner := createAccount(t, b)
+	setupNFTLockerAccount(t, b, userAddress, userSigner, contracts)
+	setupExampleNFT(t, b, userAddress, userSigner, contracts)
+
+	exampleNftID := mintExampleNFT(
+		t,
+		b,
+		contracts,
+		false,
+		userAddress.String(),
+	)
+
+	adminAddReceiver(
+		t,
+		b,
+		contracts,
+		false,
+	)
+
+	err := func() (err error) {
+		defer func() {
+			if r := recover(); r != nil {
+				err = r.(error)
+			}
+		}()
+		_ = getLockedTokenData(
+			t,
+			b,
+			contracts,
+			exampleNftID,
+		)
+		return err
+	}()
+	assert.Error(t, err)
+
+}
+
 func TestAdminUnLockNFT(t *testing.T) {
 	b := newEmulator()
 	contracts := NFTLockerDeployContracts(t, b)
