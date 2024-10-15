@@ -7,7 +7,7 @@ import ExampleNFT from "ExampleNFT"
 ///
 transaction() {
     // Auhtorized reference to the NFTLocker ReceiverCollector resource
-    let receiverCollectorRed: auth(NFTLocker.Operate) &NFTLocker.ReceiverCollector
+    let receiverCollectorRef: auth(NFTLocker.Operate) &NFTLocker.ReceiverCollector
 
     // Deposit method to be added to the ReceiverCollector resource
     let depositMethod: fun(@{NonFungibleToken.NFT}, NFTLocker.LockedData, {String: AnyStruct})
@@ -48,7 +48,7 @@ transaction() {
 
     execute {
         // Add a new receiver to the ReceiverCollector with the provided deposit method and accepted NFT types
-        receiverCollectorRef.addReceiver(
+        self.receiverCollectorRef.addReceiver(
             name: "add-entry-to-escrow-leaderboard",
             depositMethod: self.depositMethod,
             eligibleNFTTypes: {Type<@ExampleNFT.NFT>(): true}
