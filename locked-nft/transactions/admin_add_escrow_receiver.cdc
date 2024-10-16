@@ -6,7 +6,7 @@ import ExampleNFT from "ExampleNFT"
 /// This transaction creates a new ReceiverCollector resource and adds a new receiver to it with a deposit method that adds an NFT to an escrow leaderboard.
 ///
 transaction() {
-    // Auhtorized reference to the NFTLocker ReceiverCollector resource
+    // Authorized reference to the NFTLocker ReceiverCollector resource
     let receiverCollectorRef: auth(NFTLocker.Operate) &NFTLocker.ReceiverCollector
 
     prepare(admin: auth(SaveValue, BorrowValue) &Account) {

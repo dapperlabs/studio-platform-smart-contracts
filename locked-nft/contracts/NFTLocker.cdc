@@ -122,7 +122,7 @@ access(all) contract NFTLocker {
     /// Receivers are entities that can receive locked NFTs and deposit them using a specific deposit method
     ///
     access(all) struct Receiver {
-        /// Handler for depositing NFTs to the receiver
+        /// Handler for depositing NFTs for the receiver
         ///
         access(all) var authorizedDepositHandler: {IAuthorizedDepositHandler}
 
@@ -146,16 +146,10 @@ access(all) contract NFTLocker {
         }
     }
 
-    /// Get the receiver by name
-    ///
-    access(all) fun getReceiver(name: String): Receiver? {
-        return NFTLocker.borrowAdminReceiverCollectorPublic()!.getReceiver(name: name)
-    }
-
     /// ReceiverCollector resource
     ///
-    /// Note: This resource is used to store receivers and corresponding deposit methods; currently, only
-    /// the admin account can add or remove receivers - in the future, a ReceiverProvider resource could
+    /// Note: This resource is used to store receivers and corresponding authorized deposit handlers; currently,
+    /// only the admin account can add or remove receivers - in the future, a ReceiverProvider resource could
     /// be added to provide this capability to separate authorized accounts.
     ///
     access(all) resource ReceiverCollector  {
