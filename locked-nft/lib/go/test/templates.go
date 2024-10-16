@@ -48,6 +48,7 @@ const (
 	LockNFTTxPath                        = TransactionsRootPath + "/lock_nft.cdc"
 	UnlockNFTTxPath                      = TransactionsRootPath + "/unlock_nft.cdc"
 	AdminAddReceiverTxPath               = TransactionsRootPath + "/admin_add_escrow_receiver.cdc"
+	AdminRemoveReceiverTxPath            = TransactionsRootPath + "/admin_remove_escrow_receiver.cdc"
 	UnlockNFTWithAuthorizedDepositTxPath = TransactionsRootPath + "/unlock_nft_with_authorized_deposit.cdc"
 	AdminUnlockNFTTxPath                 = TransactionsRootPath + "/admin_unlock_nft.cdc"
 
@@ -147,6 +148,13 @@ func unlockNFTTransaction(contracts Contracts) []byte {
 func adminAddReceiverTransaction(contracts Contracts) []byte {
 	return replaceAddresses(
 		readFile(AdminAddReceiverTxPath),
+		contracts,
+	)
+}
+
+func adminRemoveReceiverTransaction(contracts Contracts) []byte {
+	return replaceAddresses(
+		readFile(AdminRemoveReceiverTxPath),
 		contracts,
 	)
 }

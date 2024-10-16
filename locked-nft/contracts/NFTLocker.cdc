@@ -22,8 +22,11 @@ access(all) contract NFTLocker {
     access(all) event NFTUnlocked(
         id: UInt64,
         from: Address?,
-        nftType: Type
+        nftType: Type,
+        isAuthorizedDeposit: Bool
     )
+    access(all) event ReceiverAdded(name: String, eligibleNFTTypes: {Type: Bool})
+    access(all) event ReceiverRemoved(name: String, eligibleNFTTypes: {Type: Bool})
 
     /// Named Paths
     ///
@@ -191,6 +194,9 @@ access(all) contract NFTLocker {
                     self.receiverNamesByNFTType[nftType] = {name: true}
                 }
             }
+
+            // Emit event
+            emit ReceiverAdded(name: name, eligibleNFTTypes: eligibleNFTTypes)
         }
 
         /// Remove a deposit method for a given NFT type
@@ -209,6 +215,9 @@ access(all) contract NFTLocker {
 
             // Remove the receiver
             self.receiversByName.remove(key: name)
+
+            // Emit event
+            emit ReceiverRemoved(name: name, eligibleNFTTypes: receiver.eligibleNFTTypes)
         }
 
         /// Get the receiver for the given name if it exists
@@ -306,19 +315,7 @@ access(all) contract NFTLocker {
                 NFTLocker.canUnlockToken(id: id, nftType: nftType): "locked duration has not been met"
             }
 
-            // Remove the token's locked data
-            if let lockedTokens = &NFTLocker.lockedTokens[nftType] as auth(Remove) &{UInt64: NFTLocker.LockedData}? {
-                lockedTokens.remove(key: id)
-            }
-
-            // Decrement the locked tokens count
-            NFTLocker.totalLockedTokens = NFTLocker.totalLockedTokens - 1
-
-            // Emit events
-            emit NFTUnlocked(id: id, from: self.owner?.address, nftType: nftType)
-            emit Withdraw(id: id, from: self.owner?.address)
-
-            return <- self.lockedNFTs[nftType]?.remove(key: id)!!
+            return <- self.withdrawFromLockedNFTs(id: id, nftType: nftType, isAuthorizedDeposit: false)
         }
 
         /// Force unlock the NFT with the given id and type, and deposit it using the receiver's deposit method;
@@ -331,6 +328,10 @@ access(all) contract NFTLocker {
             receiverName: String,
             passThruParams: {String: AnyStruct}
         ) {
+            pre {
+                !NFTLocker.canUnlockToken(id: id, nftType: nftType): "locked duration has been met, use unlock() instead"
+            }
+
             // Get the locked token details, panic if it doesn't exist
             let lockedTokenDetails = NFTLocker.getNFTLockerDetails(id: id, nftType: nftType)
                 ?? panic("No locked token found for the given id and NFT type")
@@ -354,10 +355,28 @@ access(all) contract NFTLocker {
 
             // Unlock and deposit the NFT using the receiver's deposit method
             receiverCollector.getReceiver(name: receiverName)!.authorizedDepositHandler.deposit(
-                nft: <- self.unlock(id: id, nftType: nftType),
+                nft: <- self.withdrawFromLockedNFTs(id: id, nftType: nftType, isAuthorizedDeposit: true),
                 ownerAddress: lockedTokenDetails.owner,
                 passThruParams: passThruParams,
             )
+        }
+
+        /// Withdraw the NFT with the given id and type, used in the unlock and unlockWithAuthorizedDeposit functions
+        ///
+        access(self) fun withdrawFromLockedNFTs(id: UInt64, nftType: Type, isAuthorizedDeposit: Bool): @{NonFungibleToken.NFT} {
+            // Remove the token's locked data
+            if let lockedTokens = &NFTLocker.lockedTokens[nftType] as auth(Remove) &{UInt64: NFTLocker.LockedData}? {
+                lockedTokens.remove(key: id)
+            }
+
+            // Decrement the locked tokens count
+            NFTLocker.totalLockedTokens = NFTLocker.totalLockedTokens - 1
+
+            // Emit events
+            emit NFTUnlocked(id: id, from: self.owner?.address, nftType: nftType, isAuthorizedDeposit: isAuthorizedDeposit)
+            emit Withdraw(id: id, from: self.owner?.address)
+
+            return <- self.lockedNFTs[nftType]?.remove(key: id)!!
         }
 
         /// Lock the given NFT for the specified duration

@@ -1,6 +1,7 @@
 package test
 
 import (
+	"strings"
 	"testing"
 	"time"
 
@@ -308,7 +309,7 @@ func testUnlockNFT(
 		return err
 	}()
 	assert.Error(t, err)
-
+	assert.True(t, strings.Contains(err.Error(), "cadence.Value is nil"))
 }
 
 func TestAdminAddReceiver(t *testing.T) {
@@ -442,6 +443,111 @@ func testUnlockWithAuthorizedDeposit(
 		return err
 	}()
 	assert.Error(t, err)
+	assert.True(t, strings.Contains(err.Error(), "cadence.Value is nil"))
+}
+
+func TestAdminRemoveReceiver(t *testing.T) {
+	b := newEmulator()
+	contracts := NFTLockerDeployContracts(t, b)
+
+	t.Run("Should be able to remove a receiver and fail to unlock with de-authorized deposit handler", func(t *testing.T) {
+		testAdminRemoveReceiver(
+			t,
+			b,
+			contracts,
+		)
+	})
+}
+
+func testAdminRemoveReceiver(
+	t *testing.T,
+	b *emulator.Blockchain,
+	contracts Contracts,
+) {
+	userAddress, userSigner := createAccount(t, b)
+	setupNFTLockerAccount(t, b, userAddress, userSigner, contracts)
+	setupExampleNFT(t, b, userAddress, userSigner, contracts)
+
+	mintExampleNFT(
+		t,
+		b,
+		contracts,
+		false,
+		userAddress.String(),
+	)
+
+	exampleNftID := mintExampleNFT(
+		t,
+		b,
+		contracts,
+		false,
+		userAddress.String(),
+	)
+
+	adminAddReceiver(
+		t,
+		b,
+		contracts,
+		false,
+	)
+
+	leaderboardName := "test-leaderboard-name"
+
+	createLeaderboard(
+		t,
+		b,
+		contracts,
+		leaderboardName,
+	)
+
+	var duration uint64 = 10000000000
+
+	lockedAt, lockedUntil := lockNFT(
+		t,
+		b,
+		contracts,
+		false,
+		userAddress,
+		userSigner,
+		exampleNftID,
+		duration,
+	)
+	assert.Equal(t, lockedAt+duration, lockedUntil)
+
+	adminRemoveReceiver(
+		t,
+		b,
+		contracts,
+		false,
+	)
+
+	// should fail to unlock with authorized deposit
+	unlockNFTWithAuthorizedDeposit(
+		t,
+		b,
+		contracts,
+		true,
+		userAddress,
+		userSigner,
+		leaderboardName,
+		exampleNftID,
+	)
+
+	err := func() (err error) {
+		defer func() {
+			if r := recover(); r != nil {
+				err = r.(error)
+			}
+		}()
+		_ = getLockedTokenData(
+			t,
+			b,
+			contracts,
+			exampleNftID,
+		)
+		return err
+	}()
+	assert.NoError(t, err)
 }
 
 func TestAdminUnLockNFT(t *testing.T) {
