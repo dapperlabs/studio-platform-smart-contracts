@@ -6,7 +6,7 @@ transaction(id: UInt64) {
 
     prepare(signer: auth(BorrowValue) &Account) {
         self.adminRef = signer.storage
-            .borrow<&NFTLocker.Admin>(from: NFTLocker.getAdminStoragePath())
+            .borrow<&NFTLocker.Admin>(from: NFTLocker.GetAdminStoragePath())
             ?? panic("Could not borrow a reference to the owner's collection")
     }
 

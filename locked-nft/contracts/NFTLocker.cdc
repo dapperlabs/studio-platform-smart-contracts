@@ -95,7 +95,7 @@ access(all) contract NFTLocker {
 
     /// The path to the Admin resource belonging to the account where this contract is deployed
     ///
-    access(all) view fun getAdminStoragePath(): StoragePath {
+    access(all) view fun GetAdminStoragePath(): StoragePath {
         return /storage/NFTLockerAdmin
     }
 
@@ -165,7 +165,7 @@ access(all) contract NFTLocker {
         ///
         access(self) let metadata: {String: AnyStruct}
 
-        /// Add a new deposit method for a given NFT type
+        /// Add a deposit handler for given NFT types
         ///
         access(Operate) fun addReceiver(
             name: String,
@@ -211,7 +211,7 @@ access(all) contract NFTLocker {
             self.receiversByName.remove(key: name)
         }
 
-        /// Get the deposit method for the given name if it exists
+        /// Get the receiver for the given name if it exists
         ///
         access(all) view fun getReceiver(name: String): Receiver? {
             return self.receiversByName[name]
@@ -241,19 +241,22 @@ access(all) contract NFTLocker {
             NFTLocker.expireLock(id: id, nftType: nftType)
         }
 
-        /// Create and return a new ReceiverCollector resource
+        /// Create and return a ReceiverCollector resource
         ///
         access(all) fun createReceiverCollector(): @ReceiverCollector {
             return <- create ReceiverCollector()
         }
     }
 
-    /// Expire lock if the locked NFT is eligible for force unlock and deposit by authorized receiver
+    /// Expire lock
+    ///
+    /// This can be called either by the admin or by the user unlockWithAuthorizedDeposit, if the locked NFT
+    /// type is eligible.
     ///
     access(contract) fun expireLock(id: UInt64, nftType: Type) {
         if let locker = &NFTLocker.lockedTokens[nftType] as auth(Mutate) &{UInt64: NFTLocker.LockedData}?{
             if locker[id] != nil {
-                // remove old locked data and insert new one with duration 0
+                // Update locked data's duration to 0
                 if let oldLockedData = locker.remove(key: id){
                     locker.insert(
                         key: id,
@@ -292,7 +295,7 @@ access(all) contract NFTLocker {
     /// An NFT Collection
     ///
     access(all) resource Collection: LockedCollection, LockProvider {
-        /// Locked NFTs
+        /// This collection's locked NFTs
         ///
         access(all) var lockedNFTs: @{Type: {UInt64: {NonFungibleToken.NFT}}}
 
@@ -303,22 +306,19 @@ access(all) contract NFTLocker {
                 NFTLocker.canUnlockToken(id: id, nftType: nftType): "locked duration has not been met"
             }
 
-            // Get the locked token
-            let token <- self.lockedNFTs[nftType]?.remove(key: id)!!
-
-            // Remove the locked data
+            // Remove the token's locked data
             if let lockedTokens = &NFTLocker.lockedTokens[nftType] as auth(Remove) &{UInt64: NFTLocker.LockedData}? {
                 lockedTokens.remove(key: id)
             }
 
-            // Decrement the total locked tokens
+            // Decrement the locked tokens count
             NFTLocker.totalLockedTokens = NFTLocker.totalLockedTokens - 1
 
             // Emit events
-            emit NFTUnlocked(id: token.id, from: self.owner?.address, nftType: nftType)
-            emit Withdraw(id: token.id, from: self.owner?.address)
+            emit NFTUnlocked(id: id, from: self.owner?.address, nftType: nftType)
+            emit Withdraw(id: id, from: self.owner?.address)
 
-            return <-token
+            return <- self.lockedNFTs[nftType]?.remove(key: id)!!
         }
 
         /// Force unlock the NFT with the given id and type, and deposit it using the receiver's deposit method;
@@ -335,21 +335,21 @@ access(all) contract NFTLocker {
             let lockedTokenDetails = NFTLocker.getNFTLockerDetails(id: id, nftType: nftType)
                 ?? panic("No locked token found for the given id and NFT type")
 
-            // Get the receiver collector, panic if it doesn't exist
+            // Get a public reference to the admin's receiver collector, panic if it doesn't exist
             let receiverCollector = NFTLocker.borrowAdminReceiverCollectorPublic()
                 ?? panic("No receiver collector found")
 
-            // Get the receiver name for the given NFT type, panic if it doesn't exist
-            let receiverNames = receiverCollector.getReceiverNamesByNFTType(nftType: nftType)
+            // Get the receiver names for the given NFT type, panic if there is no record
+            let nftTypeReceivers = receiverCollector.getReceiverNamesByNFTType(nftType: nftType)
                 ?? panic("No authorized receiver for the given NFT type")
 
-            // Verify that the receiver is authorized to receive the NFT
+            // Verify that the receiver with the given name is authorized
             assert(
-                receiverNames[receiverName] == true,
+                nftTypeReceivers[receiverName] == true,
                 message: "Provided receiver does not exist or is not authorized for the given NFT type"
             )
 
-            // Expire the lock
+            // Expire the NFT's lock
             NFTLocker.expireLock(id: id, nftType: nftType)
 
             // Unlock and deposit the NFT using the receiver's deposit method
@@ -360,28 +360,34 @@ access(all) contract NFTLocker {
             )
         }
 
-        /// Lock an NFT of a given type
+        /// Lock the given NFT for the specified duration
         ///
         access(Operate) fun lock(token: @{NonFungibleToken.NFT}, duration: UInt64) {
+            // Get the NFT's id and type
             let nftId: UInt64 = token.id
             let nftType: Type = token.getType()
 
-            if NFTLocker.lockedTokens[nftType] == nil {
-                NFTLocker.lockedTokens[nftType] = {}
-            }
-
+            // Initialize the collection's locked NFTs for the given type if it doesn't exist
             if self.lockedNFTs[nftType] == nil {
                 self.lockedNFTs[nftType] <-! {}
             }
 
-            // Get a reference to the nested map
-            let ref = &self.lockedNFTs[nftType] as auth(Insert) &{UInt64: {NonFungibleToken.NFT}}?
+            // Initialize the contract's locked tokens data for the given type if it doesn't exist
+            if NFTLocker.lockedTokens[nftType] == nil {
+                NFTLocker.lockedTokens[nftType] = {}
+            }
 
-            let oldToken <- ref!.insert(key: nftId, <- token)
+            // Get a reference to this collection's locked NFTs map
+            let collectionLockedNFTsRef = &self.lockedNFTs[nftType] as auth(Insert) &{UInt64: {NonFungibleToken.NFT}}?
 
-            let nestedLockRef = &NFTLocker.lockedTokens[nftType] as auth(Insert) &{UInt64: NFTLocker.LockedData}?
+            // Deposit the provided NFT in this collection's locked NFTs map - Cadence design requires destroying the resource-typed return value
+            destroy <- collectionLockedNFTsRef!.insert(key: nftId, <- token)
 
-            // Create a new locked data
+            // Get a reference to the contract's nested map containing locked tokens data
+            let lockedTokensDataRef = &NFTLocker.lockedTokens[nftType] as auth(Insert) &{UInt64: NFTLocker.LockedData}?
+                ?? panic("Could not get a reference to the locked tokens data")
+
+            // Create locked data
             let lockedData = NFTLocker.LockedData(
                 id: nftId,
                 owner: self.owner!.address,
@@ -390,7 +396,7 @@ access(all) contract NFTLocker {
             )
 
             // Insert the locked data
-            nestedLockRef!.insert(key: nftId, lockedData)
+            lockedTokensDataRef.insert(key: nftId, lockedData)
 
             // Increment the total locked tokens
             NFTLocker.totalLockedTokens = NFTLocker.totalLockedTokens + 1
@@ -406,8 +412,6 @@ access(all) contract NFTLocker {
             )
 
             emit Deposit(id: nftId, to: self.owner?.address)
-
-            destroy oldToken
         }
 
         /// Get the ids of NFTs locked for a given type
@@ -437,7 +441,7 @@ access(all) contract NFTLocker {
         self.CollectionPublicPath = /public/NFTLockerCollection
 
         // Create and save the admin resource
-        self.account.storage.save(<- create Admin(), to: NFTLocker.getAdminStoragePath())
+        self.account.storage.save(<- create Admin(), to: NFTLocker.GetAdminStoragePath())
 
         // Set contract variables
         self.totalLockedTokens = 0
