@@ -8,6 +8,7 @@
 */
 
 import NonFungibleToken from "NonFungibleToken"
+import NFTLocker from "NFTLocker"
 
 access(all) contract Escrow {
     // Event emitted when a new leaderboard is created.
@@ -228,6 +229,22 @@ access(all) contract Escrow {
         // Collection resource initializer.
         init() {
             self.leaderboards <- {}
+        }
+    }
+
+    // Handler for depositing NFTs to the Escrow Collection, used by the NFTLocker contract.
+    access(all) struct DepositHandler: NFTLocker.IAuthorizedDepositHandler {
+        access(all) fun deposit(nft: @{NonFungibleToken.NFT}, ownerAddress: Address, passThruParams: {String: AnyStruct}) {
+            // Get leaderboard name from pass-thru parameters
+            let leaderboardName = passThruParams["leaderboardName"] as! String?
+                ?? panic("Missing or invalid 'leaderboardName' entry in pass-thru parameters map")
+
+            // Get the Escrow Collection public reference
+            let escrowCollectionPublic = Escrow.account.capabilities.borrow<&Escrow.Collection>(Escrow.CollectionPublicPath)
+                ?? panic("Could not borrow a reference to the public leaderboard collection")
+
+            // Add the NFT to the escrow leaderboard
+            escrowCollectionPublic.addEntryToLeaderboard(nft: <-nft, leaderboardName: leaderboardName, ownerAddress: ownerAddress)
         }
     }
 

@@ -332,6 +332,52 @@ func testAdminAddReceiver(
 	setupNFTLockerAccount(t, b, userAddress, userSigner, contracts)
 	setupExampleNFT(t, b, userAddress, userSigner, contracts)
 
+	mintExampleNFT(
+		t,
+		b,
+		contracts,
+		false,
+		userAddress.String(),
+	)
+
+	adminAddReceiver(
+		t,
+		b,
+		contracts,
+		false,
+	)
+}
+
+func TestUnlockWithAuthorizedDeposit(t *testing.T) {
+	b := newEmulator()
+	contracts := NFTLockerDeployContracts(t, b)
+
+	t.Run("Should be able to unlock with authorized deposit", func(t *testing.T) {
+		testUnlockWithAuthorizedDeposit(
+			t,
+			b,
+			contracts,
+		)
+	})
+}
+
+func testUnlockWithAuthorizedDeposit(
+	t *testing.T,
+	b *emulator.Blockchain,
+	contracts Contracts,
+) {
+	userAddress, userSigner := createAccount(t, b)
+	setupNFTLockerAccount(t, b, userAddress, userSigner, contracts)
+	setupExampleNFT(t, b, userAddress, userSigner, contracts)
+
+	mintExampleNFT(
+		t,
+		b,
+		contracts,
+		false,
+		userAddress.String(),
+	)
+
 	exampleNftID := mintExampleNFT(
 		t,
 		b,
@@ -345,6 +391,40 @@ func testAdminAddReceiver(
 		b,
 		contracts,
 		false,
+	)
+
+	leaderboardName := "test-leaderboard-name"
+
+	createLeaderboard(
+		t,
+		b,
+		contracts,
+		leaderboardName,
+	)
+
+	var duration uint64 = 10000000000
+
+	lockedAt, lockedUntil := lockNFT(
+		t,
+		b,
+		contracts,
+		false,
+		userAddress,
+		userSigner,
+		exampleNftID,
+		duration,
+	)
+	assert.Equal(t, lockedAt+duration, lockedUntil)
+
+	unlockNFTWithAuthorizedDeposit(
+		t,
+		b,
+		contracts,
+		false,
+		userAddress,
+		userSigner,
+		leaderboardName,
+		exampleNftID,
 	)
 
 	err := func() (err error) {
@@ -362,7 +442,6 @@ func testAdminAddReceiver(
 		return err
 	}()
 	assert.Error(t, err)
-
 }
 
 func TestAdminUnLockNFT(t *testing.T) {

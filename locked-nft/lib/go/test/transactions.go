@@ -1,7 +1,6 @@
 package test
 
 import (
-	"fmt"
 	"strings"
 	"testing"
 
@@ -9,6 +8,7 @@ import (
 	"github.com/onflow/flow-emulator/emulator"
 	"github.com/onflow/flow-go-sdk"
 	"github.com/onflow/flow-go-sdk/crypto"
+	"github.com/stretchr/testify/require"
 )
 
 // ------------------------------------------------------------
@@ -112,13 +112,12 @@ func unlockNFT(
 	tx.AddArgument(cadence.UInt64(nftId))
 
 	signer, _ := b.ServiceKey().Signer()
-	txResult := signAndSubmit(
+	signAndSubmit(
 		t, b, tx,
 		[]flow.Address{b.ServiceKey().Address, userAddress},
 		[]crypto.Signer{signer, userSigner},
 		shouldRevert,
 	)
-	fmt.Println(txResult)
 }
 
 func adminAddReceiver(
@@ -139,6 +138,36 @@ func adminAddReceiver(
 		t, b, tx,
 		[]flow.Address{b.ServiceKey().Address, contracts.NFTLockerAddress},
 		[]crypto.Signer{signer, contracts.NFTLockerSigner},
+		shouldRevert,
+	)
+}
+
+func unlockNFTWithAuthorizedDeposit(
+	t *testing.T,
+	b *emulator.Blockchain,
+	contracts Contracts,
+	shouldRevert bool,
+	userAddress flow.Address,
+	userSigner crypto.Signer,
+	leaderboardName string,
+	nftId uint64,
+) {
+	tx := flow.NewTransaction().
+		SetScript(unlockNFTWithAuthorizedDepositTransaction(contracts)).
+		SetGasLimit(100).
+		SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
+		SetPayer(b.ServiceKey().Address).
+		AddAuthorizer(userAddress)
+
+	leaderboardNameCadence, _ := cadence.NewString(leaderboardName)
+	tx.AddArgument(leaderboardNameCadence)
+	tx.AddArgument(cadence.UInt64(nftId))
+
+	signer, _ := b.ServiceKey().Signer()
+	signAndSubmit(
+		t, b, tx,
+		[]flow.Address{b.ServiceKey().Address, userAddress},
+		[]crypto.Signer{signer, userSigner},
 		shouldRevert,
 	)
 }
@@ -164,5 +193,29 @@ func adminUnlockNFT(
 		[]flow.Address{b.ServiceKey().Address, contracts.NFTLockerAddress},
 		[]crypto.Signer{signer, contracts.NFTLockerSigner},
 		shouldRevert,
+	)
+}
+
+func createLeaderboard(
+	t *testing.T,
+	b *emulator.Blockchain,
+	contracts Contracts,
+	leaderboardName string,
+) {
+	tx := flow.NewTransaction().
+		SetScript(createLeaderboardTransaction(contracts)).
+		SetComputeLimit(100).
+		SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
+		SetPayer(b.ServiceKey().Address).
+		AddAuthorizer(contracts.NFTLockerAddress)
+	tx.AddArgument(cadence.String(leaderboardName))
+
+	signer, err := b.ServiceKey().Signer()
+	require.NoError(t, err)
+	signAndSubmit(
+		t, b, tx,
+		[]flow.Address{b.ServiceKey().Address, contracts.NFTLockerAddress},
+		[]crypto.Signer{signer, contracts.NFTLockerSigner},
+		false,
 	)
 }

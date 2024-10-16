@@ -75,14 +75,14 @@ func NFTLockerDeployContracts(t *testing.T, b *emulator.Blockchain) Contracts {
 
 	ExampleNFTCode := nftcontracts.ExampleNFT(nftAddress, metadataViewsAddr, resolverAddress)
 
-	EscrowCode := LoadEscrowContract(nftAddress, metadataViewsAddr)
-
 	NFTLockerAddress, err := adapter.CreateAccount(
 		context.Background(),
 		[]*flow.AccountKey{NFTLockerAccountKey},
 		nil,
 	)
 	require.NoError(t, err)
+
+	EscrowCode := LoadEscrowContract(nftAddress, metadataViewsAddr, NFTLockerAddress)
 
 	signer, err := b.ServiceKey().Signer()
 	assert.NoError(t, err)

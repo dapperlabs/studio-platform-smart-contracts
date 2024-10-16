@@ -111,14 +111,20 @@ access(all) contract NFTLocker {
         return self.account.storage.borrow<&ReceiverCollector>(from: NFTLocker.getReceiverCollectorStoragePath())
     }
 
+    /// Interface for depositing NFTs to authorized receivers
+    ///
+    access(all) struct interface IAuthorizedDepositHandler {
+        access(all) fun deposit(nft: @{NonFungibleToken.NFT}, ownerAddress: Address, passThruParams: {String: AnyStruct})
+    }
+
     /// Struct that defines a Receiver
     ///
     /// Receivers are entities that can receive locked NFTs and deposit them using a specific deposit method
     ///
     access(all) struct Receiver {
-        /// The deposit method for the receiver
+        /// Handler for depositing NFTs to the receiver
         ///
-        access(all) var depositMethod: fun(@{NonFungibleToken.NFT}, LockedData, {String: AnyStruct})
+        access(all) var authorizedDepositHandler: {IAuthorizedDepositHandler}
 
         /// The eligible NFT types for the receiver
         ///
@@ -131,13 +137,19 @@ access(all) contract NFTLocker {
         /// Initialize Receiver struct
         ///
         view init(
-            depositMethod: fun(@{NonFungibleToken.NFT}, LockedData, {String: AnyStruct}),
+            authorizedDepositHandler: {IAuthorizedDepositHandler},
             eligibleNFTTypes: {Type: Bool}
         ) {
-            self.depositMethod = depositMethod
+            self.authorizedDepositHandler = authorizedDepositHandler
             self.eligibleNFTTypes = eligibleNFTTypes
             self.metadata = {}
         }
+    }
+
+    /// Get the receiver by name
+    ///
+    access(all) fun getReceiver(name: String): Receiver? {
+        return NFTLocker.borrowAdminReceiverCollectorPublic()!.getReceiver(name: name)
     }
 
     /// ReceiverCollector resource
@@ -163,7 +175,7 @@ access(all) contract NFTLocker {
         ///
         access(Operate) fun addReceiver(
             name: String,
-            depositMethod: fun(@{NonFungibleToken.NFT}, LockedData, {String: AnyStruct}),
+            authorizedDepositHandler: {IAuthorizedDepositHandler},
             eligibleNFTTypes: {Type: Bool}
         ) {
             pre {
@@ -172,7 +184,7 @@ access(all) contract NFTLocker {
 
             // Add the receiver
             self.receiversByName[name] = Receiver(
-                depositMethod: depositMethod,
+                authorizedDepositHandler: authorizedDepositHandler,
                 eligibleNFTTypes: eligibleNFTTypes
             )
 
@@ -347,9 +359,9 @@ access(all) contract NFTLocker {
             NFTLocker.expireLock(id: id, nftType: nftType)
 
             // Unlock and deposit the NFT using the receiver's deposit method
-            receiverCollector.getReceiver(name: receiverName)!.depositMethod(
+            receiverCollector.getReceiver(name: receiverName)!.authorizedDepositHandler.deposit(
                 nft: <- self.unlock(id: id, nftType: nftType),
-                lockedTokenDetails: lockedTokenDetails,
+                ownerAddress: lockedTokenDetails.owner,
                 passThruParams: passThruParams,
             )
         }

@@ -43,12 +43,16 @@ const (
 	MetadataNFTReplaceAddress     = `"NonFungibleToken"`
 
 	// NFTLocker
-	GetLockedTokenByIDScriptPath = ScriptsRootPath + "/get_locked_token.cdc"
-	GetInventoryScriptPath       = ScriptsRootPath + "/inventory.cdc"
-	LockNFTTxPath                = TransactionsRootPath + "/lock_nft.cdc"
-	UnlockNFTTxPath              = TransactionsRootPath + "/unlock_nft.cdc"
-	AdminAddReceiverTxPath       = TransactionsRootPath + "/admin_add_escrow_receiver.cdc"
-	AdminUnlockNFTTxPath         = TransactionsRootPath + "/admin_unlock_nft.cdc"
+	GetLockedTokenByIDScriptPath         = ScriptsRootPath + "/get_locked_token.cdc"
+	GetInventoryScriptPath               = ScriptsRootPath + "/inventory.cdc"
+	LockNFTTxPath                        = TransactionsRootPath + "/lock_nft.cdc"
+	UnlockNFTTxPath                      = TransactionsRootPath + "/unlock_nft.cdc"
+	AdminAddReceiverTxPath               = TransactionsRootPath + "/admin_add_escrow_receiver.cdc"
+	UnlockNFTWithAuthorizedDepositTxPath = TransactionsRootPath + "/unlock_nft_with_authorized_deposit.cdc"
+	AdminUnlockNFTTxPath                 = TransactionsRootPath + "/admin_unlock_nft.cdc"
+
+	// Escrow
+	CreateLeaderboardTxPath = TransactionsRootPath + "/testutils/create_leaderboard.cdc"
 )
 
 // ------------------------------------------------------------
@@ -78,11 +82,12 @@ func LoadNFTLockerContract(nftAddress flow.Address, metadataViewsAddress flow.Ad
 	return code
 }
 
-func LoadEscrowContract(nftAddress flow.Address, metadataViewsAddress flow.Address) []byte {
+func LoadEscrowContract(nftAddress, metadataViewsAddress, nftLocker flow.Address) []byte {
 	code := readFile(EscrowPath)
 
 	nftRe := regexp.MustCompile(nftAddressPlaceholder)
 	code = nftRe.ReplaceAll(code, []byte("0x"+nftAddress.String()))
+	code = []byte(strings.ReplaceAll(string(code), NFTLockerAddressPlaceholder, "0x"+nftLocker.String()))
 
 	return code
 }
@@ -146,9 +151,23 @@ func adminAddReceiverTransaction(contracts Contracts) []byte {
 	)
 }
 
+func unlockNFTWithAuthorizedDepositTransaction(contracts Contracts) []byte {
+	return replaceAddresses(
+		readFile(UnlockNFTWithAuthorizedDepositTxPath),
+		contracts,
+	)
+}
+
 func adminUnlockNFTTransaction(contracts Contracts) []byte {
 	return replaceAddresses(
 		readFile(AdminUnlockNFTTxPath),
+		contracts,
+	)
+}
+
+func createLeaderboardTransaction(contracts Contracts) []byte {
+	return replaceAddresses(
+		readFile(CreateLeaderboardTxPath),
 		contracts,
 	)
 }
