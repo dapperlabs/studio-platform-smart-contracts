@@ -24,7 +24,7 @@ transaction(leaderboardName: String, nftID: UInt64) {
         let escrowAdress = Address.fromString("0x".concat(Type<Escrow>().identifier.slice(from: 2, upTo: 18)))
             ?? panic("Could not convert the address")
 
-        // let escrowAccount = getAccount({{0xEscrowAddress}})
+        // Get the public leaderboard collection
         self.collectionPublic = getAccount(escrowAdress).capabilities.borrow<&Escrow.Collection>(Escrow.CollectionPublicPath)
             ?? panic("Could not borrow a reference to the public leaderboard collection")
 
