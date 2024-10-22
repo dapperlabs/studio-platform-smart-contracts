@@ -23,7 +23,8 @@ access(all) contract NFTLocker {
         id: UInt64,
         from: Address?,
         nftType: Type,
-        isAuthorizedDeposit: Bool
+        receiverName: String?, // receiver name if unlocked with authorized deposit, nil otherwise
+        lockedUntilBeforeEarlyUnlock: UInt64? // lockedUntil if unlocked with authorized deposit, nil otherwise
     )
     access(all) event ReceiverAdded(name: String, eligibleNFTTypes: {Type: Bool})
     access(all) event ReceiverRemoved(name: String, eligibleNFTTypes: {Type: Bool})
@@ -315,7 +316,7 @@ access(all) contract NFTLocker {
                 NFTLocker.canUnlockToken(id: id, nftType: nftType): "locked duration has not been met"
             }
 
-            return <- self.withdrawFromLockedNFTs(id: id, nftType: nftType, isAuthorizedDeposit: false)
+            return <- self.withdrawFromLockedNFTs(id: id, nftType: nftType, receiverName: nil, lockedUntilBeforeEarlyUnlock: nil)
         }
 
         /// Force unlock the NFT with the given id and type, and deposit it using the receiver's deposit method;
@@ -355,7 +356,12 @@ access(all) contract NFTLocker {
 
             // Unlock and deposit the NFT using the receiver's deposit method
             receiverCollector.getReceiver(name: receiverName)!.authorizedDepositHandler.deposit(
-                nft: <- self.withdrawFromLockedNFTs(id: id, nftType: nftType, isAuthorizedDeposit: true),
+                nft: <- self.withdrawFromLockedNFTs(
+                    id: id,
+                    nftType: nftType,
+                    receiverName: receiverName,
+                    lockedUntilBeforeEarlyUnlock: lockedTokenDetails.lockedUntil
+                ),
                 ownerAddress: lockedTokenDetails.owner,
                 passThruParams: passThruParams,
             )
@@ -363,7 +369,7 @@ access(all) contract NFTLocker {
 
         /// Withdraw the NFT with the given id and type, used in the unlock and unlockWithAuthorizedDeposit functions
         ///
-        access(self) fun withdrawFromLockedNFTs(id: UInt64, nftType: Type, isAuthorizedDeposit: Bool): @{NonFungibleToken.NFT} {
+        access(self) fun withdrawFromLockedNFTs(id: UInt64, nftType: Type, receiverName: String?, lockedUntilBeforeEarlyUnlock: UInt64?): @{NonFungibleToken.NFT} {
             // Remove the token's locked data
             if let lockedTokens = &NFTLocker.lockedTokens[nftType] as auth(Remove) &{UInt64: NFTLocker.LockedData}? {
                 lockedTokens.remove(key: id)
@@ -373,7 +379,13 @@ access(all) contract NFTLocker {
             NFTLocker.totalLockedTokens = NFTLocker.totalLockedTokens - 1
 
             // Emit events
-            emit NFTUnlocked(id: id, from: self.owner?.address, nftType: nftType, isAuthorizedDeposit: isAuthorizedDeposit)
+            emit NFTUnlocked(
+                id: id,
+                from: self.owner?.address,
+                nftType: nftType,
+                receiverName: receiverName,
+                lockedUntilBeforeEarlyUnlock: lockedUntilBeforeEarlyUnlock
+            )
             emit Withdraw(id: id, from: self.owner?.address)
 
             return <- self.lockedNFTs[nftType]?.remove(key: id)!!

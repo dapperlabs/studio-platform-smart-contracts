@@ -9,7 +9,13 @@ transaction() {
     // Authorized reference to the NFTLocker ReceiverCollector resource
     let receiverCollectorRef: auth(NFTLocker.Operate) &NFTLocker.ReceiverCollector
 
+    // Name of the receiver to be added to the ReceiverCollector
+    let receiverName: String
+
     prepare(admin: auth(SaveValue, BorrowValue) &Account) {
+        // Set receiver name
+        self.receiverName = "add-entry-to-escrow-leaderboard"
+
         // Create a ReceiverCollector resource if it does not exist yet in admin storage
         if NFTLocker.borrowAdminReceiverCollectorPublic() == nil {
             // Borrow a reference to the NFTLocker Admin resource
@@ -29,9 +35,13 @@ transaction() {
     execute {
         // Add a receiver to the ReceiverCollector with the provided namw, deposit handler, and accepted NFT types
         self.receiverCollectorRef.addReceiver(
-            name: "add-entry-to-escrow-leaderboard",
+            name: self.receiverName,
             authorizedDepositHandler: Escrow.DepositHandler(),
             eligibleNFTTypes: {Type<@ExampleNFT.NFT>(): true}
         )
+    }
+
+    post {
+        self.receiverCollectorRef.getReceiver(name: self.receiverName) != nil : "Receiver not added"
     }
 }
