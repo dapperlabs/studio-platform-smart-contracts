@@ -16,12 +16,14 @@ const (
 	AllDayAddressPlaceholder       = "\"AllDay\""
 	royaltyAddressPlaceholder      = "0xALLDAYROYALTYADDRESS"
 	escrowAddressPlaceholder       = "\"Escrow\""
+	nftLockerAddressPlaceholder    = "\"NFTLocker\""
 	escrowAddressPlaceholderBis    = "0xf8d6e0586b0a20c7"
 )
 
 const (
 	EscrowPath                 = "../../../contracts/Escrow.cdc"
 	AllDayPath                 = "../../../contracts/AllDay.cdc"
+	NFTLockerPath              = "../../../../locked-nft/contracts/NFTLocker.cdc"
 	EscrowTransactionsRootPath = "../../../transactions"
 	EscrowScriptsRootPath      = "../../../scripts"
 
@@ -111,8 +113,20 @@ func LoadAllDay(nftAddress, metaAddress, viewResolverAddress, royaltyAddress flo
 	return code
 }
 
-func LoadEscrow(nftAddress flow.Address) []byte {
+func LoadEscrow(nftAddress, nftLockerAddress flow.Address) []byte {
 	code := readFile(EscrowPath)
+
+	nftRe := regexp.MustCompile(nftAddressPlaceholder)
+	code = nftRe.ReplaceAll(code, []byte("0x"+nftAddress.String()))
+
+	nftLockerRe := regexp.MustCompile(nftLockerAddressPlaceholder)
+	code = nftLockerRe.ReplaceAll(code, []byte("0x"+nftLockerAddress.String()))
+
+	return code
+}
+
+func LoadNFTLockerContract(nftAddress flow.Address) []byte {
+	code := readFile(NFTLockerPath)
 
 	nftRe := regexp.MustCompile(nftAddressPlaceholder)
 	code = nftRe.ReplaceAll(code, []byte("0x"+nftAddress.String()))
