@@ -16,10 +16,12 @@ const (
 	NFTLockerAddressPlaceholder     = "\"NFTLocker\""
 	metadataViewsAddressPlaceholder = "\"MetadataViews\""
 	exampleNFTAddressPlaceholder    = "\"ExampleNFT\""
+	escrowAddressPlaceholder        = "\"Escrow\""
 )
 
 const (
 	NFTLockerPath                  = "../../../contracts/NFTLocker.cdc"
+	EscrowPath                     = "../../../../escrow/contracts/Escrow.cdc"
 	NFTLockerV2Path                = "../../../contracts/NFTLockerNew.cdc"
 	ExampleNFTPath                 = "../../../contracts/ExampleNFT.cdc"
 	MetadataViewsInterfaceFilePath = "../../../contracts/imports/MetadataViews.cdc"
@@ -41,11 +43,17 @@ const (
 	MetadataNFTReplaceAddress     = `"NonFungibleToken"`
 
 	// NFTLocker
-	GetLockedTokenByIDScriptPath = ScriptsRootPath + "/get_locked_token.cdc"
-	GetInventoryScriptPath       = ScriptsRootPath + "/inventory.cdc"
-	LockNFTTxPath                = TransactionsRootPath + "/lock_nft.cdc"
-	UnlockNFTTxPath              = TransactionsRootPath + "/unlock_nft.cdc"
-	AdminUnlockNFTTxPath         = TransactionsRootPath + "/admin_unlock_nft.cdc"
+	GetLockedTokenByIDScriptPath         = ScriptsRootPath + "/get_locked_token.cdc"
+	GetInventoryScriptPath               = ScriptsRootPath + "/inventory.cdc"
+	LockNFTTxPath                        = TransactionsRootPath + "/lock_nft.cdc"
+	UnlockNFTTxPath                      = TransactionsRootPath + "/unlock_nft.cdc"
+	AdminAddReceiverTxPath               = TransactionsRootPath + "/admin_add_escrow_receiver.cdc"
+	AdminRemoveReceiverTxPath            = TransactionsRootPath + "/admin_remove_escrow_receiver.cdc"
+	UnlockNFTWithAuthorizedDepositTxPath = TransactionsRootPath + "/unlock_nft_with_authorized_deposit.cdc"
+	AdminUnlockNFTTxPath                 = TransactionsRootPath + "/admin_unlock_nft.cdc"
+
+	// Escrow
+	CreateLeaderboardTxPath = TransactionsRootPath + "/testutils/create_leaderboard.cdc"
 )
 
 // ------------------------------------------------------------
@@ -60,6 +68,7 @@ func replaceAddresses(code []byte, contracts Contracts) []byte {
 
 	code = []byte(strings.ReplaceAll(string(code), metadataViewsAddressPlaceholder, "0x"+contracts.MetadataViewsAddress.String()))
 	code = []byte(strings.ReplaceAll(string(code), exampleNFTAddressPlaceholder, "0x"+contracts.NFTLockerAddress.String()))
+	code = []byte(strings.ReplaceAll(string(code), escrowAddressPlaceholder, "0x"+contracts.NFTLockerAddress.String()))
 
 	return code
 }
@@ -70,6 +79,16 @@ func LoadNFTLockerContract(nftAddress flow.Address, metadataViewsAddress flow.Ad
 	nftRe := regexp.MustCompile(nftAddressPlaceholder)
 	code = nftRe.ReplaceAll(code, []byte("0x"+nftAddress.String()))
 	code = []byte(strings.ReplaceAll(string(code), metadataViewsAddressPlaceholder, "0x"+metadataViewsAddress.String()))
+
+	return code
+}
+
+func LoadEscrowContract(nftAddress, metadataViewsAddress, nftLocker flow.Address) []byte {
+	code := readFile(EscrowPath)
+
+	nftRe := regexp.MustCompile(nftAddressPlaceholder)
+	code = nftRe.ReplaceAll(code, []byte("0x"+nftAddress.String()))
+	code = []byte(strings.ReplaceAll(string(code), NFTLockerAddressPlaceholder, "0x"+nftLocker.String()))
 
 	return code
 }
@@ -126,9 +145,37 @@ func unlockNFTTransaction(contracts Contracts) []byte {
 	)
 }
 
+func adminAddReceiverTransaction(contracts Contracts) []byte {
+	return replaceAddresses(
+		readFile(AdminAddReceiverTxPath),
+		contracts,
+	)
+}
+
+func adminRemoveReceiverTransaction(contracts Contracts) []byte {
+	return replaceAddresses(
+		readFile(AdminRemoveReceiverTxPath),
+		contracts,
+	)
+}
+
+func unlockNFTWithAuthorizedDepositTransaction(contracts Contracts) []byte {
+	return replaceAddresses(
+		readFile(UnlockNFTWithAuthorizedDepositTxPath),
+		contracts,
+	)
+}
+
 func adminUnlockNFTTransaction(contracts Contracts) []byte {
 	return replaceAddresses(
 		readFile(AdminUnlockNFTTxPath),
+		contracts,
+	)
+}
+
+func createLeaderboardTransaction(contracts Contracts) []byte {
+	return replaceAddresses(
+		readFile(CreateLeaderboardTxPath),
 		contracts,
 	)
 }

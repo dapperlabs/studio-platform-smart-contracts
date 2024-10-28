@@ -115,9 +115,35 @@ func EscrowContracts(t *testing.T, b *emulator.Blockchain) Contracts {
 	_, err = b.CommitBlock()
 	require.NoError(t, err)
 
-	EscrowCode := LoadEscrow(nftAddress)
+	NFTLockerCode := LoadNFTLockerContract(nftAddress)
 
-	tx1 = sdktemplates.AddAccountContract(
+	tx2 := sdktemplates.AddAccountContract(
+		AllDayAddress,
+		sdktemplates.Contract{
+			Name:   "NFTLocker",
+			Source: string(NFTLockerCode),
+		},
+	)
+
+	tx2.
+		SetComputeLimit(100).
+		SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
+		SetPayer(b.ServiceKey().Address)
+
+	require.NoError(t, err)
+	signAndSubmit(
+		t, b, tx2,
+		[]flow.Address{b.ServiceKey().Address, AllDayAddress},
+		[]crypto.Signer{signer, AllDaySigner},
+		false,
+	)
+
+	_, err = b.CommitBlock()
+	require.NoError(t, err)
+
+	EscrowCode := LoadEscrow(nftAddress, AllDayAddress)
+
+	tx3 := sdktemplates.AddAccountContract(
 		AllDayAddress,
 		sdktemplates.Contract{
 			Name:   "Escrow",
@@ -125,7 +151,7 @@ func EscrowContracts(t *testing.T, b *emulator.Blockchain) Contracts {
 		},
 	)
 
-	tx1.
+	tx3.
 		SetComputeLimit(100).
 		SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
 		SetPayer(b.ServiceKey().Address)
@@ -133,7 +159,7 @@ func EscrowContracts(t *testing.T, b *emulator.Blockchain) Contracts {
 	signer, err = b.ServiceKey().Signer()
 	require.NoError(t, err)
 	signAndSubmit(
-		t, b, tx1,
+		t, b, tx3,
 		[]flow.Address{b.ServiceKey().Address, AllDayAddress},
 		[]crypto.Signer{signer, AllDaySigner},
 		false,
