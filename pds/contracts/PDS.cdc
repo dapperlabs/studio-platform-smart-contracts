@@ -30,6 +30,10 @@ access(all) contract PDS{
     ///
     access(all) event DistributionCreated(DistId: UInt64, title: String, metadata: {String: String}, state: UInt8)
 
+    /// Emitted when an issuer has updated a distribution.
+    ///
+    access(all) event DistributionUpdated(DistId: UInt64, title: String, metadata: {String: String}, state: UInt8)
+
     /// Emmitted when a distribution manager has updated a distribution state.
     ///
     access(all) event DistributionStateUpdated(DistId: UInt64, state: UInt8)
@@ -45,12 +49,17 @@ access(all) contract PDS{
     /// Struct that defines the details of a Distribution.
     ///
     access(all) struct DistInfo {
-        access(all) let title: String
-        access(all) let metadata: {String: String}
+        access(all) var title: String
+        access(all) var metadata: {String: String}
         access(all) var state: PDS.DistState
 
         access(contract) fun setState(newState: PDS.DistState) {
             self.state = newState
+        }
+
+        access(contract) fun update(title: String, metadata: {String: String}) {
+            self.title = title
+            self.metadata = metadata
         }
 
         /// DistInfo struct initializer.
@@ -244,6 +253,16 @@ access(all) contract PDS{
             d.setState(newState: state)
             PDS.Distributions.insert(key: distId, d)
             emit DistributionStateUpdated(DistId: distId, state: state.rawValue)
+        }
+
+        access(Operate) fun updateDist(distId: UInt64, title: String, metadata: {String: String}) {
+            pre {
+                title.length > 0: "Title must not be empty"
+            }
+            let d = PDS.Distributions.remove(key: distId) ?? panic ("No such distribution")
+            d.update(title: title, metadata: metadata)
+            PDS.Distributions.insert(key: distId, d)
+            emit DistributionUpdated(DistId: distId, title: title, metadata: metadata, state: d.state.rawValue)
         }
 
         access(Operate) fun withdraw(distId: UInt64, nftIDs: [UInt64], escrowCollectionPublic: PublicPath) {
