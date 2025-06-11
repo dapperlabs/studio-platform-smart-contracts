@@ -16,8 +16,8 @@ func getRegexExpressionReplacer(contractName string) string {
 	return fmt.Sprintf(regexPattern, contractName)
 }
 
-// ParseCadenceTemplateV3 parses the Cadence template and replaces placeholders
-func ParseCadenceTemplateV3(template []byte, data ...interface{}) ([]byte, error) {
+// ParseCadenceTemplate parses the Cadence template and replaces placeholders
+func ParseCadenceTemplate(template []byte, data ...interface{}) ([]byte, error) {
 	if err := validateStruct(data); err != nil {
 		return nil, err
 	}
