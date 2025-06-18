@@ -18,13 +18,39 @@ transaction() {
     let storefront: &NFTStorefront.Storefront
     let listings: [&{NFTStorefront.ListingPublic}]
 
-    prepare(universalDucPayer: auth(Storage, Capabilities) &Account) {
+    prepare(universalDucPayer: auth(Storage, Capabilities) &Account, user: auth(Storage, Capabilities) &Account) {
         let sellerAddress: Address = 0x{{.StorefrontAddress}}
         let buyerAddress: Address = 0x{{.RecipientAddress}}
         let listingIds: [UInt64] = [{{.ListingIds}}]
         let buyer = getAccount(buyerAddress)
 
         assert(sellerAddress != buyerAddress, message : "Buyer and seller can not be same")
+
+        // Ensure the user has an AllDay collection set up
+        if user.storage.borrow<&AllDay.Collection>(from: AllDay.CollectionStoragePath) == nil {
+            // Create a new collection and save it to the account storage
+            user.storage.save(<- AllDay.createEmptyCollection(nftType: Type<@AllDay.NFT>()), to: AllDay.CollectionStoragePath)
+
+            // Create a public capability for the collection
+            user.capabilities.unpublish(AllDay.CollectionPublicPath)
+            user.capabilities.publish(
+                user.capabilities.storage.issue<&AllDay.Collection>(AllDay.CollectionStoragePath),
+                at: AllDay.CollectionPublicPath
+            )
+        }
+        // Ensure the user has a PackNFT collection set up
+        if user.storage.borrow<&PackNFT.Collection>(from: PackNFT.CollectionStoragePath) == nil {
+            // Create a new collection and save it to the account storage
+            user.storage.save(<- PackNFT.createEmptyCollection(nftType: Type<@PackNFT.NFT>()), to: PackNFT.CollectionStoragePath)
+
+            // Create a public capability for the collection
+            user.capabilities.unpublish(PackNFT.CollectionPublicPath)
+            user.capabilities.publish(
+                user.capabilities.storage.issue<&PackNFT.Collection>(PackNFT.CollectionStoragePath),
+                at: PackNFT.CollectionPublicPath
+            )
+        }
+
         // Access the storefront public resource of the seller to purchase the listing.
         self.storefront = getAccount(sellerAddress)
             .capabilities.borrow<&NFTStorefront.Storefront>(
