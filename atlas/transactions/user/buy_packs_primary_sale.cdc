@@ -1,7 +1,7 @@
 import FungibleToken from 0x{{.FungibleTokenContractAddress}}
 import NonFungibleToken from 0x{{.NonFungibleTokenContractAddress}}
 import DapperUtilityCoin from 0x{{.DapperUtilityCoinContractAddress}}
-import {{.NFTProductName}}, AllDay from 0x{{.NFTContractAddress}}
+import PackNFT from 0x{{.NFTContractAddress}}
 import NFTStorefront from 0x{{.NFTStorefrontV1ContractAddress}}
 
 /// Transaction facilitates the purchase of listed NFT.
@@ -14,7 +14,7 @@ import NFTStorefront from 0x{{.NFTStorefrontV1ContractAddress}}
 
 transaction() {
     let paymentVault: @{FungibleToken.Vault}
-    let {{.NFTProductName}}Collection: &{NonFungibleToken.CollectionPublic}
+    let PackNFTCollection: &{NonFungibleToken.CollectionPublic}
     let storefront: &NFTStorefront.Storefront
     let listings: [&{NFTStorefront.ListingPublic}]
 
@@ -51,7 +51,7 @@ transaction() {
         self.paymentVault <- provider.withdraw(amount: salePrice)
 
         // Access the buyer's NFT collection to store the purchased NFT.
-        self.{{.NFTProductName}}Collection = buyer.capabilities.borrow<&{NonFungibleToken.CollectionPublic}>({{.NFTProductName}}.CollectionPublicPath)
+        self.PackNFTCollection = buyer.capabilities.borrow<&{NonFungibleToken.CollectionPublic}>(PackNFT.CollectionPublicPath)
         ?? panic("Could not borrow Storefront from provided address")
 
     }
@@ -65,7 +65,7 @@ transaction() {
                 payment: <-listingPaymentVault
             )
 
-            self.{{.NFTProductName}}Collection.deposit(token: <-item)
+            self.PackNFTCollection.deposit(token: <-item)
         }
         destroy self.paymentVault
     }
