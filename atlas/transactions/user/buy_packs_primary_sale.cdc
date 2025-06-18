@@ -1,7 +1,7 @@
 import FungibleToken from 0x{{.FungibleTokenContractAddress}}
 import NonFungibleToken from 0x{{.NonFungibleTokenContractAddress}}
 import DapperUtilityCoin from 0x{{.DapperUtilityCoinContractAddress}}
-import PackNFT from 0x{{.NFTContractAddress}}
+import PackNFT, {{.NFTProductName}} from 0x{{.NFTContractAddress}}
 import NFTStorefront from 0x{{.NFTStorefrontV1ContractAddress}}
 
 /// Transaction facilitates the purchase of listed NFT.
@@ -26,16 +26,16 @@ transaction() {
 
         assert(sellerAddress != buyerAddress, message : "Buyer and seller can not be same")
 
-        // Ensure the user has an AllDay collection set up
-        if user.storage.borrow<&AllDay.Collection>(from: AllDay.CollectionStoragePath) == nil {
+        // Ensure the user has an {{.NFTProductName}} collection set up
+        if user.storage.borrow<&{{.NFTProductName}}.Collection>(from: {{.NFTProductName}}.CollectionStoragePath) == nil {
             // Create a new collection and save it to the account storage
-            user.storage.save(<- AllDay.createEmptyCollection(nftType: Type<@AllDay.NFT>()), to: AllDay.CollectionStoragePath)
+            user.storage.save(<- {{.NFTProductName}}.createEmptyCollection(nftType: Type<@{{.NFTProductName}}.NFT>()), to: {{.NFTProductName}}.CollectionStoragePath)
 
             // Create a public capability for the collection
-            user.capabilities.unpublish(AllDay.CollectionPublicPath)
+            user.capabilities.unpublish({{.NFTProductName}}.CollectionPublicPath)
             user.capabilities.publish(
-                user.capabilities.storage.issue<&AllDay.Collection>(AllDay.CollectionStoragePath),
-                at: AllDay.CollectionPublicPath
+                user.capabilities.storage.issue<&{{.NFTProductName}}.Collection>({{.NFTProductName}}.CollectionStoragePath),
+                at: {{.NFTProductName}}.CollectionPublicPath
             )
         }
         // Ensure the user has a PackNFT collection set up
