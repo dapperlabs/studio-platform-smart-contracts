@@ -1,68 +1,22 @@
 package utils
 
 import (
-	"fmt"
-	"reflect"
-	"regexp"
+	"bytes"
+	"text/template"
 )
 
-func getQuotedAddressRegexExpressionReplacer(contractName string) string {
-	const regexPattern = `"(?:(?:\./|(?:\.\./)+)?(?:[a-zA-Z0-9_\-]+/)*%s(\.cdc)?)"`
-	return fmt.Sprintf(regexPattern, contractName)
-}
-
-func getRegexExpressionReplacer(contractName string) string {
-	const regexPattern = `%s`
-	return fmt.Sprintf(regexPattern, contractName)
-}
-
 // ParseCadenceTemplate parses the Cadence template and replaces placeholders
-func ParseCadenceTemplate(template []byte, data ...interface{}) ([]byte, error) {
-	if err := validateStruct(data); err != nil {
-		return nil, err
-	}
-	updatedTemplate, err := replacePlaceholders(string(template), data)
+func ParseCadenceTemplate(tmp []byte, data interface{}) ([]byte, error) {
+	tmpl, err := template.New("Template").Parse(string(tmp))
 	if err != nil {
 		return nil, err
 	}
 
-	return []byte(updatedTemplate), nil
-}
-
-// validateStruct ensures the provided data is a struct
-func validateStruct(data []interface{}) error {
-	for _, item := range data {
-		if item == nil {
-			continue
-		}
-		if reflect.ValueOf(item).Kind() != reflect.Struct {
-			return fmt.Errorf("data must be a struct")
-		}
-	}
-	return nil
-}
-
-// replacePlaceholders replaces the placeholders in the template with actual values
-func replacePlaceholders(template string, data []interface{}) (string, error) {
-	for index, item := range data {
-		if item == nil {
-			continue
-		}
-		val := reflect.ValueOf(item)
-		for i := 0; i < val.NumField(); i++ {
-			field := val.Type().Field(i)
-			fieldName := field.Name
-			fieldValue := val.Field(i).String()
-			if index == 0 {
-				replacer := regexp.MustCompile(getQuotedAddressRegexExpressionReplacer(fieldName))
-				template = replacer.ReplaceAllString(template, "0x"+fieldValue)
-			} else {
-				replacer := regexp.MustCompile(getRegexExpressionReplacer(fieldName))
-				template = replacer.ReplaceAllString(template, fieldValue)
-			}
-		}
-
+	buf := &bytes.Buffer{}
+	err = tmpl.Execute(buf, data)
+	if err != nil {
+		return nil, err
 	}
 
-	return template, nil
+	return buf.Bytes(), nil
 }
