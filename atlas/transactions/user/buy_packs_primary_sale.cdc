@@ -14,7 +14,7 @@ import NFTStorefront from 0x{{.NFTStorefrontV1ContractAddress}}
 
 transaction() {
     let paymentVault: @{FungibleToken.Vault}
-    let PackNFTCollection: &{NonFungibleToken.CollectionPublic}
+    let PackNFTCollection: &{NonFungibleToken.Collection}
     let storefront: &NFTStorefront.Storefront
     let listings: [&{NFTStorefront.ListingPublic}]
 
@@ -77,7 +77,7 @@ transaction() {
         self.paymentVault <- provider.withdraw(amount: salePrice)
 
         // Access the buyer's NFT collection to store the purchased NFT.
-        self.PackNFTCollection = buyer.capabilities.borrow<&{NonFungibleToken.CollectionPublic}>(PackNFT.CollectionPublicPath)
+        self.PackNFTCollection = buyer.capabilities.borrow<&{NonFungibleToken.Collection}>(PackNFT.CollectionPublicPath)
         ?? panic("Could not borrow Storefront from provided address")
 
     }
