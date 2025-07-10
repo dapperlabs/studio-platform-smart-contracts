@@ -1,10 +1,10 @@
 package atlas
 
 import (
-	"bytes"
 	_ "embed"
 	"fmt"
-	"text/template"
+
+	"github.com/dapperlabs/studio-platform-smart-contracts/utils"
 )
 
 // Transactions is a list of all the transactions we export with imports mapped
@@ -47,7 +47,11 @@ func UserBuyPacksPrimarySaleTxScript(params UserBuyPacksPrimarySaleParams) (stri
 	if err := params.Validate(); err != nil {
 		return "", err
 	}
-	return buildFlowTxScript(UserBuyPacksPrimarySale, params)
+	bytes, err := utils.ParseCadenceTemplate(UserBuyPacksPrimarySale, params)
+	if err != nil {
+		return "", err
+	}
+	return string(bytes), nil
 }
 
 type AdminFulfillPackBuybackOfferParams struct {
@@ -79,18 +83,9 @@ func AdminFulfillPackBuybackOfferTxScript(params AdminFulfillPackBuybackOfferPar
 	if err := params.Validate(); err != nil {
 		return "", err
 	}
-	return buildFlowTxScript(AdminFulfillPackBuybackOffer, params)
-}
-
-// buildFlowTxScript renders any Cadence template with parameters
-func buildFlowTxScript(txTemplate []byte, params interface{}) (string, error) {
-	tmpl, err := template.New("cadence").Parse(string(txTemplate))
+	bytes, err := utils.ParseCadenceTemplate(AdminFulfillPackBuybackOffer, params)
 	if err != nil {
-		return "", fmt.Errorf("failed to parse template: %w", err)
+		return "", err
 	}
-	var buf bytes.Buffer
-	if err = tmpl.Execute(&buf, params); err != nil {
-		return "", fmt.Errorf("failed to execute template: %w", err)
-	}
-	return buf.String(), nil
+	return string(bytes), nil
 }
