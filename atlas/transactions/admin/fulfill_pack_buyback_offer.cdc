@@ -30,8 +30,8 @@ transaction() {
 
     prepare(user: auth(Storage, Capabilities) &Account, dapper: auth(BorrowValue) &Account) {
         // Initialize NFT IDs and buyback prices
-        self.nftIDs = [{{.nftIDs}}]
-        self.prices = [{{.prices}}]
+        self.nftIDs = [{{.NFTIDs}}]
+        self.prices = [{{.Prices}}]
 
         // Get or create user's storefront
         if user.storage.borrow<&NFTStorefront.Storefront>(from: NFTStorefront.StorefrontStoragePath) == nil {
@@ -108,6 +108,7 @@ transaction() {
             // Dapper purchases NFT and deposits in issuer's collection
             let listing = self.userStorefront.borrowListing(listingResourceID: listingID)!
             self.issuerCollection.deposit(token: <- listing.purchase(payment: <- self.dapperVault.withdraw(amount: self.prices[i])))
+            NFTStorefront.cleanup(listingResourceID: listingID)
         }
     }
 
