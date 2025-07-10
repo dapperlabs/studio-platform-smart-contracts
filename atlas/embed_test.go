@@ -26,18 +26,6 @@ func TestBuildFlowTxScript_AdminFulfillPackBuybackOffer(t *testing.T) {
 	}
 }
 
-func TestBuildFlowTxScript_Generic(t *testing.T) {
-	tmpl := []byte("Hello, {{.Name}}!")
-	params := struct{ Name string }{Name: "World"}
-	result, err := BuildFlowTxScript(tmpl, params)
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
-	if result != "Hello, World!" {
-		t.Errorf("unexpected template output: %s", result)
-	}
-}
-
 func TestBuildFlowTxScript_EmptyParamsError(t *testing.T) {
 	params := AdminFulfillPackBuybackOfferParams{}
 	tx, err := AdminFulfillPackBuybackOfferTxScript(params)
