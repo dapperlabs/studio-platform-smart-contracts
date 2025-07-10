@@ -45,12 +45,15 @@ transaction() {
             ?? panic("Missing NFTStorefront")
 
         // Get or create user's NFT withdrawal capability
-        let providerPath = /storage/{{.NFTProductName}}NFTCollectionProviderForNFTStorefront
-        self.userNFTWithdrawCap = user.storage.copy<Capability<auth(NonFungibleToken.Withdraw) &{{.NFTProductName}}.Collection>>(from: providerPath)
-        if self.userNFTWithdrawCap == nil {
+        for controller in user.capabilities.storage.getControllers(forPath: {{.NFTProductName}}.CollectionStoragePath) {
+            if let cap = controller.capability as? Capability<auth(NonFungibleToken.Withdraw) &{NonFungibleToken.Collection}>? {
+                self.userNFTWithdrawCap = cap
+                break
+            }
+        }
+        if self.userNFTWithdrawCap == nil || !self.userNFTWithdrawCap!.check() {
             self.userNFTWithdrawCap = user.capabilities.storage.issue<auth(NonFungibleToken.Withdraw) &{{.NFTProductName}}.Collection>({{.NFTProductName}}.CollectionStoragePath)
             user.capabilities.storage.getController(byCapabilityID: self.userNFTWithdrawCap!.id)!.setTag("{{.NFTProductName}}CollectionProviderForNFTStorefront")
-            user.storage.save(self.userNFTWithdrawCap!, to: providerPath)
         }
 
         // Get user's DUC receiver capability
@@ -68,7 +71,7 @@ transaction() {
         self.issuerAddress = issuer.address
 
         // Borrow issuer's NFT collection
-        self.issuerCollection = getAccount(self.issuerAddress).capabilities.borrow<&NonFungibleToken.Collection>(from: {{.NFTProductName}}.CollectionPublicPath)
+        self.issuerCollection = getAccount(self.issuerAddress).capabilities.borrow<&NonFungibleToken.Collection>({{.NFTProductName}}.CollectionPublicPath)
             ?? panic("Missing issuer NFT collection")
     }
 
