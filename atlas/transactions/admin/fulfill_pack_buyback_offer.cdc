@@ -57,19 +57,19 @@ transaction() {
         self.userDUCReceiverCap = user.capabilities.get<&{FungibleToken.Receiver}>(/public/dapperUtilityCoinReceiver)!
         assert(self.userDUCReceiverCap.borrow() != nil, message: "Missing DUC receiver cap")
 
-        // Borrow issuer's NFT collection
-        self.issuerCollection = issuer.storage.borrow<&NonFungibleToken.Collection>(from: {{.NFTProductName}}.CollectionStoragePath)
-            ?? panic("Missing issuer NFT collection")
-
         // Borrow Dapper's DUC vault
         self.dapperVault = dapper.storage.borrow<auth(FungibleToken.Withdraw) &DapperUtilityCoin.Vault>(from: /storage/dapperUtilityCoinVault)
             ?? panic("Missing Dapper DUC vault")
 
-        // Record Dapper's DUC balance for post-condition
+        // Record Dapper's DUC balance
         self.initialDapperBalance = self.dapperVault.balance
 
-        // Record issuer's address for pre-condition
+        // Record issuer's address
         self.issuerAddress = issuer.address
+
+        // Borrow issuer's NFT collection
+        self.issuerCollection = getAccount(self.issuerAddress).capabilities.borrow<&NonFungibleToken.Collection>(from: {{.NFTProductName}}.CollectionPublicPath)
+            ?? panic("Missing issuer NFT collection")
     }
 
     pre {
