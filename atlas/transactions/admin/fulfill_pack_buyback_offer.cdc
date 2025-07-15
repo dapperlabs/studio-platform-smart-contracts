@@ -44,6 +44,7 @@ transaction() {
             ?? panic("Missing NFTStorefront")
 
         // Get or create user's NFT withdrawal capability
+        self.userNFTWithdrawCap = nil
         for controller in user.capabilities.storage.getControllers(forPath: {{.NFTProductName}}.CollectionStoragePath) {
             if let cap = controller.capability as? Capability<auth(NonFungibleToken.Withdraw) &{NonFungibleToken.Collection}>? {
                 self.userNFTWithdrawCap = cap
