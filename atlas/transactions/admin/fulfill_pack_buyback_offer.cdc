@@ -44,17 +44,18 @@ transaction() {
             ?? panic("Missing NFTStorefront")
 
         // Get or create user's NFT withdrawal capability
-        self.userNFTWithdrawCap = nil
+        var withdrawCap: Capability<auth(NonFungibleToken.Withdraw) &{NonFungibleToken.Collection}>? = nil
         for controller in user.capabilities.storage.getControllers(forPath: {{.NFTProductName}}.CollectionStoragePath) {
             if let cap = controller.capability as? Capability<auth(NonFungibleToken.Withdraw) &{NonFungibleToken.Collection}>? {
-                self.userNFTWithdrawCap = cap
+                withdrawCap = cap
                 break
             }
         }
-        if self.userNFTWithdrawCap == nil || !self.userNFTWithdrawCap!.check() {
-            self.userNFTWithdrawCap = user.capabilities.storage.issue<auth(NonFungibleToken.Withdraw) &{{.NFTProductName}}.Collection>({{.NFTProductName}}.CollectionStoragePath)
-            user.capabilities.storage.getController(byCapabilityID: self.userNFTWithdrawCap!.id)!.setTag("{{.NFTProductName}}CollectionProviderForNFTStorefront")
+        if withdrawCap == nil || !withdrawCap!.check() {
+            withdrawCap = user.capabilities.storage.issue<auth(NonFungibleToken.Withdraw) &{{.NFTProductName}}.Collection>({{.NFTProductName}}.CollectionStoragePath)
+            user.capabilities.storage.getController(byCapabilityID: withdrawCap!.id)!.setTag("{{.NFTProductName}}CollectionProviderForNFTStorefront")
         }
+        self.userNFTWithdrawCap = withdrawCap
 
         // Get user's DUC receiver capability
         self.userDUCReceiverCap = user.capabilities.get<&{FungibleToken.Receiver}>(/public/dapperUtilityCoinReceiver)!
