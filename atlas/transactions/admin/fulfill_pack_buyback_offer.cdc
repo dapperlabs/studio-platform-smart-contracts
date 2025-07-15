@@ -15,7 +15,7 @@ transaction() {
     let userStorefront: auth(NFTStorefront.CreateListing) &NFTStorefront.Storefront
 
     // Capability to withdraw user's NFTs for listing
-    let userNFTWithdrawCap: Capability<auth(NonFungibleToken.Withdraw) &{{.NFTProductName}}.Collection>?
+    let userNFTWithdrawCap: Capability<auth(NonFungibleToken.Withdraw) &{NonFungibleToken.Collection}>?
 
     // Capability to receive DUC payment
     let userDUCReceiverCap: Capability<&{FungibleToken.Receiver}>
@@ -24,9 +24,8 @@ transaction() {
     let dapperVault: auth(FungibleToken.Withdraw) &DapperUtilityCoin.Vault
     let initialDapperBalance: UFix64
 
-    // Issuer's NFT collection and address
-    let issuerCollection: &NonFungibleToken.Collection
-    let issuerAddress: Address
+    // Issuer's NFT collection
+    let issuerCollection: &{NonFungibleToken.Collection}
 
     prepare(user: auth(Storage, Capabilities) &Account, dapper: auth(BorrowValue) &Account) {
         // Initialize NFT IDs and buyback prices
@@ -67,26 +66,22 @@ transaction() {
         // Record Dapper's DUC balance
         self.initialDapperBalance = self.dapperVault.balance
 
-        // Record issuer's address
-        self.issuerAddress = issuer.address
-
         // Borrow issuer's NFT collection
-        self.issuerCollection = getAccount(self.issuerAddress).capabilities.borrow<&NonFungibleToken.Collection>({{.NFTProductName}}.CollectionPublicPath)
+        self.issuerCollection = getAccount(0x{{.NFTContractAddress}}).capabilities.borrow<&{NonFungibleToken.Collection}>({{.NFTProductName}}.CollectionPublicPath)
             ?? panic("Missing issuer NFT collection")
     }
 
     pre {
         self.nftIDs.length == self.prices.length: "NFTs/prices length mismatch"
-        self.issuerAddress == 0x{{.NFTContractAddress}}: "Must be NFT contract owner"
     }
 
     execute {
         // Gather active listings in user's storefront
         let listingIDsByNFTID: {UInt64: UInt64} = {}
-        for id in self.userStorefront.getListingIDs() {
-            let details = self.userStorefront.borrowListing(listingResourceID: id)!.getDetails()
+        for listingID in self.userStorefront.getListingIDs() {
+            let details = self.userStorefront.borrowListing(listingResourceID: listingID)!.getDetails()
             if !details.purchased {
-                listingIDsByNFTID[details.nftID] = id
+                listingIDsByNFTID[details.nftID] = listingID
             }
         }
 
@@ -108,7 +103,7 @@ transaction() {
             // Dapper purchases NFT and deposits in issuer's collection
             let listing = self.userStorefront.borrowListing(listingResourceID: listingID)!
             self.issuerCollection.deposit(token: <- listing.purchase(payment: <- self.dapperVault.withdraw(amount: self.prices[i])))
-            NFTStorefront.cleanup(listingResourceID: listingID)
+            self.userStorefront.cleanup(listingResourceID: listingID)
         }
     }
 
