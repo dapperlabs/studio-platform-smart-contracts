@@ -91,7 +91,7 @@ transaction() {
         for i, nftID in self.nftIDs {
             // Ensure no active listing exists for this NFT
             assert(!listingIDsByNFTID.containsKey(nftID),
-                message: "NFT ".concat(nftID.toString()).concat(" already listed, id=").concat(listingIDsByNFTID[nftID]?.toString()))
+                message: "NFT ".concat(nftID.toString()).concat(" already listed, id=").concat(listingIDsByNFTID[nftID]?.toString() ?? "nil"))
 
             // List NFT for sale
             let listingID = self.userStorefront.createListing(
