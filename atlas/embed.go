@@ -12,7 +12,7 @@ var (
 	//go:embed transactions/user/buy_packs_primary_sale.cdc
 	UserBuyPacksPrimarySale []byte
 
-	//go:embed transactions/admin/fulfill_pack_buyback_offer.cdc
+	//go:embed transactions/user/fulfill_pack_buyback_offer.cdc
 	AdminFulfillPackBuybackOffer []byte
 )
 

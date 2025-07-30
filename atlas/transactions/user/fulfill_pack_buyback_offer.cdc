@@ -27,7 +27,7 @@ transaction() {
     // Issuer's NFT collection
     let issuerCollection: &{NonFungibleToken.Collection}
 
-    prepare(user: auth(Storage, Capabilities) &Account, dapper: auth(BorrowValue) &Account) {
+    prepare(dapper: auth(BorrowValue) &Account, user: auth(Storage, Capabilities) &Account) {
         // Initialize NFT IDs and buyback prices
         self.nftIDs = [{{.NFTIDs}}]
         self.prices = [{{.Prices}}]
