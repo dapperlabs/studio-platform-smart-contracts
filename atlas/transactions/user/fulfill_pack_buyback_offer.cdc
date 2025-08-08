@@ -78,21 +78,8 @@ transaction() {
     }
 
     execute {
-        // Gather active listings in user's storefront
-        let listingIDsByNFTID: {UInt64: UInt64} = {}
-        for listingID in self.userStorefront.getListingIDs() {
-            let details = self.userStorefront.borrowListing(listingResourceID: listingID)!.getDetails()
-            if !details.purchased {
-                listingIDsByNFTID[details.nftID] = listingID
-            }
-        }
-
         // For each NFT, list and buy back at the specified price
         for i, nftID in self.nftIDs {
-            // Ensure no active listing exists for this NFT
-            assert(!listingIDsByNFTID.containsKey(nftID),
-                message: "NFT ".concat(nftID.toString()).concat(" already listed, id=").concat(listingIDsByNFTID[nftID]?.toString() ?? "nil"))
-
             // List NFT for sale
             let listingID = self.userStorefront.createListing(
                 nftProviderCapability: self.userNFTWithdrawCap!,
