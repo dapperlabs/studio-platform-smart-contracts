@@ -430,8 +430,8 @@ access(all) contract PackNFT: NonFungibleToken, IPackNFT {
         switch viewType {
             case Type<MetadataViews.NFTCollectionData>():
                 let collectionData = MetadataViews.NFTCollectionData(
-                    storagePath: /storage/exampleNFTCollection,
-                    publicPath: /public/exampleNFTCollection,
+                    storagePath: PackNFT.CollectionStoragePath,
+                    publicPath: PackNFT.CollectionPublicPath,
                     publicCollection: Type<&Collection>(),
                     publicLinkedType: Type<&Collection>(),
                     createEmptyCollectionFunction: (fun(): @{NonFungibleToken.Collection} {
