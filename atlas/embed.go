@@ -14,6 +14,12 @@ var (
 
 	//go:embed transactions/user/fulfill_pack_buyback_offer.cdc
 	AdminFulfillPackBuybackOffer []byte
+
+	//go:embed transactions/user/delist_NftStorefront.cdc
+	DelistNFTStorefront []byte
+
+	//go:embed transactions/user/delist_NftStorefrontV2.cdc
+	DelistNFTStorefrontV2 []byte
 )
 
 type UserBuyPacksPrimarySaleParams struct {
@@ -84,6 +90,50 @@ func AdminFulfillPackBuybackOfferTxScript(params AdminFulfillPackBuybackOfferPar
 		return "", err
 	}
 	bytes, err := utils.ParseCadenceTemplate(AdminFulfillPackBuybackOffer, params)
+	if err != nil {
+		return "", err
+	}
+	return string(bytes), nil
+}
+
+type DelistNFTStorefrontTxScriptParams struct {
+	listingResourceID *uint64
+}
+
+func (p DelistNFTStorefrontTxScriptParams) Validate() error {
+	if p.listingResourceID == nil {
+		return fmt.Errorf("listingResourceID must be provided")
+	}
+	return nil
+}
+
+func DelistNFTStorefrontTxScript(params DelistNFTStorefrontTxScriptParams) (string, error) {
+	if err := params.Validate(); err != nil {
+		return "", err
+	}
+	bytes, err := utils.ParseCadenceTemplate(DelistNFTStorefront, params)
+	if err != nil {
+		return "", err
+	}
+	return string(bytes), nil
+}
+
+type DelistNFTStorefrontV2TxScriptParams struct {
+	listingResourceID *uint64
+}
+
+func (p DelistNFTStorefrontV2TxScriptParams) Validate() error {
+	if p.listingResourceID == nil {
+		return fmt.Errorf("listingResourceID must be provided")
+	}
+	return nil
+}
+
+func DelistNFTStorefrontV2TxScript(params DelistNFTStorefrontV2TxScriptParams) (string, error) {
+	if err := params.Validate(); err != nil {
+		return "", err
+	}
+	bytes, err := utils.ParseCadenceTemplate(DelistNFTStorefrontV2, params)
 	if err != nil {
 		return "", err
 	}
