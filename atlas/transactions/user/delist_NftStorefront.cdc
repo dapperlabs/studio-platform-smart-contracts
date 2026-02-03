@@ -1,5 +1,6 @@
 import NFTStorefront from 0x94b06cfca1d8a476
 
+// removes an NFT listing from NFTStorefront
 transaction() {
     let storefront: auth(NFTStorefront.RemoveListing) &NFTStorefront.Storefront
 
