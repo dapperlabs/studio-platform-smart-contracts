@@ -98,7 +98,7 @@ func AdminFulfillPackBuybackOfferTxScript(params AdminFulfillPackBuybackOfferPar
 
 type DelistNFTStorefrontTxScriptParams struct {
 	NFTStorefrontAddress string
-	listingResourceIDs   []uint64
+	ListingResourceIDs   []uint64
 }
 
 func (p DelistNFTStorefrontTxScriptParams) Validate() error {
@@ -106,7 +106,7 @@ func (p DelistNFTStorefrontTxScriptParams) Validate() error {
 		return fmt.Errorf("NFTStorefrontAddress must be non-empty")
 	}
 
-	if len(p.listingResourceIDs) == 0 {
+	if len(p.ListingResourceIDs) == 0 {
 		return fmt.Errorf("listingResourceIDs must contain at least one ID")
 	}
 	return nil
@@ -125,7 +125,7 @@ func DelistNFTStorefrontTxScript(params DelistNFTStorefrontTxScriptParams) (stri
 
 type DelistNFTStorefrontV2TxScriptParams struct {
 	NFTStorefrontAddressV2 string
-	listingResourceIDs     []uint64
+	ListingResourceIDs     []uint64
 }
 
 func (p DelistNFTStorefrontV2TxScriptParams) Validate() error {
@@ -133,7 +133,7 @@ func (p DelistNFTStorefrontV2TxScriptParams) Validate() error {
 		return fmt.Errorf("NFTStorefrontAddress must be non-empty")
 	}
 
-	if len(p.listingResourceIDs) == 0 {
+	if len(p.ListingResourceIDs) == 0 {
 		return fmt.Errorf("listingResourceIDs must contain at least one ID")
 	}
 	return nil
