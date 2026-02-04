@@ -1,4 +1,4 @@
-import NFTStorefrontV2 from 0x2d55b98eb200daef
+import NFTStorefrontV2 from 0x{{.NFTStorefrontV2Address}}
 
 // removes an NFT listing from NFTStorefrontV2
 transaction() {
@@ -10,6 +10,9 @@ transaction() {
     }
 
     execute {
-        self.storefront.removeListing(listingResourceID: {{.listingResourceID}})
+        let listingResourceIDs: [Uint64] = [{{.listingResourceIDs}}]
+        for resourceID in listingResourceIDs {
+            self.storefront.removeListing(listingResourceID: resourceID)
+        }
     }
 }z
