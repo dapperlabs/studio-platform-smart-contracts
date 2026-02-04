@@ -157,11 +157,14 @@ type ListNFTStorefrontV2Params struct {
 	FungibleTokenContractAddress     string
 	NonFungibleTokenContractAddress  string
 	DapperUtilityCoinContractAddress string
+	TokenForwardingContractAddress   string
 	NFTProductName                   string
 	NFTContractAddress               string
 	NFTStorefrontV2ContractAddress   string
 	NFTIDs                           string // comma-separated, e.g. "123,456"
 	Prices                           string // comma-separated, e.g. "10.0,20.0"
+	SaleCommissionAmount             string // e.g. "0.05" for 5%
+	Expiry                           string // Unix timestamp as string
 }
 
 func (p ListNFTStorefrontV2Params) Validate() error {

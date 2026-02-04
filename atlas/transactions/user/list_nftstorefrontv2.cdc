@@ -2,7 +2,7 @@ import FungibleToken from 0x{{.FungibleTokenContractAddress}}
 import NonFungibleToken from 0x{{.NonFungibleTokenContractAddress}}
 import DapperUtilityCoin from 0x{{.DapperUtilityCoinContractAddress}}
 import {{.NFTProductName}} from 0x{{.NFTContractAddress}}
-import NFTStorefrontV2 from 0x{{.NFTStorefrontV2Address}}
+import NFTStorefrontV2 from 0x{{.NFTStorefrontV2ContractAddress}}
 import TokenForwarding from {{.TokenForwardingContractAddress}}
 
 
