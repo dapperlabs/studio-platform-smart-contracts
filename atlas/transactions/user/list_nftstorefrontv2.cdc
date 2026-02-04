@@ -3,18 +3,19 @@ import NonFungibleToken from 0x{{.NonFungibleTokenContractAddress}}
 import DapperUtilityCoin from 0x{{.DapperUtilityCoinContractAddress}}
 import {{.NFTProductName}} from 0x{{.NFTContractAddress}}
 import NFTStorefrontV2 from 0x{{.NFTStorefrontV2ContractAddress}}
-import TokenForwarding from {{.TokenForwardingContractAddress}}
-
+import MetadataViews from 0x{{.MetadataViewsAddress}}  
+import TokenForwarding from 0x{{.TokenForwardingContractAddress}} 
 
 transaction() {
     // NFT IDs and buyback prices
     let nftIDs: [UInt64]
     let prices: [UFix64]
 
-    let ducReceiver: Capability<&{FungibleToken.Receiver}>
-    let royaltyReceiver: Capability<&{FungibleToken.Receiver}>
-    let NFTProvider: Capability<auth(NonFungibleToken.Withdraw) &{{.NFTProductName}}.Collection>?
+    var ftReceiver: Capability<&{FungibleToken.Receiver}>?
+    let nftProvider: Capability<auth(NonFungibleToken.Withdraw) &{NonFungibleToken.Collection}>?
     let storefront: auth(NFTStorefrontV2.CreateListing) &NFTStorefrontV2.Storefront
+
+    var allSaleCuts: [[NFTStorefrontV2.SaleCut]]                                                                                                                                                                                  
     var marketplacesCapability: [Capability<&{FungibleToken.Receiver}>]
 
     // 'customID' - Optional string to represent identifier of the dapp.
@@ -23,7 +24,8 @@ transaction() {
     let commissionAmount: UFix64
     // 'marketplacesAddress' - List of addresses that are allowed to get the commission.
     let marketplaceAddress: [Address]
-
+    // we only ever want to use DapperUtilityCoin
+    let universalDucReceiver: Address
 
 
     prepare(acct: auth(Storage, Capabilities) &Account) {
@@ -33,10 +35,24 @@ transaction() {
 
         self.customID = "DAPPER_MARKETPLACE"
         self.commissionAmount = {{.SaleCommissionAmount}}
-        self.marketplaceAddress = [{{.NFTContractAddress}}]
+        self.marketplaceAddress = [0x{{.NFTContractAddress}}]
+        // we only ever want to use DapperUtilityCoin
+        self.universalDucReceiver = 0x{{.DapperUtilityCoinContractAddress}}
+
+
+        self.allSaleCuts = []                                                                                                                                                                                                     
         self.marketplacesCapability = []
 
-        // Validate the marketplaces capability before submiting to 'createListing'.
+
+        // ************************* Handling of DUC Recevier *************************** //
+        
+        // Fetch the capability of the universal DUC receiver
+        let recipient = getAccount(self.universalDucReceiver).capabilities.get<&{FungibleToken.Receiver}>(/public/dapperUtilityCoinReceiver)!
+        assert(recipient.borrow() != nil, message: "Missing or mis-typed Fungible Token receiver for the DUC recipient")
+
+        self.ftReceiver = acct.capabilities.get<&{FungibleToken.Receiver}>(/public/dapperUtilityCoinReceiver)
+
+        // Validate the marketplaces capability before submiting to 'createListing'
         for mp in self.marketplaceAddress {
             let marketplaceReceiver = getAccount(mp).capabilities.get<&{FungibleToken.Receiver}>(/public/dapperUtilityCoinReceiver)
             assert(marketplaceReceiver.borrow() != nil && marketplaceReceiver.borrow()!.isInstance(Type<@TokenForwarding.Forwarder>()), message: "Marketplaces does not possess the valid receiver type for DUC")
@@ -52,6 +68,60 @@ transaction() {
                 acct.capabilities.storage.issue<&{{.NFTProductName}}.Collection>({{.NFTProductName}}.CollectionStoragePath),
                 at: {{.NFTProductName}}.CollectionPublicPath
             )
+        }
+
+        let PrivateCollectionPath = /storage/{{.NFTProductName}}CollectionProviderForNFTStorefront
+
+        // Temporary variable to handle capability assignment
+        var provider: Capability<auth(NonFungibleToken.Withdraw) &{NonFungibleToken.Collection}>? =
+            acct.storage.copy<Capability<auth(NonFungibleToken.Withdraw) &{NonFungibleToken.Collection}>>(from: PrivateCollectionPath)
+
+        if provider == nil {
+            provider = acct.capabilities.storage.issue<auth(NonFungibleToken.Withdraw) &{NonFungibleToken.Collection}>({{.NFTProductName}}.CollectionStoragePath)
+            acct.capabilities.storage.getController(byCapabilityID: provider!.id)!.setTag("{{.NFTProductName}}CollectionProviderForNFTStorefront")
+            // Save the capability to the account storage
+            acct.storage.save(provider!, to: PrivateCollectionPath)
+        }
+
+        self.nftProvider = provider
+        assert(self.nftProvider?.borrow() != nil, message: "Missing or mis-typed {{.NFTProductName}}.Collection provider")
+
+
+        let collectionRef = acct
+        .capabilities.borrow<&{{.NFTProductName}}.Collection>({{.NFTProductName}}.CollectionPublicPath)
+        ?? panic("Could not borrow a reference to the collection")
+
+
+
+        // Pre-calculate sale cuts for each NFT                                                                                                                                                                                   
+        for i, nftID in self.nftIDs {
+            var saleCutsForThisNFT: [NFTStorefrontV2.SaleCut] = []         
+            var totalRoyaltyCut = 0.0
+
+            let nft = collectionRef.borrowNFT(self.nftIDs[i])!
+            let effectiveSaleItemPrice = self.prices[i] - self.commissionAmount
+
+            // Check whether the NFT implements the MetadataResolver or not.
+            if nft.getViews().contains(Type<MetadataViews.Royalties>()) {
+                let royaltiesRef = nft.resolveView(Type<MetadataViews.Royalties>()) ?? panic("Unable to retrieve the royalties")
+                let royalties = (royaltiesRef as! MetadataViews.Royalties).getRoyalties()
+                for royalty in royalties {
+                    let royaltyReceiver = royalty.receiver
+                    assert(royaltyReceiver.borrow() != nil && royaltyReceiver.borrow()!.isInstance(Type<@TokenForwarding.Forwarder>()), message: "Royalty receiver does not have a valid receiver type")
+
+                    let royaltyAmount = royalty.cut * effectiveSaleItemPrice         
+                    saleCutsForThisNFT.append(NFTStorefrontV2.SaleCut(receiver: royalty.receiver, amount: royaltyAmount))
+                    totalRoyaltyCut = totalRoyaltyCut + royaltyAmount
+                }
+            }
+            
+            // Add seller cut (remaining after royalties)                                                                                                                                                                         
+            saleCutsForThisNFT.append(NFTStorefrontV2.SaleCut(                                                                                                                                                                    
+                receiver: self.ftReceiver!,                                                                                                                                                                                        
+                amount: effectiveSaleItemPrice - totalRoyaltyCut                                                                                                                                                                  
+            ))                                                                                                                                                                                                                    
+                                                                                                                                                                                                                                
+            self.allSaleCuts.append(saleCutsForThisNFT)     
         }
 
         // If the account doesn't already have a Storefront
@@ -70,29 +140,6 @@ transaction() {
             )
         }
 
-        self.ducReceiver = acct.capabilities.get<&{FungibleToken.Receiver}>(/public/dapperUtilityCoinReceiver)!
-            assert(self.ducReceiver.borrow() != nil, message: "Missing or mis-typed DUC receiver")
-        
-        self.royaltyReceiver = getAccount(0x4dfd62c88d1b6462).capabilities.get<&{FungibleToken.Receiver}>(/public/dapperUtilityCoinReceiver)!
-            assert(self.royaltyReceiver.borrow() != nil, message: "Missing or mis-typed fungible token receiver for {{.NFTProductName}} account")
-        
-        // previous: let AllDayNFTCollectionProviderPrivatePath = /storage/AllDayNFTCollectionProviderForNFTStorefront
-        let NFTCollectionProviderPrivatePath = /storage/{{.NFTProductName}}NFTCollectionProviderNFTStorefront
-
-        // Temporary variable to handle capability assignment
-        var provider: Capability<auth(NonFungibleToken.Withdraw) &{{.NFTProductName}}.Collection>? =
-            acct.storage.copy<Capability<auth(NonFungibleToken.Withdraw) &{{.NFTProductName}}.Collection>>(from: NFTCollectionProviderPrivatePath)
-        
-        if provider == nil {
-            provider = acct.capabilities.storage.issue<auth(NonFungibleToken.Withdraw) &{{.NFTProductName}}.Collection>({{.NFTProductName}}.CollectionStoragePath)
-            acct.capabilities.storage.getController(byCapabilityID: provider!.id)!.setTag("{{.NFTProductName}}NFTCollectionProviderForNFTStorefront")
-            // Save the capability to the account storage
-            acct.storage.save(provider!, to: NFTCollectionProviderPrivatePath)
-        }
-
-        self.NFTProvider = provider
-        assert(self.NFTProvider?.borrow() != nil, message: "Missing or mis-typed {{.NFTProductName}}.Collection provider")
-
         self.storefront = acct.storage.borrow<auth(NFTStorefrontV2.CreateListing) &NFTStorefrontV2.Storefront>(from: NFTStorefrontV2.StorefrontStoragePath)
             ?? panic("Missing or mis-typed NFTStorefrontV2 Storefront")
     }
@@ -100,25 +147,18 @@ transaction() {
 
     pre {
         self.nftIDs.length == self.prices.length: "NFTs/prices length mismatch"
+        self.allSaleCuts.length == self.nftIDs.length: "Sale cuts/NFTs length mismatch"                                                                                                                                           
     }
 
     execute {
         for i, nftID in self.nftIDs {
             // List NFT for sale
-            let saleCut = NFTStorefrontV2.SaleCut(
-                receiver: self.ducReceiver,
-                amount: self.prices[i] * 0.95
-            )
-            let royaltyCut = NFTStorefrontV2.SaleCut(
-                receiver: self.royaltyReceiver,
-                amount: self.prices[i] * 0.05
-            )
             self.storefront.createListing(
-                nftProviderCapability: self.NFTProvider!,
+                nftProviderCapability: self.nftProvider!,
                 nftType: Type<@{{.NFTProductName}}.NFT>(),
                 nftID: nftID,
                 salePaymentVaultType: Type<@DapperUtilityCoin.Vault>(),
-                saleCuts: [saleCut, royaltyCut],
+                saleCuts: self.allSaleCuts[i],
                 marketplacesCapability: self.marketplacesCapability.length == 0 ? nil : self.marketplacesCapability,
                 customID: self.customID,
                 commissionAmount: self.commissionAmount,
