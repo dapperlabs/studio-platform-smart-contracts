@@ -15,11 +15,14 @@ var (
 	//go:embed transactions/user/fulfill_pack_buyback_offer.cdc
 	AdminFulfillPackBuybackOffer []byte
 
-	//go:embed transactions/user/delist_NftStorefront.cdc
+	//go:embed transactions/user/delist_nftstorefront.cdc
 	DelistNFTStorefront []byte
 
-	//go:embed transactions/user/delist_NftStorefrontV2.cdc
+	//go:embed transactions/user/delist_nftstorefrontv2.cdc
 	DelistNFTStorefrontV2 []byte
+
+	//go:embed transactions/user/list_nftstorefrontv2.cdc
+	ListNFTStorefrontV2 []byte
 )
 
 type UserBuyPacksPrimarySaleParams struct {
@@ -144,6 +147,42 @@ func DelistNFTStorefrontV2TxScript(params DelistNFTStorefrontV2TxScriptParams) (
 		return "", err
 	}
 	bytes, err := utils.ParseCadenceTemplate(DelistNFTStorefrontV2, params)
+	if err != nil {
+		return "", err
+	}
+	return string(bytes), nil
+}
+
+type ListNFTStorefrontV2Params struct {
+	FungibleTokenContractAddress     string
+	NonFungibleTokenContractAddress  string
+	DapperUtilityCoinContractAddress string
+	NFTProductName                   string
+	NFTContractAddress               string
+	NFTStorefrontV2ContractAddress   string
+	NFTIDs                           string // comma-separated, e.g. "123,456"
+	Prices                           string // comma-separated, e.g. "10.0,20.0"
+}
+
+func (p ListNFTStorefrontV2Params) Validate() error {
+	if p.FungibleTokenContractAddress == "" ||
+		p.NonFungibleTokenContractAddress == "" ||
+		p.DapperUtilityCoinContractAddress == "" ||
+		p.NFTProductName == "" ||
+		p.NFTContractAddress == "" ||
+		p.NFTStorefrontV2ContractAddress == "" ||
+		p.NFTIDs == "" ||
+		p.Prices == "" {
+		return fmt.Errorf("all fields in AdminFulfillPackBuybackOfferParams must be non-empty")
+	}
+	return nil
+}
+
+func ListNFTStorefrontV2TxScript(params ListNFTStorefrontV2Params) (string, error) {
+	if err := params.Validate(); err != nil {
+		return "", err
+	}
+	bytes, err := utils.ParseCadenceTemplate(ListNFTStorefrontV2, params)
 	if err != nil {
 		return "", err
 	}
