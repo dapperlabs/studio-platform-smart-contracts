@@ -21,6 +21,9 @@ var (
 	//go:embed transactions/user/delist_nftstorefrontv2.cdc
 	DelistNFTStorefrontV2 []byte
 
+	//go:embed transactions/user/delist_topshotmarketv3.cdc
+	DelistTopShotMarketV3 []byte
+
 	//go:embed transactions/user/list_nftstorefrontv2.cdc
 	ListNFTStorefrontV2 []byte
 )
@@ -127,12 +130,12 @@ func DelistNFTStorefrontTxScript(params DelistNFTStorefrontTxScriptParams) (stri
 }
 
 type DelistNFTStorefrontV2TxScriptParams struct {
-	NFTStorefrontAddressV2 string
+	NFTStorefrontV2Address string
 	ListingResourceIDs     []uint64
 }
 
 func (p DelistNFTStorefrontV2TxScriptParams) Validate() error {
-	if p.NFTStorefrontAddressV2 == "" {
+	if p.NFTStorefrontV2Address == "" {
 		return fmt.Errorf("NFTStorefrontAddress must be non-empty")
 	}
 
@@ -176,7 +179,7 @@ func (p ListNFTStorefrontV2Params) Validate() error {
 		p.NFTStorefrontV2ContractAddress == "" ||
 		p.NFTIDs == "" ||
 		p.Prices == "" {
-		return fmt.Errorf("all fields in AdminFulfillPackBuybackOfferParams must be non-empty")
+		return fmt.Errorf("all fields in ListNFTStorefrontV2Params must be non-empty")
 	}
 	return nil
 }
@@ -186,6 +189,34 @@ func ListNFTStorefrontV2TxScript(params ListNFTStorefrontV2Params) (string, erro
 		return "", err
 	}
 	bytes, err := utils.ParseCadenceTemplate(ListNFTStorefrontV2, params)
+	if err != nil {
+		return "", err
+	}
+	return string(bytes), nil
+}
+
+type DelistTopShotMarketV3ScriptParams struct {
+	TopShotContractAddress          string
+	TopShotMarketContractAddress    string
+	NonFungibleTokenContractAddress string
+	NftIds                          []uint64
+}
+
+func (p DelistTopShotMarketV3ScriptParams) Validate() error {
+	if p.TopShotContractAddress == "" ||
+		p.TopShotMarketContractAddress == "" ||
+		p.NonFungibleTokenContractAddress == "" ||
+		len(p.NftIds) == 0 {
+		return fmt.Errorf("all fields in DelistTopShotMarketV3ScriptParams must be non-empty")
+	}
+	return nil
+}
+
+func DelistTopShotMarketV3Script(params DelistTopShotMarketV3ScriptParams) (string, error) {
+	if err := params.Validate(); err != nil {
+		return "", err
+	}
+	bytes, err := utils.ParseCadenceTemplate(DelistTopShotMarketV3, params)
 	if err != nil {
 		return "", err
 	}
