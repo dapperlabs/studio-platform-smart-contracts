@@ -188,6 +188,7 @@ func DelistTopShotMarketV3Script(params DelistTopShotMarketV3ScriptParams) (stri
 type ListNFTStorefrontV2Params struct {
 	FungibleTokenContractAddress     string
 	NonFungibleTokenContractAddress  string
+	MetadataViewsAddress             string
 	DapperUtilityCoinContractAddress string
 	TokenForwardingContractAddress   string
 	NFTProductName                   string
@@ -212,19 +213,20 @@ func (p ListNFTStorefrontV2Params) NFTIDsString() string {
 func (p ListNFTStorefrontV2Params) PricesString() string {
 	floatPrices := make([]string, len(p.PricesInCents))
 	for i, price := range p.PricesInCents {
-		floatPrices[i] = fmt.Sprintf("%f", float64(price)/float64(100))
+		floatPrices[i] = centsToUFix64String(price)
 	}
 	return strings.Join(floatPrices, ",")
 }
 
 // SaleCommissionPercentString converts the SaleCommissionPercent from an int to a string to be used by the template
 func (p ListNFTStorefrontV2Params) SaleCommissionPercentString() string {
-	return fmt.Sprintf("%f", float64(p.SaleCommissionPercent)/float64(100))
+	return centsToUFix64String(p.SaleCommissionPercent)
 }
 
 func (p ListNFTStorefrontV2Params) Validate() error {
 	if p.FungibleTokenContractAddress == "" ||
 		p.NonFungibleTokenContractAddress == "" ||
+		p.MetadataViewsAddress == "" ||
 		p.DapperUtilityCoinContractAddress == "" ||
 		p.NFTProductName == "" ||
 		p.NFTContractAddress == "" ||
@@ -248,4 +250,10 @@ func ListNFTStorefrontV2TxScript(params ListNFTStorefrontV2Params) (string, erro
 		return "", err
 	}
 	return string(bytes), nil
+}
+
+func centsToUFix64String(cents int) string {
+	// cents -> units with 8 decimal places
+	// 1 cent = 0.01 = 0.01000000
+	return fmt.Sprintf("%d.%08d", cents/100, (cents%100)*1_000_000)
 }
