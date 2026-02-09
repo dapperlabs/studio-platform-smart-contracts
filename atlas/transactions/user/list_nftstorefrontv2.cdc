@@ -43,6 +43,10 @@ transaction() {
         self.allSaleCuts = []                                                                                                                                                                                                     
         self.marketplacesCapability = []
 
+        let collectionDataOpt = {{.NFTProductName}}.resolveContractView(resourceType: Type<@{{.NFTProductName}}.NFT>(), viewType: Type<MetadataViews.NFTCollectionData>())
+            ?? panic("Missing collection data")
+        let collectionData = collectionDataOpt as! MetadataViews.NFTCollectionData
+
 
         // ************************* Handling of DUC Recevier *************************** //
         
@@ -62,33 +66,37 @@ transaction() {
         // *************************** Seller account interactions  *************************** //
 
         // This checks for the public capability
-        if !acct.capabilities.get<&{{.NFTProductName}}.Collection>({{.NFTProductName}}.CollectionPublicPath)!.check() {
-            acct.capabilities.unpublish({{.NFTProductName}}.CollectionPublicPath)
+        if !acct.capabilities.get<&{{.NFTProductName}}.Collection>(collectionData.publicPath)!.check() {
+            acct.capabilities.unpublish(collectionData.publicPath)
             acct.capabilities.publish(
-                acct.capabilities.storage.issue<&{{.NFTProductName}}.Collection>({{.NFTProductName}}.CollectionStoragePath),
-                at: {{.NFTProductName}}.CollectionPublicPath
+                acct.capabilities.storage.issue<&{{.NFTProductName}}.Collection>(collectionData.storagePath),
+                at: collectionData.publicPath
             )
         }
 
-        let PrivateCollectionPath = /storage/{{.NFTProductName}}CollectionProviderForNFTStorefront
-
-        // Temporary variable to handle capability assignment
-        var provider: Capability<auth(NonFungibleToken.Withdraw) &{NonFungibleToken.Collection}>? =
-            acct.storage.copy<Capability<auth(NonFungibleToken.Withdraw) &{NonFungibleToken.Collection}>>(from: PrivateCollectionPath)
-
-        if provider == nil {
-            provider = acct.capabilities.storage.issue<auth(NonFungibleToken.Withdraw) &{NonFungibleToken.Collection}>({{.NFTProductName}}.CollectionStoragePath)
-            acct.capabilities.storage.getController(byCapabilityID: provider!.id)!.setTag("{{.NFTProductName}}CollectionProviderForNFTStorefront")
-            // Save the capability to the account storage
-            acct.storage.save(provider!, to: PrivateCollectionPath)
+        var nftProviderCap: Capability<auth(NonFungibleToken.Withdraw) &{NonFungibleToken.Collection}>? = nil
+        // check if there is an existing capability/capability controller for the storage path
+        let nftCollectionControllers = acct.capabilities.storage.getControllers(forPath: collectionData.storagePath)
+        for controller in nftCollectionControllers {
+            if let maybeProviderCap = controller.capability as? Capability<auth(NonFungibleToken.Withdraw) &{NonFungibleToken.Collection}>? {
+                nftProviderCap = maybeProviderCap
+                break
+            }
         }
 
-        self.nftProvider = provider
-        assert(self.nftProvider?.borrow() != nil, message: "Missing or mis-typed {{.NFTProductName}}.Collection provider")
+        // if there are no capabilities created for that storage path
+        // or if existing capability is no longer valid, issue a new one
+        if nftProviderCap == nil || nftProviderCap?.check() ?? false {
+            nftProviderCap = acct.capabilities.storage.issue<auth(NonFungibleToken.Withdraw) &{NonFungibleToken.Collection}>(
+                collectionData.storagePath
+            )
+        }
+        assert(nftProviderCap?.check() ?? false, message: "Could not assign Provider Capability")
 
+        self.nftProvider = nftProviderCap!
 
         let collectionRef = acct
-        .capabilities.borrow<&{{.NFTProductName}}.Collection>({{.NFTProductName}}.CollectionPublicPath)
+        .capabilities.borrow<&{{.NFTProductName}}.Collection>(collectionData.publicPath)
         ?? panic("Could not borrow a reference to the collection")
 
 
