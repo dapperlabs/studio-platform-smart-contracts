@@ -20,8 +20,8 @@ transaction() {
 
     // 'customID' - Optional string to represent identifier of the dapp.
     let customID: String
-    // 'commissionAmount' - Commission amount that will be taken away by the purchase facilitator i.e marketplacesAddress.
-    let commissionAmount: UFix64
+    // 'commissionAmounts' - Commission amount that will be taken away by the purchase facilitator i.e marketplacesAddress.
+    let commissionAmounts: [UFix64]
     // 'marketplacesAddress' - List of addresses that are allowed to get the commission.
     let marketplaceAddress: [Address]
     // we only ever want to use DapperUtilityCoin
@@ -30,11 +30,10 @@ transaction() {
 
     prepare(acct: auth(Storage, Capabilities) &Account) {
         // Initialize NFT IDs and buyback prices
-        self.nftIDs = [{{.NFTIDs}}]
-        self.prices = [{{.Prices}}]
+        self.nftIDs = [{{.NFTIDsString}}]
+        self.prices = [{{.PricesString}}]
 
         self.customID = "DAPPER_MARKETPLACE"
-        self.commissionAmount = {{.SaleCommissionAmount}}
         self.marketplaceAddress = [0x{{.NFTContractAddress}}]
         // we only ever want to use DapperUtilityCoin
         self.universalDucReceiver = 0x{{.DapperUtilityCoinContractAddress}}
@@ -42,6 +41,9 @@ transaction() {
 
         self.allSaleCuts = []                                                                                                                                                                                                     
         self.marketplacesCapability = []
+        self.commissionAmounts = []
+
+        let commissionPercent = {{.SaleCommissionPercentString}}
 
         let collectionDataOpt = {{.NFTProductName}}.resolveContractView(resourceType: Type<@{{.NFTProductName}}.NFT>(), viewType: Type<MetadataViews.NFTCollectionData>())
             ?? panic("Missing collection data")
@@ -105,9 +107,10 @@ transaction() {
         for i, nftID in self.nftIDs {
             var saleCutsForThisNFT: [NFTStorefrontV2.SaleCut] = []         
             var totalRoyaltyCut = 0.0
+            var commissionAmount = commissionPercent * self.prices[i]
 
             let nft = collectionRef.borrowNFT(self.nftIDs[i])!
-            let effectiveSaleItemPrice = self.prices[i] - self.commissionAmount
+            let effectiveSaleItemPrice = self.prices[i] - commissionAmount
 
             // Check whether the NFT implements the MetadataResolver or not.
             if nft.getViews().contains(Type<MetadataViews.Royalties>()) {
@@ -129,7 +132,8 @@ transaction() {
                 amount: effectiveSaleItemPrice - totalRoyaltyCut                                                                                                                                                                  
             ))                                                                                                                                                                                                                    
                                                                                                                                                                                                                                 
-            self.allSaleCuts.append(saleCutsForThisNFT)     
+            self.allSaleCuts.append(saleCutsForThisNFT)
+            self.commissionAmounts.append(commissionAmount)
         }
 
         // If the account doesn't already have a Storefront
@@ -169,7 +173,7 @@ transaction() {
                 saleCuts: self.allSaleCuts[i],
                 marketplacesCapability: self.marketplacesCapability.length == 0 ? nil : self.marketplacesCapability,
                 customID: self.customID,
-                commissionAmount: self.commissionAmount,
+                commissionAmount: self.commissionAmounts[i] ,
                 expiry: {{.Expiry}}
             )
         }

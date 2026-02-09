@@ -3,6 +3,7 @@ package atlas
 import (
 	_ "embed"
 	"fmt"
+	"strings"
 
 	"github.com/dapperlabs/studio-platform-smart-contracts/utils"
 )
@@ -192,10 +193,33 @@ type ListNFTStorefrontV2Params struct {
 	NFTProductName                   string
 	NFTContractAddress               string
 	NFTStorefrontV2ContractAddress   string
-	NFTIDs                           string // comma-separated, e.g. "123,456"
-	Prices                           string // comma-separated, e.g. "10.0,20.0"
-	SaleCommissionAmount             string // e.g. "0.05" for 5%
+	NFTIDs                           []uint64
+	PricesInCents                    []int
+	SaleCommissionPercent            int    // e.g. 5 for 5%
 	Expiry                           string // Unix timestamp as string
+}
+
+// NFTIDsString converts the NFTIDs from an array of uint64 to a string to be used by the template
+func (p ListNFTStorefrontV2Params) NFTIDsString() string {
+	nftIDStrings := make([]string, len(p.NFTIDs))
+	for i, id := range p.NFTIDs {
+		nftIDStrings[i] = fmt.Sprintf("%d", id)
+	}
+	return strings.Join(nftIDStrings, ", ")
+}
+
+// PricesString converts the PricesInCents from an array of int to a string to be used by the template
+func (p ListNFTStorefrontV2Params) PricesString() string {
+	floatPrices := make([]string, len(p.PricesInCents))
+	for i, price := range p.PricesInCents {
+		floatPrices[i] = fmt.Sprintf("%f", float64(price)/float64(100))
+	}
+	return strings.Join(floatPrices, ",")
+}
+
+// SaleCommissionPercentString converts the SaleCommissionPercent from an int to a string to be used by the template
+func (p ListNFTStorefrontV2Params) SaleCommissionPercentString() string {
+	return fmt.Sprintf("%f", float64(p.SaleCommissionPercent)/float64(100))
 }
 
 func (p ListNFTStorefrontV2Params) Validate() error {
@@ -205,9 +229,12 @@ func (p ListNFTStorefrontV2Params) Validate() error {
 		p.NFTProductName == "" ||
 		p.NFTContractAddress == "" ||
 		p.NFTStorefrontV2ContractAddress == "" ||
-		p.NFTIDs == "" ||
-		p.Prices == "" {
+		len(p.NFTIDs) == 0 ||
+		len(p.PricesInCents) == 0 {
 		return fmt.Errorf("all fields in ListNFTStorefrontV2Params must be non-empty")
+	}
+	if len(p.NFTIDs) != len(p.PricesInCents) {
+		return fmt.Errorf("NFTIDs and pricesInCents must have the same length")
 	}
 	return nil
 }
