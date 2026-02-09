@@ -14,7 +14,7 @@ transaction() {
     let nftIds: [UInt64]
 
     prepare(acct: auth(Storage, Capabilities) &Account) {
-        self.nftIds = {{.NftIds}}
+        self.nftIds = [{{.NftIds}}]
 
         // borrow a reference to the owner's sale collection
         if let topshotSaleV3Collection = acct.storage.borrow<auth(TopShotMarketV3.Cancel) &TopShotMarketV3.SaleCollection>(from: TopShotMarketV3.marketStoragePath) {
