@@ -3,6 +3,7 @@ package atlas
 import (
 	_ "embed"
 	"fmt"
+	"strings"
 
 	"github.com/dapperlabs/studio-platform-smart-contracts/utils"
 )
@@ -15,11 +16,17 @@ var (
 	//go:embed transactions/user/fulfill_pack_buyback_offer.cdc
 	AdminFulfillPackBuybackOffer []byte
 
-	//go:embed transactions/user/delist_NftStorefront.cdc
+	//go:embed transactions/user/delist_nftstorefront.cdc
 	DelistNFTStorefront []byte
 
-	//go:embed transactions/user/delist_NftStorefrontV2.cdc
+	//go:embed transactions/user/delist_nftstorefrontv2.cdc
 	DelistNFTStorefrontV2 []byte
+
+	//go:embed transactions/user/delist_topshotmarketv3.cdc
+	DelistTopShotMarketV3 []byte
+
+	//go:embed transactions/user/list_nftstorefrontv2.cdc
+	ListNFTStorefrontV2 []byte
 )
 
 type UserBuyPacksPrimarySaleParams struct {
@@ -124,12 +131,12 @@ func DelistNFTStorefrontTxScript(params DelistNFTStorefrontTxScriptParams) (stri
 }
 
 type DelistNFTStorefrontV2TxScriptParams struct {
-	NFTStorefrontAddressV2 string
+	NFTStorefrontV2Address string
 	ListingResourceIDs     []uint64
 }
 
 func (p DelistNFTStorefrontV2TxScriptParams) Validate() error {
-	if p.NFTStorefrontAddressV2 == "" {
+	if p.NFTStorefrontV2Address == "" {
 		return fmt.Errorf("NFTStorefrontAddress must be non-empty")
 	}
 
@@ -148,4 +155,105 @@ func DelistNFTStorefrontV2TxScript(params DelistNFTStorefrontV2TxScriptParams) (
 		return "", err
 	}
 	return string(bytes), nil
+}
+
+type DelistTopShotMarketV3ScriptParams struct {
+	TopShotContractAddress          string
+	TopShotMarketContractAddress    string
+	NonFungibleTokenContractAddress string
+	NftIds                          []uint64
+}
+
+func (p DelistTopShotMarketV3ScriptParams) Validate() error {
+	if p.TopShotContractAddress == "" ||
+		p.TopShotMarketContractAddress == "" ||
+		p.NonFungibleTokenContractAddress == "" ||
+		len(p.NftIds) == 0 {
+		return fmt.Errorf("all fields in DelistTopShotMarketV3ScriptParams must be non-empty")
+	}
+	return nil
+}
+
+func DelistTopShotMarketV3Script(params DelistTopShotMarketV3ScriptParams) (string, error) {
+	if err := params.Validate(); err != nil {
+		return "", err
+	}
+	bytes, err := utils.ParseCadenceTemplate(DelistTopShotMarketV3, params)
+	if err != nil {
+		return "", err
+	}
+	return string(bytes), nil
+}
+
+type ListNFTStorefrontV2Params struct {
+	FungibleTokenContractAddress     string
+	NonFungibleTokenContractAddress  string
+	MetadataViewsAddress             string
+	DapperUtilityCoinContractAddress string
+	TokenForwardingContractAddress   string
+	NFTProductName                   string
+	NFTContractAddress               string
+	NFTStorefrontV2ContractAddress   string
+	NFTIDs                           []uint64
+	PricesInCents                    []int
+	SaleCommissionPercent            int    // e.g. 5 for 5%
+	Expiry                           string // Unix timestamp as string
+}
+
+// NFTIDsString converts the NFTIDs from an array of uint64 to a string to be used by the template
+func (p ListNFTStorefrontV2Params) NFTIDsString() string {
+	nftIDStrings := make([]string, len(p.NFTIDs))
+	for i, id := range p.NFTIDs {
+		nftIDStrings[i] = fmt.Sprintf("%d", id)
+	}
+	return strings.Join(nftIDStrings, ", ")
+}
+
+// PricesString converts the PricesInCents from an array of int to a string to be used by the template
+func (p ListNFTStorefrontV2Params) PricesString() string {
+	floatPrices := make([]string, len(p.PricesInCents))
+	for i, price := range p.PricesInCents {
+		floatPrices[i] = centsToUFix64String(price)
+	}
+	return strings.Join(floatPrices, ",")
+}
+
+// SaleCommissionPercentString converts the SaleCommissionPercent from an int to a string to be used by the template
+func (p ListNFTStorefrontV2Params) SaleCommissionPercentString() string {
+	return centsToUFix64String(p.SaleCommissionPercent)
+}
+
+func (p ListNFTStorefrontV2Params) Validate() error {
+	if p.FungibleTokenContractAddress == "" ||
+		p.NonFungibleTokenContractAddress == "" ||
+		p.MetadataViewsAddress == "" ||
+		p.DapperUtilityCoinContractAddress == "" ||
+		p.NFTProductName == "" ||
+		p.NFTContractAddress == "" ||
+		p.NFTStorefrontV2ContractAddress == "" ||
+		len(p.NFTIDs) == 0 ||
+		len(p.PricesInCents) == 0 {
+		return fmt.Errorf("all fields in ListNFTStorefrontV2Params must be non-empty")
+	}
+	if len(p.NFTIDs) != len(p.PricesInCents) {
+		return fmt.Errorf("NFTIDs and pricesInCents must have the same length")
+	}
+	return nil
+}
+
+func ListNFTStorefrontV2TxScript(params ListNFTStorefrontV2Params) (string, error) {
+	if err := params.Validate(); err != nil {
+		return "", err
+	}
+	bytes, err := utils.ParseCadenceTemplate(ListNFTStorefrontV2, params)
+	if err != nil {
+		return "", err
+	}
+	return string(bytes), nil
+}
+
+func centsToUFix64String(cents int) string {
+	// cents -> units with 8 decimal places
+	// 1 cent = 0.01 = 0.01000000
+	return fmt.Sprintf("%d.%08d", cents/100, (cents%100)*1_000_000)
 }

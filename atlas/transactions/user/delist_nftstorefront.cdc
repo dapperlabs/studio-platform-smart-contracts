@@ -10,7 +10,7 @@ transaction() {
     }
 
     execute {
-        let listingResourceIDs: [Uint64] = [{{.listingResourceIDs}}]
+        let listingResourceIDs: [Uint64] = [{{.ListingResourceIDs}}]
         for resourceID in listingResourceIDs {
             self.storefront.removeListing(listingResourceID: resourceID)
         }
