@@ -180,7 +180,7 @@ access(all) contract NFTProviderAggregator {
 
         /// Borrow the collection of an NFT located in one of multiple collections through iterating over each collection
         ///
-        access(all) view fun borrowNFTCollection(id: UInt64): &{NonFungibleToken.Provider, NonFungibleToken.CollectionPublic} {
+        access(all) view fun borrowNFTCollection(id: UInt64): &{NonFungibleToken.Provider, NonFungibleToken.CollectionPublic}? {
             for collectionUUID in self.nftProviderCapabilities.keys {
                 // Check capabilities can still be borrowed since a NFT provider capability may pass the
                 // pre-condition checks at the time of being added with the addNFTWithdrawCapability method but
@@ -204,7 +204,7 @@ access(all) contract NFTProviderAggregator {
                     }
                 }
             }
-            panic("missing NFT")
+            return nil
         }
 
         /// Withdraw an NFT located in one of multiple collections through iterating over each collection
@@ -215,8 +215,8 @@ access(all) contract NFTProviderAggregator {
 
         /// Borrow an NFT located in one of multiple collections through iterating over each collection
         ///
-        access(all) view fun borrowNFT(id: UInt64): &{NonFungibleToken.NFT} {
-            return self.borrowNFTCollection(id: id).borrowNFT(id)!
+        access(all) view fun borrowNFT(id: UInt64): &{NonFungibleToken.NFT}? {
+            return self.borrowNFTCollection(id: id)?.borrowNFT(id) ?? nil
         }
 
         /// Create and return a Supplier resource
